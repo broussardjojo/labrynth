@@ -1,6 +1,6 @@
+import json
 import socket
 import sys
-import subprocess
 from json import JSONDecoder
 
 
@@ -45,7 +45,8 @@ if __name__ == "__main__":
             data = conn.recv(1024)
             output = output + parse_data(data.decode())
             if not data:
-                conn.sendall((str(output) + '\n').encode())
+                json_out = json.dumps(output, ensure_ascii=False)
+                conn.sendall((str(json_out) + '\n').encode())
                 break
         conn.close()
     s.close()
