@@ -1,0 +1,12 @@
+Pair: mactaggartt-rodriguezdia
+Commit: 25f611f2317ada4ae8ccf557b33e06bed047f4ef
+Self-eval: 
+Score: 20/40
+Grader: Rajat Keshri
+
+Reason - 
+-10: Window does not close on mouse click
+-10: Coordinates are printed in two strings and not in an array
+
+<free text>
+Commit URL: https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/tree/25f611f2317ada4ae8ccf557b33e06bed047f4ef
