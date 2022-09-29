@@ -12,14 +12,23 @@ So, indicate below each bullet which file/unit takes care of each task:
 
 1. dealing with the command-line argument (PORT)
 
+    Where we taking in the command-line argument and pass it to the python function:
+    https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/52e14c29e509c45b33516855c068c9b6e9abd174/E/xtcp#L2
+    
+    Where we parse the command-line argument in python:
+    https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/52e14c29e509c45b33516855c068c9b6e9abd174/E/Other/xtcp.py#L37
 
+    In python, this is one line of code, so we didn't think it was worth factoring out since that would end up being more lines of code.
 
 2. connecting the client on the specified port to the functionality
 
+    https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/52e14c29e509c45b33516855c068c9b6e9abd174/E/Other/xtcp.py#L38-L41
 
+    We didn't factor out this functionality.
 
 3. core functionality (either copied or imported from `C`)
 
+    https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/52e14c29e509c45b33516855c068c9b6e9abd174/E/Other/xtcp.py#L7-L33
 
 
 The ideal feedback for each of these three points is a GitHub
