@@ -1,0 +1,189 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/E/xtcp)
+(testing /course/cs4500f22/ta/github/E/52/Tests/0-in.json /course/cs4500f22/ta/github/E/52/Tests/0-out.json)
+(testing /course/cs4500f22/ta/github/E/52/Tests/1-in.json /course/cs4500f22/ta/github/E/52/Tests/1-out.json)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+---------------------------------
+(*** score 1/2)
+(*** on)
+'(#hasheq((horizontal . "LEFT") (vertical . "UP"))
+  #hasheq((horizontal . "RIGHT") (vertical . "UP"))
+  #hasheq((horizontal . "LEFT") (vertical . "DOWN"))
+  #hasheq((horizontal . "RIGHT") (vertical . "DOWN")))
+(*** expected)
+'(("┘" "└" "┐" "┌"))
+(*** but received)
+'(((plain fast with-newline plain-unicode) (("┘" "└" "┐" "┌")))
+  ((plain fast with-newline escaped-unicode) (("┘" "└" "┐" "┌")))
+  ((plain fast with-space plain-unicode) (("┘" "└" "┐" "┌")))
+  ((plain fast with-space escaped-unicode) (("┘" "└" "┐" "┌")))
+  ((plain slow with-newline plain-unicode) ())
+  ((plain slow with-newline escaped-unicode) ())
+  ((plain slow with-space plain-unicode) ())
+  ((plain slow with-space escaped-unicode) ())
+  ((pretty fast with-newline plain-unicode) (("┘" "└" "┐" "┌")))
+  ((pretty fast with-newline escaped-unicode) (("┘" "└" "┐" "┌")))
+  ((pretty fast with-space plain-unicode) (("┘" "└" "┐" "┌")))
+  ((pretty fast with-space escaped-unicode) (("┘" "└" "┐" "┌")))
+  ((pretty slow with-newline plain-unicode) ())
+  ((pretty slow with-newline escaped-unicode) ())
+  ((pretty slow with-space plain-unicode) ())
+  ((pretty slow with-space escaped-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/E/52/Tests/2-in.json /course/cs4500f22/ta/github/E/52/Tests/2-out.json)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+Traceback (most recent call last):
+  File "Other/xtcp.py", line 46, in <module>
+    output = output + parse_data(data.decode())
+  File "Other/xtcp.py", line 16, in parse_data
+    json_obj, index = decoder.raw_decode(stdin)
+  File "/usr/lib64/python3.6/json/decoder.py", line 355, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+---------------------------------
+(*** score 1/2)
+(*** on)
+'(#hasheq((horizontal . "LEFT") (vertical . "DOWN"))
+  #hasheq((horizontal . "RIGHT") (vertical . "UP")))
+(*** expected)
+'(("┐" "└"))
+(*** but received)
+'(((plain fast with-newline plain-unicode) (("┐" "└")))
+  ((plain fast with-newline escaped-unicode) (("┐" "└")))
+  ((plain fast with-space plain-unicode) (("┐" "└")))
+  ((plain fast with-space escaped-unicode) (("┐" "└")))
+  ((plain slow with-newline plain-unicode) ())
+  ((plain slow with-newline escaped-unicode) ())
+  ((plain slow with-space plain-unicode) ())
+  ((plain slow with-space escaped-unicode) ())
+  ((pretty fast with-newline plain-unicode) (("┐" "└")))
+  ((pretty fast with-newline escaped-unicode) (("┐" "└")))
+  ((pretty fast with-space plain-unicode) (("┐" "└")))
+  ((pretty fast with-space escaped-unicode) (("┐" "└")))
+  ((pretty slow with-newline plain-unicode) ())
+  ((pretty slow with-newline escaped-unicode) ())
+  ((pretty slow with-space plain-unicode) ())
+  ((pretty slow with-space escaped-unicode) ()))
+
+
+((/course/cs4500f22/ta/github/E/52/Tests/0-in.json /course/cs4500f22/ta/github/E/52/Tests/0-out.json))
+((passed 1) (total 3) (partial-score 2))
+

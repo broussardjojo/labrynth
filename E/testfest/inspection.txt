@@ -1,0 +1,8 @@
+Pair: mactaggartt-rodriguezdia
+Commit: 52e14c29e509c45b33516855c068c9b6e9abd174
+Self-eval: https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/29de5efdf016004a42a802cc32c5d0d32944d9ab/E/self-E.md
+Score: 20/30
+Grader: Rashi Jain
+
+Note - TCP functions are not properly created
+Commit URL: https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/tree/52e14c29e509c45b33516855c068c9b6e9abd174
