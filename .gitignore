@@ -1,3 +1,6 @@
 .idea
 venv
 Maze/Common/.pytest_cache
+.DS_Store
+Maze/.DS_Store
+Maze/Common/__pycache__/

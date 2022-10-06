@@ -1,54 +1,34 @@
+from gem import Gem
+from shapes import Shape
+
+
 class Tile:
-    def __init__(self, top: bool, bottom: bool, left: bool, right: bool):
+    """
+    A Tile is a game piece to make the board and has a Shape and two Gems.
+    """
+    def __init__(self, shape: Shape, gem1: Gem, gem2: Gem):
         """
-        This constructor creates a Tile with four paths.
-        :param top: boolean representing whether or not the top path exists
-        :param bottom: boolean representing whether or not the bottom path exists
-        :param left: boolean representing whether or not the left path exists
-        :param right: boolean representing whether or not the right path exists
+        A constructor to create a tile, provided with a Shape and two Gems
+        :param shape: A Shape which represents one of the four canonical shapes in the game labyrinth
+        :param gem1: A Gem which represents one of the gems on the tile
+        :param gem2: A Gem which represents the other gem on the tile
         """
+        self.__shape = shape
+        self.__gem1 = gem1
+        self.__gem2 = gem2
 
-        if self.__check_valid_tile(top, bottom, left, right):
-            self.top = top
-            self.bottom = bottom
-            self.left = left
-            self.right = right
-        else:
-            raise ValueError("Invalid tile")
+    def get_gems(self) -> (Gem, Gem):
+        return self.__gem1, self.__gem2
 
-    def __check_valid_tile(self, top: bool, bottom: bool, left: bool, right: bool):
-        return sum([top, bottom, left, right]) >= 2
-
-    def rotate(self, rotations: int):
+    def __eq__(self, other) -> bool:
         """
-        This method rotates this tile n times, where n is the number of rotations passed in.
-        side effect: mutates the tile's paths
-        :param rotations: int which represents the number of 90 degree rotations to perform on the tile, must be a
-        positive number
-        :return: None
+        Override of the equals method to allow us to create custom equality between two Tiles, a Tile is equal
+         to another Tile when its shape is the same and both gems are the same
+        :param other: The other Tile to compare to this tile for equality
+        :return: True if the tiles are equal, False otherwise
         """
-        for i in range(rotations):
-            self.__rotate_helper()
-
-    def __rotate_helper(self):
-        """
-        This method rotates this tile 90 degrees to the right
-        side effect: mutates the tile's paths
-        :return: None
-        """
-        old_top: bool = self.top
-        old_bottom: bool = self.bottom
-        old_left: bool = self.left
-        old_right: bool = self.right
-
-        self.top = old_left
-        self.right = old_top
-        self.bottom = old_right
-        self.left = old_bottom
-
-
-    def __eq__(self, other):
         if isinstance(other, Tile):
-            return self.right == other.right and self.left == other.left \
-                   and self.top == other.top and self.bottom == other.bottom
+            return self.__shape == other.__shape \
+                   and self.__gem1 == other.__gem1\
+                   and self.__gem2 == other.__gem2
         return False

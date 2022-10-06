@@ -1,42 +1,55 @@
 import pytest
-
-import tile
-
-
-@pytest.fixture
-def corner_one():
-    return tile.Tile(False, True, True, False)
+from tile import Tile
+from shapes import Corner, Line, TShaped, Cross
+from gem import Gem
 
 
 @pytest.fixture
-def corner_two():
-    return tile.Tile(True, False, True, False)
+def basic_corner():
+    return Corner(0)
 
 
 @pytest.fixture
-def line_one():
-    return tile.Tile(True, False, True, False)
-
-@pytest.fixture
-def line_two():
-    return tile.Tile(True, False, True, False)
+def basic_line():
+    return Line(0)
 
 
 @pytest.fixture
-def cross():
-    return tile.Tile(True, False, True, False)
+def basic_t_shape():
+    return TShaped(0)
 
 
 @pytest.fixture
-def t_one():
-    return tile.Tile(True, False, True, False)
+def basic_cross():
+    return Cross()
 
 
 @pytest.fixture
-def t_two():
-    return tile.Tile(True, False, True, False)
+def alexandrite_gem():
+    return Gem('alexandrite')
 
 
-def test_rotate_90_degrees(tile1, tile2):
-    tile1.rotate(1)
-    assert tile1 == tile2
+@pytest.fixture
+def amethyst_gem():
+    return Gem('amethyst')
+
+
+@pytest.fixture
+def emerald_gem():
+    return Gem('emerald')
+
+
+def test_tile_constructor_corner(basic_corner, alexandrite_gem, amethyst_gem):
+    Tile(basic_corner, alexandrite_gem, amethyst_gem)
+
+
+def test_tile_constructor_line(basic_line, alexandrite_gem, emerald_gem):
+    Tile(basic_line, alexandrite_gem, emerald_gem)
+
+
+def test_tile_constructor_cross(basic_cross, emerald_gem):
+    Tile(basic_cross, emerald_gem, emerald_gem)
+
+
+def test_tile_constructor_t_shaped(basic_t_shape, amethyst_gem, emerald_gem):
+    Tile(basic_t_shape, amethyst_gem, emerald_gem)
