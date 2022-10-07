@@ -2,6 +2,7 @@ from typing import List
 
 from gem import Gem
 from shapes import Shape
+from direction import Direction
 
 
 class Tile:
@@ -33,7 +34,6 @@ class Tile:
         :param gem2: the second Gem being compared to this Tile's gems
         :return: True if this Tile contains the given two gems, false otherwise
         """
-
         return (gem1 == self.__gem1 and gem2 == self.__gem2) or \
                (gem1 == self.__gem2 and gem2 == self.__gem1)
 
@@ -49,4 +49,12 @@ class Tile:
                    and self.__gem1 == other.__gem1\
                    and self.__gem2 == other.__gem2
         return False
+
+    def has_path(self, path_direction: Direction) -> bool:
+        """
+        Determines if this Tile has a path in the given direction
+        :param path_direction: a Direction representing the direction to check for a path
+        :return: True if this Tile has a path in the given direction, otherwise False
+        """
+        return self.__shape.has_path(path_direction)
 

@@ -9,6 +9,11 @@ def basic_board():
     return Board()
 
 
+@pytest.fixture
+def seeded_small_board():
+    return Board(3, seed=10)
+
+
 # Test for the Board Constructor
 def test_board_constructor():
     Board()
@@ -142,3 +147,25 @@ def test_insert_no_gap(basic_board):
     with pytest.raises(ValueError) as error_message:
         basic_board.insert_tile()
     assert str(error_message.value) == 'No empty slots'
+
+
+# ----- Test reachable_tiles method ------
+# verifies that the set of reachable tiles does not includes the base tile
+def test_reachable_tile_not_include_base(basic_board):
+    base_tile = basic_board.get_tile_grid()[2][2]
+    reachable_tiles = basic_board.reachable_tiles(base_tile)
+    assert base_tile not in reachable_tiles
+
+
+def test_reachable_tiles_seeded_board(seeded_small_board):
+    base_tile = seeded_small_board.get_tile_grid()[1][1]
+    up_neighbor = seeded_small_board.get_tile_grid()[0][1]
+    reachable_tiles = seeded_small_board.reachable_tiles(base_tile)
+    assert up_neighbor in reachable_tiles
+
+
+def test_reachable_tiles_not_reachable_seeded_board(seeded_small_board):
+    base_tile = seeded_small_board.get_tile_grid()[1][1]
+    right_neighbor = seeded_small_board.get_tile_grid()[1][2]
+    reachable_tiles = seeded_small_board.reachable_tiles(base_tile)
+    assert right_neighbor not in reachable_tiles

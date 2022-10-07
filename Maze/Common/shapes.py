@@ -1,4 +1,5 @@
 from abc import ABC
+from direction import Direction
 
 
 class Shape(ABC):
@@ -11,7 +12,7 @@ class Shape(ABC):
         self.__top = top
         self.__bottom = bottom
 
-    def rotate(self, rotations: int):
+    def rotate(self, rotations: int) -> None:
         """
         This method rotates this Shape n times, where n is the number of rotations passed in.
         side effect: mutates the Shape's paths
@@ -22,7 +23,7 @@ class Shape(ABC):
         for i in range(rotations):
             self.__rotate_helper()
 
-    def __rotate_helper(self):
+    def __rotate_helper(self) -> None:
         """
         This method rotates this Shape 90 degrees to the right
         side effect: mutates the Shape's paths
@@ -38,7 +39,7 @@ class Shape(ABC):
         self.__bottom = old_right
         self.__left = old_bottom
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Overrides equals. This Shape is equal to another Shape if they have the same paths.
         :param other: Any, to be compared to this Shape
@@ -51,6 +52,21 @@ class Shape(ABC):
                    and self.__bottom == other.__bottom
         return False
 
+    def has_path(self, path_direction: Direction) -> bool:
+        """
+        Determines whether this Shape has a path in the given Direction
+        :param path_direction: a Direction representing the path to check
+        :return: True if this Shape has a path in the given Direction, otherwise False
+        """
+        if path_direction == Direction.Right:
+            return self.__right
+        elif path_direction == Direction.Left:
+            return self.__left
+        elif path_direction == Direction.Up:
+            return self.__top
+        else:
+            return self.__bottom
+
 
 class Corner(Shape):
     """
@@ -60,6 +76,7 @@ class Corner(Shape):
         """
         Initializes the default Corner orientation and rotates to the desired shape
         :param rotations: The number of 90 degree rotations to perform upon initialization, must be positive
+        :raises ValueError if the base rotations are less than 0
         """
         super().__init__(True, True, False, False)
         if rotations < 0:
@@ -75,6 +92,7 @@ class Line(Shape):
         """
         Initializes the default Line orientation and rotates to the desired shape
         :param rotations: The number of 90 degree rotations to perform upon initialization, must be positive
+        :raises ValueError if the base rotations are less than 0
         """
         super().__init__(True, False, True, False)
         if rotations < 0:
@@ -90,6 +108,7 @@ class TShaped(Shape):
         """
         Initializes the default T-Shaped orientation and rotates to the desired shape
         :param rotations: The number of 90 degree rotations to perform upon initialization, must be positive
+        :raises ValueError if the base rotations are less than 0
         """
         super().__init__(False, True, True, True)
         if rotations < 0:

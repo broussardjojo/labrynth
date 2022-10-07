@@ -12,17 +12,19 @@ class Board:
     A Board is a representation of a Labrynth game board of size N by N, defaulting to 7. A Board has a grid of Tiles
     and an extra Tile.
     """
-
-    UP = 1
-    DOWN = -1
+    UP = -1
+    DOWN = 1
     LEFT = -1
     RIGHT = 1
 
-    def __init__(self, dimensions: int = 7):
+    def __init__(self, dimensions: int = 7, **kwargs):
         """
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
+        It creates a tile_grid, generates the next_tile and creates an empty removed_tile
         :param dimensions: an integer representing the length and width of the board
         """
+        if 'seed' in kwargs:
+            random.seed(kwargs['seed'])
         gem_name_list = generate_gem_list()
         self.__dimensions = dimensions
         self.__tile_grid = []
@@ -197,6 +199,7 @@ class Board:
         """
         Inserts a tile where there is a gap in this Board.
         :return: None
+        :raises: ValueError if there are no gaps in this Board
         side effect: mutates __tile_grid and __next_tile
         """
         for row in range(len(self.__tile_grid)):
@@ -207,12 +210,22 @@ class Board:
                     return
         raise ValueError("No empty slots")
 
-    def reachable_tiles(self, base_tile: Tile, acc_tiles: Set[Tile] = None) -> Set[Tile]:
+    def reachable_tiles(self, base_tile: Tile) -> Set[Tile]:
+        """
+        Given a base Tile, gets a Set of reachable Tiles on this Board
+        :param base_tile: the Tile representing the start Tile for the search
+        :return: a Set of all reachable Tiles not including the base Tile
+        """
+        all_reachable = self.__reachable_tiles_helper(base_tile)
+        all_reachable.remove(base_tile)
+        return all_reachable
+
+    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles: Set[Tile] = None) -> Set[Tile]:
         """
         Given a base Tile, gets a Set of reachable Tiles on this Board
         :param base_tile: the Tile representing the start Tile for the search
         :param acc_tiles: accumulator representing the Set of all reachable Tiles
-        :return: a Set of all reachable Tiles
+        :return: a Set of all reachable Tiles including the base Tile
         """
         if acc_tiles is None:
             acc_tiles = []
@@ -220,15 +233,73 @@ class Board:
         for direction in [self.RIGHT, self.LEFT]:
             neighbor = self.__check_neighbor(base_tile, 0, direction)
             if neighbor not in acc_tiles:
-                self.reachable_tiles(neighbor, acc_tiles)
+                self.__reachable_tiles_helper(neighbor, acc_tiles)
         for direction in [self.UP, self.DOWN]:
             neighbor = self.__check_neighbor(base_tile, direction, 0)
             if neighbor not in acc_tiles:
-                self.reachable_tiles(neighbor, acc_tiles)
+                self.__reachable_tiles_helper(neighbor, acc_tiles)
         return acc_tiles
 
+    @staticmethod
+    def __connected_tile(base_tile: Tile, neighbor_tile: Tile, base_path: Direction, neighbor_path: Direction) \
+            -> Tile:
+        """
+        Checks if the two given Tiles are connected in the given Directions
+        :param base_tile: The source Tile to check the connection of
+        :param neighbor_tile: The neighbor Tile to check the connection of
+        :param base_path: A Direction representing the Direction to check from the base_tile
+        :param neighbor_path: A Direction representing the Direction to check from the neighbor_path
+        :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
+        it will return the given base Tile
+        """
+        if base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path):
+            return neighbor_tile
+        return base_tile
+
     def __check_neighbor(self, base_tile, row_offset: int, col_offset: int) -> Tile:
-        pass
+        """
+        Checks if the given Tile has a connected neighbor at the given offsets
+        :param base_tile: A Tile representing the source tile to search from
+        :param row_offset: An int representing the offset in the x direction between the base and neighbor tile
+        :param col_offset: An int representing the offset in the y direction between the base and neighbor tile
+        :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
+        it will return the given base Tile
+        """
+        base_row, base_col = self.__get_index_by_tile(base_tile)
+        if self.__valid_tile_location(base_row + row_offset, base_col + col_offset):
+            neighbor_tile = self.__tile_grid[base_row + row_offset][base_col + col_offset]
+            if col_offset == self.RIGHT:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Right, Direction.Left)
+            elif col_offset == self.LEFT:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Left, Direction.Right)
+            elif row_offset == self.UP:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Up, Direction.Down)
+            elif row_offset == self.DOWN:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Down, Direction.Up)
+        else:
+            return base_tile
+
+    def __get_index_by_tile(self, base_tile: Tile) -> (int, int):
+        """
+        Gets the index of the given Tile
+        :param base_tile: A Tile representing the target tile to search for in the board
+        :return: A tuple (int, int) representing the row and column indices of the base_tile
+        :raises: ValueError if the supplied Tile is not on the board
+        """
+        for row in range(len(self.__tile_grid)):
+            for col in range(len(self.__tile_grid[row])):
+                if self.__tile_grid[row][col] == base_tile:
+                    return row, col
+        raise ValueError("Tile not on board")
+
+    def __valid_tile_location(self, row, col):
+        """
+        Checks if the given indices are within the bounds of the board
+        :param row: An int representing the row of the potential Tile
+        :param col: An int representing the column of the potential Tile
+        :return: True if the supplied indices are within the board, False otherwise
+        """
+        return (0 <= row < self.__dimensions) and (0 <= col < self.__dimensions)
 
     def get_tile_grid(self) -> List[List[Tile]]:
         """
@@ -250,4 +321,3 @@ class Board:
         :return: the next tile for this Board
         """
         return self.__next_tile
-
