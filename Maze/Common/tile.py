@@ -1,3 +1,5 @@
+from typing import List
+
 from gem import Gem
 from shapes import Shape
 
@@ -17,8 +19,23 @@ class Tile:
         self.__gem1 = gem1
         self.__gem2 = gem2
 
-    def get_gems(self) -> (Gem, Gem):
-        return self.__gem1, self.__gem2
+    def get_gems(self) -> List[Gem]:
+        """
+        Returns a list containing both gems found on this tile.
+        :return: a list of gems found on this tile
+        """
+        return [self.__gem1, self.__gem2]
+
+    def same_gems_on_tiles(self, gem1: Gem, gem2: Gem) -> bool:
+        """
+        Checks this Tile has the same gems as the given Gems.
+        :param gem1: the first Gem being compared to this Tile's gems
+        :param gem2: the second Gem being compared to this Tile's gems
+        :return: True if this Tile contains the given two gems, false otherwise
+        """
+
+        return (gem1 == self.__gem1 and gem2 == self.__gem2) or \
+               (gem1 == self.__gem2 and gem2 == self.__gem1)
 
     def __eq__(self, other) -> bool:
         """
@@ -32,3 +49,4 @@ class Tile:
                    and self.__gem1 == other.__gem1\
                    and self.__gem2 == other.__gem2
         return False
+

@@ -39,6 +39,11 @@ class Shape(ABC):
         self.__left = old_bottom
 
     def __eq__(self, other):
+        """
+        Overrides equals. This Shape is equal to another Shape if they have the same paths.
+        :param other: Any, to be compared to this Shape
+        :return: True if the Shape and other are equal, otherwise false
+        """
         if isinstance(other, Shape):
             return self.__top == other.__top \
                    and self.__left == other.__left \

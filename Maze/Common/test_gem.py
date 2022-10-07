@@ -32,16 +32,16 @@ def test_generate_valid_gem_red_spinel_square_emerald_cut():
 def test_generate_invalid_gem1():
     with pytest.raises(ValueError) as error_message:
         gem.Gem('alexandria')
-        assert error_message == 'Invalid Gem Name'
+    assert str(error_message.value) == 'Invalid Gem Name'
 
 
 def test_generate_invalid_gem2():
     with pytest.raises(ValueError) as error_message:
         gem.Gem('not-a-gem')
-        assert error_message == 'Invalid Gem Name'
+    assert str(error_message.value) == 'Invalid Gem Name'
 
 
 def test_generate_invalid_gem3():
     with pytest.raises(ValueError) as error_message:
         gem.Gem('alexandritePear-shape')
-        assert error_message == 'Invalid Gem Name'
+    assert str(error_message.value) == 'Invalid Gem Name'

@@ -50,7 +50,7 @@ def test_valid_corner_constructor_rotated():
 def test_invalid_corner_constructor():
     with pytest.raises(ValueError) as error_message:
         Corner(-1)
-        assert error_message == "Invalid Corner Shape"
+    assert str(error_message.value) == "Invalid Corner Shape"
 
 
 def test_valid_line_constructor():
@@ -64,7 +64,7 @@ def test_valid_line_constructor_rotated():
 def test_invalid_line_constructor():
     with pytest.raises(ValueError) as error_message:
         Line(-2)
-        assert error_message == "Invalid Line Shape"
+    assert str(error_message.value) == "Invalid Line Shape"
 
 
 def test_valid_t_shaped_constructor():
@@ -78,7 +78,7 @@ def test_valid_t_shape_constructor_rotated():
 def test_invalid_t_shape_constructor():
     with pytest.raises(ValueError) as error_message:
         TShaped(-10)
-        assert error_message == "Invalid T-Shape"
+    assert str(error_message.value) == "Invalid T-Shape"
 
 
 # ----- Testing Rotate -----
