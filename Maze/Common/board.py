@@ -301,6 +301,28 @@ class Board:
         """
         return (0 <= row < self.__dimensions) and (0 <= col < self.__dimensions)
 
+    def check_stationary_position(self, row: int, col: int) -> bool:
+        """
+        Checks if the given row and column are in a position on this Board that does not slide.
+        :param row: the row index on this Board
+        :param col: the column index on this Board
+        :return: True if the row, column pair are at a stationary point in this Board, otherwise False
+        """
+        return row % 2 == 1 and col % 2 == 1 and self.__valid_tile_location(row, col)
+
+    def get_all_stationary_tiles(self) -> List[Tile]:
+        """
+        Generates a list of all the stationary Tiles on this Board.
+        :return: a List of Tiles that do not move
+        """
+        all_tiles = self.__tile_grid
+        stationary_tiles = []
+        for row in range(len(all_tiles)):
+            for col in range(len(all_tiles[row])):
+                if self.check_stationary_position(row, col):
+                    stationary_tiles.append(all_tiles[row][col])
+        return stationary_tiles
+
     def get_tile_grid(self) -> List[List[Tile]]:
         """
         Gets the tile grid for this Board

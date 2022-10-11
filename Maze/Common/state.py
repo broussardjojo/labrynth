@@ -18,6 +18,7 @@ class State:
         """
         self.__board = board
         self.__players = []
+        self.__active_player_index = 0
 
     def rotate_spare_tile(self, degrees: int) -> None:
         """
@@ -48,75 +49,80 @@ class State:
         a new player home and goal Tiles.
         side effect: mutates this State's players
         """
-        if self.__are_available_home_and_goal_tiles():
-            home_tile = self.__generate_players_tile()
-            new_player = Player(home_tile, self.__generate_players_tile(), home_tile)
-            self.__players.append(new_player)
-        else:
-            raise ValueError("Game is full, no more players can be added")
+        # if self.__are_available_home_and_goal_tiles():
+        home_tile = self.__generate_players_tile()
+        new_player = Player(home_tile, self.__generate_players_tile(), home_tile)
+        self.__players.append(new_player)
+        # else:
+        #   raise ValueError("Game is full, no more players can be added")
 
-    def __are_available_home_and_goal_tiles(self) -> bool:
-        """
-        Checks if there are at least two Tiles on this State's Board that are available. A Tile is available if it is
-        stationary, meaning it does not slide, and it is not associated with any other Players.
-        :return: True if there are at least two available Tiles, False otherwise
-        """
-        all_tiles = self.__board.get_tile_grid()
-        available_tiles = 0
-        for row in range(len(all_tiles)):
-            for col in range(len(all_tiles[row])):
-                if self.__check_stationary_position(row, col) and self.__tile_is_available(all_tiles[row][col]):
-                    available_tiles += 1
-        return available_tiles >= 2
+    # def __are_available_home_or_goal_tile(self) -> bool:
+    #     """
+    #     Checks if there are at least one Tile on this State's Board that is available. A Tile is available if it is
+    #     stationary, meaning it does not slide, and it is not associated with any other Players.
+    #     :return: True if there are at least one available Tile, False otherwise
+    #     """
+    #     all_tiles = self.__board.get_tile_grid()
+    #     for row in range(len(all_tiles)):
+    #         for col in range(len(all_tiles[row])):
+    #             if self.__board.check_stationary_position(row, col) \
+    #                     and self.__tile_is_available(all_tiles[row][col]):
+    #                 return True
+    #     return False
 
     def __generate_players_tile(self) -> Tile:
         """
-        Generates a Tile that is available and stationary. A Tile is available if it is not associated with any other
-        Players and is stationary if it does not slide.
-        :return: A Tile which represents a potential home or goal for a Player
-        :raises: a ValueError if there are no Tiles left on this State's Board that are stationary and available
+        Generates a Tile that is stationary. A Tile is stationary if it does not slide.
+        :return: A Tile which represents a potential home for a Player
+        :raises: a ValueError if there are no Tiles left on this State's Board that are stationary
         """
-        stationary_tiles = self.__get_all_stationary_tiles()
+        stationary_tiles = self.__board.get_all_stationary_tiles()
         while stationary_tiles:
-            potential_tile = choice(stationary_tiles)
-            if self.__tile_is_available(potential_tile):
-                return potential_tile
-            stationary_tiles.remove(potential_tile)
-        raise ValueError("No Available Tiles")
+            return choice(stationary_tiles)
+            # if self.__tile_is_available(potential_tile):
+            #     return potential_tile
+            # stationary_tiles.remove(potential_tile)
+        raise ValueError("No Stationary Tiles")
 
-    def __tile_is_available(self, potential_tile: Tile) -> bool:
-        """
-        Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
-        State.
-        :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
-        :return: True if the Tile is available, False otherwise
-        """
-        for player in self.__players:
-            if player.get_home_tile() == potential_tile:
-                return False
-            if player.get_goal_tile() == potential_tile:
-                return False
-        return True
+    # def __tile_is_available(self, potential_tile: Tile) -> bool:
+    #     """
+    #     Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
+    #     State.
+    #     :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
+    #     :return: True if the Tile is available, False otherwise
+    #     """
+    #     for player in self.__players:
+    #         if player.get_home_tile() == potential_tile:
+    #             return False
+    #         if player.get_goal_tile() == potential_tile:
+    #             return False
+    #     return True
 
-    @staticmethod
-    def __check_stationary_position(row: int, col: int) -> bool:
+    def kick_out_active_player(self) -> None:
         """
-        Checks if the given row and column are in position on this State's Board that does not slide.
-        :param row: the row index on this State's Board
-        :param col: the column index on this State's Board
-        :return: True if the row, column pair are at a stationary point in this State's Board, otherwise False
+        Removes the currently active player from this State's list of players.
+        :return: None
+        side effect: mutates this State's list of players
         """
-        return row % 2 == 1 and col % 2 == 1
+        if self.__players:
+            self.__players.pop(self.__active_player_index)
+        else:
+            raise ValueError("No players to remove")
 
-    def __get_all_stationary_tiles(self) -> List[Tile]:
+    def is_active_player_at_goal(self) -> bool:
         """
-        Generates a list of all the stationary Tiles on this State's Board.
-        :return: a List of Tiles that do not move
+        Checks if the active player for this State is at their goal Tile.
+        :return: True if the active player is at their goal Tile, otherwise False
         """
-        all_tiles = self.__board.get_tile_grid()
-        stationary_tiles = []
-        for row in range(len(all_tiles)):
-            for col in range(len(all_tiles[row])):
-                if self.__check_stationary_position(row, col):
-                    stationary_tiles.append(all_tiles[row][col])
-        return stationary_tiles
+        if self.__players:
+            return self.__players[self.__active_player_index].get_current_tile() == \
+                   self.__players[self.__active_player_index].get_goal_tile()
+        raise ValueError("No players to check")
+
+    def get_players(self) -> List[Player]:
+        """
+        Gives the list of players for this State.
+        :return: a List of Player which represents the players for this game State
+        """
+
+        return self.__players

@@ -169,3 +169,62 @@ def test_reachable_tiles_not_reachable_seeded_board(seeded_small_board):
     right_neighbor = seeded_small_board.get_tile_grid()[1][2]
     reachable_tiles = seeded_small_board.reachable_tiles(base_tile)
     assert right_neighbor not in reachable_tiles
+
+
+# ----- Test check_stationary_position method ------
+# verifies that the given row and column are at a stationary position on the board
+def test_check_stationary_position_one(basic_board):
+    assert basic_board.check_stationary_position(1, 1)
+
+
+def test_check_stationary_position_two(basic_board):
+    assert basic_board.check_stationary_position(3, 5)
+
+
+# verifies that the given row and column are not at a stationary position on the board
+def test_check_stationary_position_three(basic_board):
+    assert not basic_board.check_stationary_position(2, 0)
+
+
+def test_check_stationary_position_four(basic_board):
+    assert not basic_board.check_stationary_position(6, 3)
+
+
+def test_check_stationary_position_five(basic_board):
+    assert not basic_board.check_stationary_position(-1, -1)
+
+
+def test_check_stationary_position_six(basic_board):
+    assert not basic_board.check_stationary_position(9, 1)
+
+
+# ----- Test get_all_stationary_tiles method ------
+# verifies that the method returns the correct number of stationary tiles
+def test_get_all_stationary_tiles_length(basic_board):
+    assert len(basic_board.get_all_stationary_tiles()) == 9
+
+
+def test_get_all_stationary_tiles_length_small_board(seeded_small_board):
+    assert len(seeded_small_board.get_all_stationary_tiles()) == 1
+
+
+# verifies that the method returns the correct stationary tiles
+def test_get_all_stationary_tiles_one(basic_board):
+    stationary_tile = basic_board.get_tile_grid()[1][1]
+    assert stationary_tile in basic_board.get_all_stationary_tiles()
+
+
+def test_get_all_stationary_tiles_two(basic_board):
+    stationary_tile = basic_board.get_tile_grid()[3][5]
+    assert stationary_tile in basic_board.get_all_stationary_tiles()
+
+
+# verifies that the non-stationary tiles are not in the list of stationary tiles
+def test_get_all_stationary_tiles_three(basic_board):
+    stationary_tile = basic_board.get_tile_grid()[2][0]
+    assert stationary_tile not in basic_board.get_all_stationary_tiles()
+
+
+def test_get_all_stationary_tiles_four(basic_board):
+    stationary_tile = basic_board.get_tile_grid()[1][4]
+    assert stationary_tile not in basic_board.get_all_stationary_tiles()
