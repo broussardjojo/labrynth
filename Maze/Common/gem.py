@@ -40,3 +40,6 @@ class Gem:
         gem_filename = (current_directory / path_to_images).resolve()
         gem_filepath = Path(f'{gem_filename}{extension}')
         return gem_filepath
+
+    def __str__(self):
+        return self.__gem_name
