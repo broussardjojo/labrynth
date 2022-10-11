@@ -27,6 +27,21 @@ def basic_cross():
 
 
 @pytest.fixture
+def rotate_once_corner():
+    return Corner(1)
+
+
+@pytest.fixture
+def rotate_twice_t_shape():
+    return TShaped(2)
+
+
+@pytest.fixture
+def copy_line():
+    return Line(0)
+
+
+@pytest.fixture
 def alexandrite_gem():
     return Gem('alexandrite')
 
@@ -57,9 +72,25 @@ def line_tile(basic_line, emerald_gem, alexandrite_gem):
     return Tile(basic_line, emerald_gem, alexandrite_gem)
 
 
+
 @pytest.fixture
 def t_shape_tile(basic_t_shape, amethyst_gem):
     return Tile(basic_t_shape, amethyst_gem, amethyst_gem)
+
+
+@pytest.fixture
+def rotated_once_corner_tile(rotate_once_corner, amethyst_gem):
+    return Tile(rotate_once_corner, amethyst_gem, amethyst_gem)
+
+
+@pytest.fixture
+def rotated_twice_t_shaped_tile(rotate_twice_t_shape, amethyst_gem):
+    return Tile(rotate_twice_t_shape, amethyst_gem, amethyst_gem)
+
+
+@pytest.fixture
+def line_tile_two(copy_line, emerald_gem, alexandrite_gem):
+    return Tile(copy_line, emerald_gem, alexandrite_gem)
 
 
 # ------- Tests for the Tile constructor --------------------------------
@@ -143,3 +174,35 @@ def test_has_path_t_shape_tile_not_up(t_shape_tile):
 
 def test_has_path_t_shape_tile_left(t_shape_tile):
     assert t_shape_tile.has_path(Direction.Left)
+
+
+# ------- Tests for rotating Tile --------------------------------
+# Tests to validate rotate rotates a Tile the given number of times
+def test_rotate_corner_once(corner_tile, rotated_once_corner_tile):
+    corner_tile.rotate(1)
+    assert corner_tile == rotated_once_corner_tile
+
+
+def test_rotate_corner_five_times(corner_tile, rotated_once_corner_tile):
+    corner_tile.rotate(5)
+    assert corner_tile == rotated_once_corner_tile
+
+
+def test_rotate_corner_negative_three_times(corner_tile, rotated_once_corner_tile):
+    corner_tile.rotate(-3)
+    assert corner_tile == rotated_once_corner_tile
+
+
+def test_rotate_t_shaped_twice(t_shape_tile, rotated_twice_t_shaped_tile):
+    t_shape_tile.rotate(2)
+    assert t_shape_tile == rotated_twice_t_shaped_tile
+
+
+def test_rotate_t_shaped_negative_six_times(t_shape_tile, rotated_twice_t_shaped_tile):
+    t_shape_tile.rotate(-6)
+    assert t_shape_tile == rotated_twice_t_shaped_tile
+
+
+def test_rotate_line_zero_times(line_tile, line_tile_two):
+    line_tile.rotate(0)
+    assert line_tile == line_tile_two

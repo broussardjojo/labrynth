@@ -9,6 +9,9 @@ class Tile:
     """
     A Tile is a game piece to make the board and has a Shape and two Gems.
     """
+
+    FULL_ROTATION = 4
+
     def __init__(self, shape: Shape, gem1: Gem, gem2: Gem):
         """
         A constructor to create a tile, provided with a Shape and two Gems
@@ -46,7 +49,7 @@ class Tile:
         """
         if isinstance(other, Tile):
             return self.__shape == other.__shape \
-                   and self.__gem1 == other.__gem1\
+                   and self.__gem1 == other.__gem1 \
                    and self.__gem2 == other.__gem2
         return False
 
@@ -58,3 +61,21 @@ class Tile:
         """
         return self.__shape.has_path(path_direction)
 
+    def rotate(self, rotations: int) -> None:
+        """
+        Rotates this Tile the given number of times.
+        :param rotations: an int representing how many times to rotate this Tile
+        :return: None
+        side effect: mutates the Shape of this Tile
+        """
+
+        positive_rotations = self.__get_positive_rotations(rotations)
+        self.__shape.rotate(positive_rotations)
+
+    def __get_positive_rotations(self, rotations: int) -> int:
+        """
+        Gives the positive equivalent of Tile rotations from the given number of rotations.
+        :param rotations: an int representing how many times to rotate this Tile
+        :return: an int representing how many times to rotate this Tile
+        """
+        return (rotations % self.FULL_ROTATION) + self.FULL_ROTATION
