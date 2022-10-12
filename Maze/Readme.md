@@ -35,6 +35,12 @@ used across multiple models
 ### test_utils.py
 Contains unit tests for the utility functions
 
+### state.py
+Contains the source code for our State model
+
+### test_state.py
+Contains unit tests for the State model
+
 ## Planning
 Folder containing markdown files for our design tasks
 
@@ -82,6 +88,8 @@ It has the following public methods:
 - get_tile_grid()
 - get_removed_tile()
 - get_next_tile()
+- check_stationary_position(row, col)
+- get_all_stationary_tiles()
 
 A `Tile` has a `Shape` and two `Gems`
 
@@ -90,6 +98,7 @@ It has the following public methods:
 - get_gems()
 - same_gems_on_tiles(gem1, gem2)
 - has_path(direction)
+- rotate(rotations)
 
 A `Shape` is one of `Corner`, `Line`, `TShaped`, or `Cross`
 
@@ -100,9 +109,31 @@ Its implementations have the following public methods:
 
 A `Gem` has a name and an image_path
 
+A `Player` has a three `Tiles`, current, home, and goal
+
+It has the following public methods:
+
+- get_current_tile()
+- set_current_tile(new_tile)
+- get_goal_tile()
+- get_home_tile()
+
+A `State` has a `Board` a List of `Players` and an active player index
+
+It has the following public methods:
+
+- rotate_spare_tile(degrees)
+- get_board()
+- add_player()
+- kick_out_active_player()
+- is_active_player_at_goal()
+- can_active_player_reach_given_tile(target_tile)
+- slide(index, direction)
+- get_players()
+
 Here is a class diagram for our project:
 
-![class diagram](MazeClassDiagram.jpg)
+![class diagram](MazeClassDiagramM3.jpg)
 
 # Testing:
 

@@ -1,9 +1,10 @@
-from random import random, choice
+from random import choice
 from typing import List
 
 from board import Board
 from player import Player
 from tile import Tile
+from direction import Direction
 
 
 class State:
@@ -49,28 +50,29 @@ class State:
         a new player home and goal Tiles.
         side effect: mutates this State's players
         """
-        # if self.__are_available_home_and_goal_tiles():
-        home_tile = self.__generate_players_tile()
-        new_player = Player(home_tile, self.__generate_players_tile(), home_tile)
-        self.__players.append(new_player)
-        # else:
-        #   raise ValueError("Game is full, no more players can be added")
+        if self.__are_available_home_and_goal_tile():
+            new_player = Player(self.__generate_players_tile(want_home=True),
+                                self.__generate_players_tile(want_home=False))
+            self.__players.append(new_player)
+        else:
+            raise ValueError("Game is full, no more players can be added")
 
-    # def __are_available_home_or_goal_tile(self) -> bool:
-    #     """
-    #     Checks if there are at least one Tile on this State's Board that is available. A Tile is available if it is
-    #     stationary, meaning it does not slide, and it is not associated with any other Players.
-    #     :return: True if there are at least one available Tile, False otherwise
-    #     """
-    #     all_tiles = self.__board.get_tile_grid()
-    #     for row in range(len(all_tiles)):
-    #         for col in range(len(all_tiles[row])):
-    #             if self.__board.check_stationary_position(row, col) \
-    #                     and self.__tile_is_available(all_tiles[row][col]):
-    #                 return True
-    #     return False
+    def __are_available_home_and_goal_tile(self) -> bool:
+        """
+        Checks if there are at least one Tile on this State's Board that is available. A Tile is available if it is
+        stationary, meaning it does not slide, and it is not associated with any other Players.
+        :return: True if there are at least one available Tile, False otherwise
+        """
+        all_tiles = self.__board.get_tile_grid()
+        for row in range(len(all_tiles)):
+            for col in range(len(all_tiles[row])):
+                if self.__board.check_stationary_position(row, col) \
+                        and self.__tile_is_available_as_goal(all_tiles[row][col]) \
+                        and self.__tile_is_available_as_home(all_tiles[row][col]):
+                    return True
+        return False
 
-    def __generate_players_tile(self) -> Tile:
+    def __generate_players_tile(self, want_home) -> Tile:
         """
         Generates a Tile that is stationary. A Tile is stationary if it does not slide.
         :return: A Tile which represents a potential home for a Player
@@ -78,25 +80,39 @@ class State:
         """
         stationary_tiles = self.__board.get_all_stationary_tiles()
         while stationary_tiles:
-            return choice(stationary_tiles)
-            # if self.__tile_is_available(potential_tile):
-            #     return potential_tile
-            # stationary_tiles.remove(potential_tile)
+            potential_tile = choice(stationary_tiles)
+            if want_home:
+                if self.__tile_is_available_as_home(potential_tile):
+                    return potential_tile
+            else:
+                if self.__tile_is_available_as_goal(potential_tile):
+                    return potential_tile
+            stationary_tiles.remove(potential_tile)
         raise ValueError("No Stationary Tiles")
 
-    # def __tile_is_available(self, potential_tile: Tile) -> bool:
-    #     """
-    #     Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
-    #     State.
-    #     :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
-    #     :return: True if the Tile is available, False otherwise
-    #     """
-    #     for player in self.__players:
-    #         if player.get_home_tile() == potential_tile:
-    #             return False
-    #         if player.get_goal_tile() == potential_tile:
-    #             return False
-    #     return True
+    def __tile_is_available_as_goal(self, potential_tile: Tile) -> bool:
+        """
+        Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
+        State.
+        :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
+        :return: True if the Tile is available, False otherwise
+        """
+        for player in self.__players:
+            if player.get_goal_tile() == potential_tile:
+                return False
+        return True
+
+    def __tile_is_available_as_home(self, potential_tile: Tile) -> bool:
+        """
+        Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
+        State.
+        :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
+        :return: True if the Tile is available, False otherwise
+        """
+        for player in self.__players:
+            if player.get_home_tile() == potential_tile:
+                return False
+        return True
 
     def kick_out_active_player(self) -> None:
         """
@@ -113,16 +129,53 @@ class State:
         """
         Checks if the active player for this State is at their goal Tile.
         :return: True if the active player is at their goal Tile, otherwise False
+        :raises: ValueError if there are no players in this State
         """
         if self.__players:
             return self.__players[self.__active_player_index].get_current_tile() == \
                    self.__players[self.__active_player_index].get_goal_tile()
         raise ValueError("No players to check")
 
+    def can_active_player_reach_given_tile(self, target_tile: Tile) -> bool:
+        """
+        Determines if the active players can reach a given target tile
+        :param target_tile: A Tile representing the potential destination to check against
+        :return: True if the active player can reach the target, False otherwise
+        :raises: ValueError if there are no players in this State
+        """
+        if self.__players:
+            active_player = self.__players[self.__active_player_index]
+            current_tile = active_player.get_current_tile()
+            all_reachable = self.__board.reachable_tiles(current_tile)
+            return target_tile in all_reachable
+        raise ValueError("No players to check")
+
+    def slide(self, index: int, direction: Direction) -> None:
+        """
+        Slides this State's board at the given index in the given direction
+        :param index: an int representing the row or column to slide
+        :param direction: a Direction representing the direction to slide the row or column, can be one of Up, Down,
+        Left, or Right
+        :return: None
+        :raises: ValueError if the given index is not eligible to slide
+        side effect: mutates __board
+        """
+        self.__board.slide(index, direction)
+        self.__adjust_slid_off_players()
+
+    def __adjust_slid_off_players(self) -> None:
+        """
+        Move any players that may have been slid off of the board in the previous move
+        :return: None
+        side effect: mutates __players
+        """
+        for player in self.__players:
+            if player.get_current_tile() == self.__board.get_removed_tile():
+                player.set_current_tile(self.__board.get_next_tile())
+
     def get_players(self) -> List[Player]:
         """
         Gives the list of players for this State.
         :return: a List of Player which represents the players for this game State
         """
-
         return self.__players

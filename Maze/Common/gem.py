@@ -42,4 +42,8 @@ class Gem:
         return gem_filepath
 
     def __str__(self):
+        """
+        Provides the name of this Gem as a string.
+        :return: this Gem's name
+        """
         return self.__gem_name
