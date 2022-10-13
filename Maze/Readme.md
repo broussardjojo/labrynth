@@ -78,7 +78,8 @@ File containing listing of all project dependencies
 Shell script used to run all unit tests
 
 # Roadmap:
-A `Board` has a 2D List of `Tiles` as well as a next `Tile`
+A `Board` has a 2D List of `Tiles`. The grid is 0-indexed, row majored, and board[0][0] represents the Tile at the 
+top-left spot on this Board. A Board also has a next `Tile`.
 
 It has the following public methods:
 
@@ -86,7 +87,6 @@ It has the following public methods:
 - slide(index, direction)
 - reachable_tiles(base_tile)
 - get_tile_grid()
-- get_removed_tile()
 - get_next_tile()
 - check_stationary_position(row, col)
 - get_all_stationary_tiles()

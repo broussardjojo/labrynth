@@ -9,7 +9,8 @@ from direction import Direction
 
 class State:
     """
-    A Board is a representation of a Labyrinth game game-state. A State has a Board, list of Players, and an active Player.
+    A State is a representation of a Labyrinth game game-state. A State has a Board, list of Players, and an active
+    Player.
     """
 
     def __init__(self, board: Board):
@@ -27,7 +28,7 @@ class State:
         :param degrees: int representing the number of degrees to rotate the spare tile
         :return: None
         :raises: ValueError if given degrees is not a multiple of 90
-        side effect: mutates the spare tile of this State's Board
+        side effect: mutates the spare tile of this State's Board by changing the Tile's Shape paths
         """
         if degrees % 90 == 0:
             rotations = int(degrees / 90)
@@ -48,7 +49,7 @@ class State:
         :return: None
         :raises: a ValueError if the game is full, meaning there are not enough Tiles left on this State's Board to give
         a new player home and goal Tiles.
-        side effect: mutates this State's players
+        side effect: mutates this State's players with the addition of a new Player
         """
         if self.__are_available_home_and_goal_tile():
             new_player = Player(self.__generate_players_tile(want_home=True),
@@ -59,9 +60,12 @@ class State:
 
     def __are_available_home_and_goal_tile(self) -> bool:
         """
-        Checks if there are at least one Tile on this State's Board that is available. A Tile is available if it is
+        Checks if there is at least one Tile on this State's Board that is available. A Tile is available if it is
         stationary, meaning it does not slide, and it is not associated with any other Players.
-        :return: True if there are at least one available Tile, False otherwise
+        ASSUMPTION: The home Tile and goal Tile for a Player can be the same, but the home Tile for a Player must be
+        different than the home Tile for another Player of this State
+        :return: True if there is at least one available Tile of each type (home and goal) on this State's Board, False
+        otherwise
         """
         all_tiles = self.__board.get_tile_grid()
         for row in range(len(all_tiles)):
@@ -75,6 +79,8 @@ class State:
     def __generate_players_tile(self, want_home) -> Tile:
         """
         Generates a Tile that is stationary. A Tile is stationary if it does not slide.
+        :param: want_home a boolean representing if the Tile being generated will be used as a home Tile or goal Tile.
+        If it will be used as a home Tile, want_home is True, if it will be used as a goal Tile, want_home is False
         :return: A Tile which represents a potential home for a Player
         :raises: a ValueError if there are no Tiles left on this State's Board that are stationary
         """
@@ -92,10 +98,10 @@ class State:
 
     def __tile_is_available_as_goal(self, potential_tile: Tile) -> bool:
         """
-        Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
-        State.
-        :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
-        :return: True if the Tile is available, False otherwise
+        Checks if the given Tile is available to be a goal Tile. A Tile is available as a goal if it is not a goal tile
+        for a Player of this State.
+        :param potential_tile: a Tile on this State's Board, represents a potential goal Tile
+        :return: True if the Tile is available as a goal Tile, False otherwise
         """
         for player in self.__players:
             if player.get_goal_tile() == potential_tile:
@@ -104,10 +110,10 @@ class State:
 
     def __tile_is_available_as_home(self, potential_tile: Tile) -> bool:
         """
-        Checks if the given Tile is available. A Tile is available if it is not a goal or home tile for a Player of this
-        State.
-        :param potential_tile: a Tile on this State's Board, represents a potential goal or home tile
-        :return: True if the Tile is available, False otherwise
+        Checks if the given Tile is available as a home Tile. A Tile is available to be a home Tile if it is not a home
+        tile for a Player of this State.
+        :param potential_tile: a Tile on this State's Board, represents a potential home Tile
+        :return: True if the Tile is available as a home Tile, False otherwise
         """
         for player in self.__players:
             if player.get_home_tile() == potential_tile:
@@ -138,7 +144,7 @@ class State:
 
     def can_active_player_reach_given_tile(self, target_tile: Tile) -> bool:
         """
-        Determines if the active players can reach a given target tile
+        Determines if the active player can reach a given Tile
         :param target_tile: A Tile representing the potential destination to check against
         :return: True if the active player can reach the target, False otherwise
         :raises: ValueError if there are no players in this State
@@ -150,7 +156,7 @@ class State:
             return target_tile in all_reachable
         raise ValueError("No players to check")
 
-    def slide(self, index: int, direction: Direction) -> None:
+    def slide_and_insert(self, index: int, direction: Direction) -> None:
         """
         Slides this State's board at the given index in the given direction
         :param index: an int representing the row or column to slide
@@ -158,20 +164,22 @@ class State:
         Left, or Right
         :return: None
         :raises: ValueError if the given index is not eligible to slide
-        side effect: mutates __board
+        side effect: mutates __board by changing the Board's __tile_grid and __next_tile. Potentially mutates the
+        Players of this State if they get slid off this State's Board
         """
-        self.__board.slide(index, direction)
-        self.__adjust_slid_off_players()
+        next_tile = self.__board.get_next_tile()
+        self.__board.slide_and_insert(index, direction)
+        self.__adjust_slid_off_players(next_tile)
 
-    def __adjust_slid_off_players(self) -> None:
+    def __adjust_slid_off_players(self, inserted_tile: Tile) -> None:
         """
-        Move any players that may have been slid off of the board in the previous move
+        Move any players that may have been slid off of the board in the previous move onto the newly inserted Tile
         :return: None
-        side effect: mutates __players
+        side effect: Potentially mutates the Players of this State if they get slid off this State's Board
         """
         for player in self.__players:
-            if player.get_current_tile() == self.__board.get_removed_tile():
-                player.set_current_tile(self.__board.get_next_tile())
+            if player.get_current_tile() == self.__board.get_next_tile():
+                player.set_current_tile(inserted_tile)
 
     def get_players(self) -> List[Player]:
         """

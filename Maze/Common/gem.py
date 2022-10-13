@@ -47,3 +47,10 @@ class Gem:
         :return: this Gem's name
         """
         return self.__gem_name
+
+    def __hash__(self):
+        """
+        Overrides the hash method for a Gem
+        :return: An int representing the hash of a Gem
+        """
+        return hash(self.__gem_name)

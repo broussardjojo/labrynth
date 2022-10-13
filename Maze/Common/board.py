@@ -9,58 +9,73 @@ from direction import Direction
 
 class Board:
     """
-    A Board is a representation of a Labrynth game board of size N by N, defaulting to 7. A Board has a grid of Tiles
-    and an extra Tile.
+    A Board is a representation of a Labyrinth game board of size N by N, defaulting to 7. A Board has a grid of Tiles
+    and an extra Tile. The grid is 0-indexed, row majored, and board[0][0] represents the Tile at the top-left.
+    spot on this Board.
     """
-    UP = -1
-    DOWN = 1
-    LEFT = -1
-    RIGHT = 1
+    UP_OFFSET = -1
+    DOWN_OFFSET = 1
+    LEFT_OFFSET = -1
+    RIGHT_OFFSET = 1
 
-    def __init__(self, dimensions: int = 7, **kwargs):
+    def __init__(self, tile_grid: List[List[Tile]], next_tile: Tile):
+        self.__tile_grid = tile_grid
+        self.__next_tile = next_tile
+        self.__dimensions = len(tile_grid)
+
+    @classmethod
+    def from_list_of_tiles(cls, tile_grid: List[List[Tile]]):
+        gem_name_list = generate_gem_list()
+        next_tile = cls.__generate_unique_tile(gem_name_list, tile_grid)
+        return cls(tile_grid, next_tile)
+
+    @classmethod
+    def from_random_board(cls, dimensions: int = 7, **kwargs):
         """
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
-        It creates a tile_grid, generates the next_tile and creates an empty removed_tile
+        It creates a tile_grid and generates the next_tile.
         :param dimensions: an integer representing the length and width of the board
         """
         if 'seed' in kwargs:
             random.seed(kwargs['seed'])
         gem_name_list = generate_gem_list()
-        self.__dimensions = dimensions
-        self.__tile_grid = []
-        self.__initialize_board(gem_name_list, dimensions)
-        self.__next_tile = self.__generate_unique_tile(gem_name_list)
-        self.__removed_tile: Tile = None
+        board = cls.__initialize_board(gem_name_list, dimensions)
+        next_tile = cls.__generate_unique_tile(gem_name_list, board)
+        return cls(board, next_tile)
 
-    def __initialize_board(self, gem_name_list: List[str], dimension: int) -> None:
+    @classmethod
+    def __initialize_board(cls, gem_name_list: List[str], dimension: int) -> List[List[Tile]]:
         """
         Creates a grid of N by N unique Tiles based on the dimensions given in the Board constructor. Tiles are
-        designated to be unique if they don't share the same gems as any other tile in the grid.
+        designated to be unique if they don't share the same two gems as any other tile in the grid.
         :param gem_name_list: List of strings representing all possible gem names
         :param dimension: integer representing the length and width of the board
         :return: None
         side effect: fills in the __tile_grid field with unique Tiles
         """
+        board = []
         for row in range(dimension):
-            self.__tile_grid.append([])
+            board.append([])
             for column in range(dimension):
-                unique_tile = self.__generate_unique_tile(gem_name_list)
-                self.__tile_grid[row].append(unique_tile)
+                unique_tile = cls.__generate_unique_tile(gem_name_list, board)
+                board[row].append(unique_tile)
+        return board
 
-    def __generate_unique_tile(self, gem_name_list: List[str]) -> Tile:
+    @classmethod
+    def __generate_unique_tile(cls, gem_name_list: List[str], current_board: List[List[Tile]]) -> Tile:
         """
-        Creates a unique Tile. A Tile is designated to be unique if it does not share the same gems as any other tiles
-        in the grid.
+        Creates a unique Tile. A Tile is designated to be unique if it does not share the same two gems as any other
+        tiles in the grid.
         :param gem_name_list: List of strings representing all possible gem names
         :return: Tile representing a unique Tile
         """
-        potential_tile = Tile(self.__get_random_shape(),
-                              self.__get_random_gem(gem_name_list),
-                              self.__get_random_gem(gem_name_list))
-        for row in self.__tile_grid:
+        potential_tile = Tile(cls.__get_random_shape(),
+                              cls.__get_random_gem(gem_name_list),
+                              cls.__get_random_gem(gem_name_list))
+        for row in current_board:
             for tile in row:
                 if tile.same_gems_on_tiles(potential_tile.get_gems()[0], potential_tile.get_gems()[1]):
-                    return self.__generate_unique_tile(gem_name_list)
+                    return cls.__generate_unique_tile(gem_name_list, current_board)
         return potential_tile
 
     @staticmethod
@@ -87,174 +102,144 @@ class Board:
         """
         return Gem(gem_name_list[random.randint(0, len(gem_name_list) - 1)])
 
-    def slide(self, index: int, direction: Direction) -> None:
+    def slide_and_insert(self, index: int, direction: Direction) -> None:
         """
-        Slide the specified row or column of this Board in the given Direction.
+        Slides the row or column at the given index of this Board in the given Direction and inserts this Board's
+        __next_tile at the end of that row or column.
         :param index: an int representing the row or column to slide
         :param direction: a Direction representing the direction to slide the row or column, can be one of Up, Down,
         Left, or Right
         :return: None
         :raises: ValueError if the given index is not eligible to slide
-        side effect: mutates __tile_grid and mutates __removed_tile
+        side effect: mutates __tile_grid and mutates __next_tile
         """
         if self.__can_slide(index):
-            if direction == Direction.Up or direction == Direction.Down:
-                self.__slide_col(index, direction)
-            if direction == Direction.Right or direction == Direction.Left:
-                self.__slide_row(index, direction)
+            if direction == Direction.Up:
+                self.__slide_up(index)
+            elif direction == Direction.Down:
+                self.__slide_down(index)
+            elif direction == Direction.Right:
+                self.__slide_right(index)
+            elif direction == Direction.Left:
+                self.__slide_left(index)
         else:
             raise ValueError("Invalid index")
 
     def __can_slide(self, index: int) -> bool:
         """
-        Checks if the given index is a row or column that can slide on this Board.
+        Checks if the given index is on this Board.
         :param index: an int representing a row or column on this Board
         :return: True if the index can slide, otherwise False
         """
         return not (index < 0 or index >= self.__dimensions or index % 2 != 0)
-
-    def __slide_col(self, index: int, direction: Direction) -> None:
-        """
-        Slides the given column in the given direction.
-        :param index: an int representing a column on this Board
-        :param direction: a Direction representing the direction to slide the row or column, can be one of Up, Down,
-        Left, or Right
-        :return: None
-        :raises: ValueError if a Direction of Right or Left is passed in
-        side effect: mutates __tile_grid and __removed_tile
-        """
-        if direction == Direction.Up:
-            self.__slide_up(index)
-        elif direction == Direction.Down:
-            self.__slide_down(index)
-        else:
-            raise ValueError("Invalid Direction")
 
     def __slide_up(self, index: int) -> None:
         """
         Slides the given column up.
         :param index: represents a column on this Board
         :return: None
-        side effect: mutates __tile_grid and __removed_tile
+        side effect: mutates __tile_grid and __next_tile
         """
-        self.__removed_tile = self.__tile_grid[0][index]
+        removed_tile = self.__tile_grid[0][index]
         for row in range(1, self.__dimensions):
             self.__tile_grid[row - 1][index] = self.__tile_grid[row][index]
-            self.__tile_grid[row][index] = None
+            self.__tile_grid[row][index] = self.__next_tile
+        self.__next_tile = removed_tile
 
     def __slide_down(self, index: int) -> None:
         """
         Slides the given column down.
         :param index: represents a column on this Board
         :return: None
-        side effect: mutates __tile_grid and __removed_tile
+        side effect: mutates __tile_grid and __next_tile
         """
-        self.__removed_tile = self.__tile_grid[self.__dimensions - 1][index]
+        removed_tile = self.__tile_grid[self.__dimensions - 1][index]
         for row in reversed(range(0, self.__dimensions - 1)):
             self.__tile_grid[row + 1][index] = self.__tile_grid[row][index]
-            self.__tile_grid[row][index] = None
-
-    def __slide_row(self, index: int, direction: Direction) -> None:
-        """
-        Slides the given row in the given direction.
-        :param index: an int representing a row on this Board
-        :param direction: a Direction representing the direction to slide the row or column, can be one of Up, Down,
-        Left, or Right
-        :return: None
-        :raises: ValueError if a Direction of Up or Down is passed in
-        side effect: mutates __tile_grid and __removed_tile
-        """
-        if direction == Direction.Right:
-            self.__slide_right(index)
-        elif direction == Direction.Left:
-            self.__slide_left(index)
-        else:
-            raise ValueError("Invalid Direction")
+            self.__tile_grid[row][index] = self.__next_tile
+        self.__next_tile = removed_tile
 
     def __slide_right(self, index: int) -> None:
         """
         Slides the given row to the right.
         :param index: represents a row on this Board
         :return: None
-        side effect: mutates __tile_grid and __removed_tile
+        side effect: mutates __tile_grid and __next_tile
         """
-        self.__removed_tile = self.__tile_grid[index][self.__dimensions - 1]
+        removed_tile = self.__tile_grid[index][self.__dimensions - 1]
         for col in reversed(range(0, self.__dimensions - 1)):
             self.__tile_grid[index][col + 1] = self.__tile_grid[index][col]
-            self.__tile_grid[index][col] = None
+            self.__tile_grid[index][col] = self.__next_tile
+        self.__next_tile = removed_tile
 
     def __slide_left(self, index: int) -> None:
         """
         Slides the given row to the left.
         :param index: represents a row on this Board
         :return: None
-        side effect: mutates __tile_grid and __removed_tile
-        """
-        self.__removed_tile = self.__tile_grid[index][0]
-        for col in range(1, self.__dimensions):
-            self.__tile_grid[index][col - 1] = self.__tile_grid[index][col]
-            self.__tile_grid[index][col] = None
-
-    def insert_tile(self) -> None:
-        """
-        Inserts a tile where there is a gap in this Board.
-        :return: None
-        :raises: ValueError if there are no gaps in this Board
         side effect: mutates __tile_grid and __next_tile
         """
-        for row in range(len(self.__tile_grid)):
-            for col in range(len(self.__tile_grid[row])):
-                if self.__tile_grid[row][col] is None:
-                    self.__tile_grid[row][col] = self.__next_tile
-                    self.__next_tile = self.__removed_tile
-                    return
-        raise ValueError("No empty slots")
+        removed_tile = self.__tile_grid[index][0]
+        for col in range(1, self.__dimensions):
+            self.__tile_grid[index][col - 1] = self.__tile_grid[index][col]
+            self.__tile_grid[index][col] = self.__next_tile
+        self.__next_tile = removed_tile
 
     def reachable_tiles(self, base_tile: Tile) -> Set[Tile]:
         """
         Given a base Tile, gets a Set of reachable Tiles on this Board
         :param base_tile: the Tile representing the start Tile for the search
-        :return: a Set of all reachable Tiles not including the base Tile
+        :return: a Set of all reachable Tiles
         """
-        all_reachable = self.__reachable_tiles_helper(base_tile)
-        all_reachable.remove(base_tile)
+        all_reachable = self.__reachable_tiles_helper(base_tile, set())
         return all_reachable
 
-    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles: Set[Tile] = None) -> Set[Tile]:
+    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles) -> Set[Tile]:
         """
         Given a base Tile, gets a Set of reachable Tiles on this Board
         :param base_tile: the Tile representing the start Tile for the search
         :param acc_tiles: accumulator representing the Set of all reachable Tiles
         :return: a Set of all reachable Tiles including the base Tile
         """
-        if acc_tiles is None:
-            acc_tiles = []
-        acc_tiles.append(base_tile)
-        for direction in [self.RIGHT, self.LEFT]:
-            neighbor = self.__check_neighbor(base_tile, 0, direction)
+        acc_tiles.add(base_tile)
+        for direction_offset in [self.RIGHT_OFFSET, self.LEFT_OFFSET]:
+            neighbor = self.__check_neighbor(base_tile, 0, direction_offset)
             if neighbor not in acc_tiles:
                 self.__reachable_tiles_helper(neighbor, acc_tiles)
-        for direction in [self.UP, self.DOWN]:
-            neighbor = self.__check_neighbor(base_tile, direction, 0)
+        for direction_offset in [self.UP_OFFSET, self.DOWN_OFFSET]:
+            neighbor = self.__check_neighbor(base_tile, direction_offset, 0)
             if neighbor not in acc_tiles:
                 self.__reachable_tiles_helper(neighbor, acc_tiles)
         return acc_tiles
 
-    @staticmethod
-    def __connected_tile(base_tile: Tile, neighbor_tile: Tile, base_path: Direction, neighbor_path: Direction) \
-            -> Tile:
+    def __connected_tile(self, base_tile: Tile, neighbor_tile: Tile, base_path: Direction) -> Tile:
         """
-        Checks if the two given Tiles are connected in the given Directions
+        Checks if the two given Tiles are connected by the given Direction on the base Tile
         :param base_tile: The source Tile to check the connection of
         :param neighbor_tile: The neighbor Tile to check the connection of
         :param base_path: A Direction representing the Direction to check from the base_tile
-        :param neighbor_path: A Direction representing the Direction to check from the neighbor_path
         :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
         it will return the given base Tile
         """
+        neighbor_path = self.__get_opposite_path(base_path)
         if base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path):
             return neighbor_tile
         return base_tile
+
+    @staticmethod
+    def __get_opposite_path(base_path):
+        """
+        Gives the opposite Direction to that of the given Direction.
+        :param base_path: the Direction who's opposite is being given
+        :return: a Direction, representing the opposite Direction to that of the given Direction
+        """
+        if base_path == Direction.Up:
+            return Direction.Down
+        elif base_path == Direction.Down:
+            return Direction.Up
+        elif base_path == Direction.Right:
+            return Direction.Left
+        return Direction.Right
 
     def __check_neighbor(self, base_tile, row_offset: int, col_offset: int) -> Tile:
         """
@@ -268,14 +253,14 @@ class Board:
         base_row, base_col = self.__get_index_by_tile(base_tile)
         if self.__valid_tile_location(base_row + row_offset, base_col + col_offset):
             neighbor_tile = self.__tile_grid[base_row + row_offset][base_col + col_offset]
-            if col_offset == self.RIGHT:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Right, Direction.Left)
-            elif col_offset == self.LEFT:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Left, Direction.Right)
-            elif row_offset == self.UP:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Up, Direction.Down)
-            elif row_offset == self.DOWN:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Down, Direction.Up)
+            if col_offset == self.RIGHT_OFFSET:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Right)
+            elif col_offset == self.LEFT_OFFSET:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Left)
+            elif row_offset == self.UP_OFFSET:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Up)
+            elif row_offset == self.DOWN_OFFSET:
+                return self.__connected_tile(base_tile, neighbor_tile, Direction.Down)
         else:
             return base_tile
 
@@ -329,13 +314,6 @@ class Board:
         :return: the tile grid for this Board
         """
         return self.__tile_grid
-
-    def get_removed_tile(self) -> Tile:
-        """
-        Gets the extra tile for this Board
-        :return: the extra tile for this Board
-        """
-        return self.__removed_tile
 
     def get_next_tile(self) -> Tile:
         """

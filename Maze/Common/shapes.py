@@ -67,6 +67,14 @@ class Shape(ABC):
         else:
             return self.__bottom
 
+    def __hash__(self):
+        """
+        Overrides a hash for a Shape (using different math operations to prevent collisions with shapes that are rotated
+        versions of themselves)
+        :return: An int representing the hash of a Shape
+        """
+        return hash(self.__right) * hash(self.__left) + hash(self.__top) ^ hash(self.__bottom)
+
 
 class Corner(Shape):
     """

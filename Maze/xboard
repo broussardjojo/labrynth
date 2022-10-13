@@ -1,0 +1,3 @@
+#!/bin/bash
+echo
+python3 Common/boardSerializer.py $1 $2

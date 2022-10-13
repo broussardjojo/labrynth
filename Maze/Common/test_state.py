@@ -9,7 +9,7 @@ from direction import Direction
 
 @pytest.fixture
 def seeded_board():
-    return Board(seed=10)
+    return Board.from_random_board(seed=10)
 
 
 @pytest.fixture
@@ -294,7 +294,7 @@ def test_slide_does_not_move_stationary_players(sample_seeded_game_state):
     pre_slide_positions = {}
     for player in sample_seeded_game_state.get_players():
         pre_slide_positions[player] = (player.get_current_tile())
-    sample_seeded_game_state.slide(0, Direction.Down)
+    sample_seeded_game_state.slide_and_insert(0, Direction.Down)
     for player in sample_seeded_game_state.get_players():
         assert player.get_current_tile() == pre_slide_positions[player]
 
@@ -308,7 +308,7 @@ def test_slide_bumps_player_on_edge(sample_seeded_game_state):
     next_tile = sample_seeded_game_state.get_board().get_next_tile()
     player_one.set_current_tile(edge_tile)
     assert player_one.get_current_tile() == edge_tile
-    sample_seeded_game_state.slide(0, Direction.Down)
+    sample_seeded_game_state.slide_and_insert(0, Direction.Down)
     assert player_one.get_current_tile() == next_tile
 
 
@@ -328,7 +328,7 @@ def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
     assert player_one.get_current_tile() == edge_tile
     assert player_two.get_current_tile() == unbumped_tile
     assert player_three.get_current_tile() == edge_tile
-    sample_seeded_game_state.slide(2, Direction.Right)
+    sample_seeded_game_state.slide_and_insert(2, Direction.Right)
     assert player_one.get_current_tile() == next_tile
     assert player_two.get_current_tile() == unbumped_tile
     assert player_three.get_current_tile() == next_tile

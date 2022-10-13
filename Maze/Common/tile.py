@@ -53,6 +53,13 @@ class Tile:
                    and self.__gem2 == other.__gem2
         return False
 
+    def __hash__(self) -> int:
+        """
+        Overrides the hash method for a Tile (allowing it to be used a key)
+        :return: An int representing the hash of this Tile
+        """
+        return hash(self.__shape) + hash(self.__gem2) + hash(self.__gem1)
+
     def has_path(self, path_direction: Direction) -> bool:
         """
         Determines if this Tile has a path in the given direction
