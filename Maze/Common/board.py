@@ -291,7 +291,7 @@ class Board:
         col = position.get_col()
         if self.__valid_tile_location(row, col):
             return self.__tile_grid[row][col]
-        raise ValueError("Tile not on board")
+        raise ValueError("Position not on board")
 
     def __valid_tile_location(self, row, col):
         """

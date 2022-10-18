@@ -1,37 +1,45 @@
-from direction import Direction
-
 class Position:
-    def __init__(self, row, col):
+    """
+    Represents a Position on a Board as a row and column, which represent row and column indices on a Board's tile grid,
+    a 2-D List of Tiles.
+    """
+    def __init__(self, row: int, col: int):
+        """
+        Creates a Position with a row and column representing a coordinate on a Board.
+        :param row: an int representing a row index in a Board's 2-D List of Tiles
+        :param col: an int representing a column index in a Board's 2-D List of Tiles
+        """
         self.__row = row
         self.__col = col
 
-    def get_row(self):
+    def get_row(self) -> int:
+        """
+        Gives the row index for this Position
+        :return: an int representing the row index for this Position
+        """
         return self.__row
 
-    def get_col(self):
+    def get_col(self) -> int:
+        """
+        Gives the column index for this Position
+        :return: an int representing the column index for this Position
+        """
         return self.__col
 
-    def adjust_position_in_bound(self, slide_index, slide_direction, max_pos):
-        print('here')
-        print(self.__row)
-        print(self.__col)
-        if slide_direction == Direction.Up:
-            if slide_index == self.__col:
-                self.__row = self.__row - 1 if self.__row > 0 else max_pos - 1
-        elif slide_direction == Direction.Down:
-            if slide_index == self.__col:
-                self.__row = self.__row + 1 if self.__row < max_pos - 1 else 0
-        elif slide_direction == Direction.Left:
-            if slide_index == self.__row:
-                self.__col = self.__col - 1 if self.__col > 0 else max_pos - 1
-        else:
-            if slide_index == self.__row:
-                self.__col = self.__col + 1 if self.__col < max_pos - 1 else 0
-
     def __eq__(self, other):
+        """
+        Overrides equal in order to compare Position objects. A Position is equal to another if they have the same row
+        and column integers.
+        :param other: The object being compared to this Position
+        :return: True if the objects are equal, otherwise false
+        """
         if isinstance(other, Position):
             return self.__row == other.__row and self.__col == other.__col
         return False
 
     def __str__(self):
+        """
+        Overrides string in order to print Position objects.
+        :return: this Position object as a row, col
+        """
         return f"({self.__row}, {self.__col})"

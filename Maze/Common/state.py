@@ -6,13 +6,10 @@ from player import Player
 from tile import Tile
 from direction import Direction
 
+from position import Position
 
-class State:
-    """
-    A State is a representation of a Labyrinth game game-state. A State has a Board, list of Players, and an active
-    Player.
-    """
 
+class ObservableState:
     def __init__(self, board: Board):
         """
         A constructor for a State, taking in a Board which represents the board for a game of Labyrinth.
@@ -21,6 +18,52 @@ class State:
         self.__board = board
         self.__players = []
         self.__active_player_index = 0
+
+    def get_board(self) -> Board:
+        """
+        Gets the __board in this State
+        :return: a Board representing this State's board
+        """
+        return self.__board
+
+    def get_active_player_index(self) -> int:
+        """
+        Getter for the __active_player_index
+        :return: An int representing the current active player's index in the list of players
+        """
+        return self.__active_player_index
+
+    def can_active_player_reach_given_tile(self, target_tile: Tile) -> bool:
+        """
+        Determines if the active player can reach a given Tile
+        :param target_tile: A Tile representing the potential destination to check against
+        :return: True if the active player can reach the target, False otherwise
+        :raises: ValueError if there are no players in this State
+        """
+        if self.__players:
+            active_player = self.__players[self.__active_player_index]
+            current_tile_position = active_player.get_current_position()
+            current_tile = self.__board.get_tile_by_position(current_tile_position)
+            all_reachable = self.__board.reachable_tiles(current_tile)
+            return target_tile in all_reachable
+        raise ValueError("No players to check")
+
+    def get_players(self) -> List[Player]:
+        """
+        Gives the list of players for this State.
+        :return: a List of Player which represents the players for this game State
+        """
+        return self.__players
+
+
+class State(ObservableState):
+    """
+    A State is a representation of a Labyrinth game game-state. A State has a Board, list of Players, and an active
+    Player.
+    """
+
+    def __init__(self, board: Board):
+        super().__init__(board)
         self.__previous_moves = []
 
     def rotate_spare_tile(self, degrees: int) -> None:
@@ -33,16 +76,9 @@ class State:
         """
         if degrees % 90 == 0:
             rotations = int(degrees / 90)
-            self.__board.get_next_tile().rotate(rotations)
+            super().get_board().get_next_tile().rotate(rotations)
         else:
             raise ValueError("Invalid degrees of rotations. Must be multiple of 90 degrees.")
-
-    def get_board(self) -> Board:
-        """
-        Gets the __board in this State
-        :return: a Board representing this State's board
-        """
-        return self.__board
 
     def add_player(self) -> None:
         """
@@ -55,9 +91,9 @@ class State:
         if self.__are_available_home_and_goal_tile():
             home_tile = self.__generate_players_tile(want_home=True)
             goal_tile = self.__generate_players_tile(want_home=False)
-            new_player = Player(self.__board.get_position_by_tile(home_tile),
-                                self.__board.get_position_by_tile(goal_tile))
-            self.__players.append(new_player)
+            new_player = Player(super().get_board().get_position_by_tile(home_tile),
+                                super().get_board().get_position_by_tile(goal_tile))
+            super().get_players().append(new_player)
         else:
             raise ValueError("Game is full, no more players can be added")
 
@@ -70,10 +106,10 @@ class State:
         :return: True if there is at least one available Tile of each type (home and goal) on this State's Board, False
         otherwise
         """
-        all_tiles = self.__board.get_tile_grid()
+        all_tiles = super().get_board().get_tile_grid()
         for row in range(len(all_tiles)):
             for col in range(len(all_tiles[row])):
-                if self.__board.check_stationary_position(row, col) \
+                if super().get_board().check_stationary_position(row, col) \
                         and self.__tile_is_available_as_goal(all_tiles[row][col]) \
                         and self.__tile_is_available_as_home(all_tiles[row][col]):
                     return True
@@ -87,7 +123,7 @@ class State:
         :return: A Tile which represents a potential home for a Player
         :raises: a ValueError if there are no Tiles left on this State's Board that are stationary
         """
-        stationary_tiles = self.__board.get_all_stationary_tiles()
+        stationary_tiles = super().get_board().get_all_stationary_tiles()
         while stationary_tiles:
             potential_tile = choice(stationary_tiles)
             if want_home:
@@ -106,8 +142,8 @@ class State:
         :param potential_tile: a Tile on this State's Board, represents a potential goal Tile
         :return: True if the Tile is available as a goal Tile, False otherwise
         """
-        for player in self.__players:
-            if self.__board.get_tile_by_position(player.get_goal_tile()) == potential_tile:
+        for player in super().get_players():
+            if super().get_board().get_tile_by_position(player.get_goal_position()) == potential_tile:
                 return False
         return True
 
@@ -118,8 +154,8 @@ class State:
         :param potential_tile: a Tile on this State's Board, represents a potential home Tile
         :return: True if the Tile is available as a home Tile, False otherwise
         """
-        for player in self.__players:
-            if player.get_home_tile() == potential_tile:
+        for player in super().get_players():
+            if player.get_home_position() == potential_tile:
                 return False
         return True
 
@@ -129,8 +165,8 @@ class State:
         :return: None
         side effect: mutates this State's list of players
         """
-        if self.__players:
-            self.__players.pop(self.__active_player_index)
+        if super().get_players():
+            super().get_players().pop(super().get_active_player_index())
         else:
             raise ValueError("No players to remove")
 
@@ -140,24 +176,9 @@ class State:
         :return: True if the active player is at their goal Tile, otherwise False
         :raises: ValueError if there are no players in this State
         """
-        if self.__players:
-            return self.__players[self.__active_player_index].get_current_tile() == \
-                   self.__players[self.__active_player_index].get_goal_tile()
-        raise ValueError("No players to check")
-
-    def can_active_player_reach_given_tile(self, target_tile: Tile) -> bool:
-        """
-        Determines if the active player can reach a given Tile
-        :param target_tile: A Tile representing the potential destination to check against
-        :return: True if the active player can reach the target, False otherwise
-        :raises: ValueError if there are no players in this State
-        """
-        if self.__players:
-            active_player = self.__players[self.__active_player_index]
-            current_tile_position = active_player.get_current_tile()
-            current_tile = self.__board.get_tile_by_position(current_tile_position)
-            all_reachable = self.__board.reachable_tiles(current_tile)
-            return target_tile in all_reachable
+        if super().get_players():
+            return super().get_players()[super().get_active_player_index()].get_current_position() == \
+                   super().get_players()[super().get_active_player_index()].get_goal_position()
         raise ValueError("No players to check")
 
     def slide_and_insert(self, index: int, direction: Direction) -> None:
@@ -171,24 +192,48 @@ class State:
         side effect: mutates __board by changing the Board's __tile_grid and __next_tile. Potentially mutates the
         Players of this State if they get slid off this State's Board
         """
-        next_tile = self.__board.get_next_tile()
-        self.__board.slide_and_insert(index, direction)
+        super().get_board().slide_and_insert(index, direction)
         self.__adjust_all_players(index, direction)
         self.__previous_moves.append((index, direction))
 
     def __adjust_all_players(self, slide_index: int, slide_direction: Direction) -> None:
         """
-        Move any players that may have been slid off of the board in the previous move onto the newly inserted Tile
+        Move any players that have been slid during the previous slide move. Players that may have been slid off of the
+        board in the previous move are placed onto the newly inserted Tile
         :return: None
-        side effect: Potentially mutates the Players of this State if they get slid off this State's Board
+        side effect: Potentially mutates the Players of this State if they get slid on this State's Board
         """
-        for player in self.__players:
-            player.get_current_tile().adjust_position_in_bound(slide_index, slide_direction,
-                                                               len(self.__board.get_tile_grid()))
+        for player in super().get_players():
+            new_position = self.__adjust_player_position_in_bound(player, slide_index, slide_direction)
+            player.set_current_position(new_position)
 
-    def get_players(self) -> List[Player]:
+    def __adjust_player_position_in_bound(self, player: Player, slide_index: int,
+                                          slide_direction: Direction) -> Position:
         """
-        Gives the list of players for this State.
-        :return: a List of Player which represents the players for this game State
+        Adjusts a player of this State's position on this State's Board after a slide. If a slide results in a player
+        having a Position not on the Board, adjusts the player's position to be on the Board.
+        :param player: a Player representing the player whose position is being adjusted
+        :param slide_index: an int representing the row or column being slide
+        :param slide_direction: a Direction representing the direction the row or column is being slid
+        :return: a Position representing the player's new position on the Board
         """
-        return self.__players
+        player_row = player.get_current_position().get_row()
+        player_col = player.get_current_position().get_col()
+        max_valid_pos = len(super().get_board().get_tile_grid()) - 1
+        if slide_direction == Direction.Up:
+            if slide_index == player_col:
+                new_row = player_row - 1 if player_row > 0 else max_valid_pos
+                return Position(new_row, player_col)
+        elif slide_direction == Direction.Down:
+            if slide_index == player_col:
+                new_row = player_row + 1 if player_row < max_valid_pos else 0
+                return Position(new_row, player_col)
+        elif slide_direction == Direction.Left:
+            if slide_index == player_row:
+                new_col = player_col - 1 if player_col > 0 else max_valid_pos
+                return Position(player_row, new_col)
+        else:
+            if slide_index == player_row:
+                new_col = player_col + 1 if player_col < max_valid_pos else 0
+                return Position(player_row, new_col)
+        return Position(player_row, player_col)
