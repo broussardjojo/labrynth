@@ -98,13 +98,6 @@ def test_slide_generates_gap_left(basic_board):
 
 
 # ----- Test reachable_tiles method ------
-# verifies that the set of reachable tiles does not includes the base tile
-def test_reachable_tile_not_include_base(basic_board):
-    base_tile = basic_board.get_tile_grid()[2][2]
-    reachable_tiles = basic_board.reachable_tiles(base_tile)
-    assert base_tile not in reachable_tiles
-
-
 def test_reachable_tiles_seeded_board(seeded_small_board):
     base_tile = seeded_small_board.get_tile_grid()[1][1]
     up_neighbor = seeded_small_board.get_tile_grid()[0][1]

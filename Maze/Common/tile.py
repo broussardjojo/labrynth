@@ -49,8 +49,8 @@ class Tile:
         """
         if isinstance(other, Tile):
             return self.__shape == other.__shape \
-                   and self.__gem1 == other.__gem1 \
-                   and self.__gem2 == other.__gem2
+                   and ((self.__gem1 == other.__gem1 and self.__gem2 == other.__gem2)
+                        or (self.__gem1 == other.__gem2 and self.__gem2 == other.__gem1))
         return False
 
     def __hash__(self) -> int:

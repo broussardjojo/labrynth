@@ -5,6 +5,7 @@ from shapes import Shape, Line, Corner, TShaped, Cross
 from utils import generate_gem_list
 import random
 from direction import Direction
+from position import Position
 
 
 class Board:
@@ -250,7 +251,9 @@ class Board:
         :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
         it will return the given base Tile
         """
-        base_row, base_col = self.__get_index_by_tile(base_tile)
+        base_position = self.get_position_by_tile(base_tile)
+        base_row = base_position.get_row()
+        base_col = base_position.get_col()
         if self.__valid_tile_location(base_row + row_offset, base_col + col_offset):
             neighbor_tile = self.__tile_grid[base_row + row_offset][base_col + col_offset]
             if col_offset == self.RIGHT_OFFSET:
@@ -264,17 +267,30 @@ class Board:
         else:
             return base_tile
 
-    def __get_index_by_tile(self, base_tile: Tile) -> (int, int):
+    def get_position_by_tile(self, base_tile: Tile) -> Position:
         """
         Gets the index of the given Tile
         :param base_tile: A Tile representing the target tile to search for in the board
-        :return: A tuple (int, int) representing the row and column indices of the base_tile
+        :return: A Position representing the row and column indices of the base_tile
         :raises: ValueError if the supplied Tile is not on the board
         """
         for row in range(len(self.__tile_grid)):
             for col in range(len(self.__tile_grid[row])):
                 if self.__tile_grid[row][col] == base_tile:
-                    return row, col
+                    return Position(row, col)
+        raise ValueError("Tile not on board")
+
+    def get_tile_by_position(self, position: Position) -> Tile:
+        """
+        Gets the Tile at a given position
+        :param position: A Position representing the target location to search for in the board
+        :return: A Tile representing the tile at the given Position
+        :raises: ValueError if the supplied Position is not on the board
+        """
+        row = position.get_row()
+        col = position.get_col()
+        if self.__valid_tile_location(row, col):
+            return self.__tile_grid[row][col]
         raise ValueError("Tile not on board")
 
     def __valid_tile_location(self, row, col):

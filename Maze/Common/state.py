@@ -21,6 +21,7 @@ class State:
         self.__board = board
         self.__players = []
         self.__active_player_index = 0
+        self.__previous_moves = []
 
     def rotate_spare_tile(self, degrees: int) -> None:
         """
@@ -52,8 +53,10 @@ class State:
         side effect: mutates this State's players with the addition of a new Player
         """
         if self.__are_available_home_and_goal_tile():
-            new_player = Player(self.__generate_players_tile(want_home=True),
-                                self.__generate_players_tile(want_home=False))
+            home_tile = self.__generate_players_tile(want_home=True)
+            goal_tile = self.__generate_players_tile(want_home=False)
+            new_player = Player(self.__board.get_position_by_tile(home_tile),
+                                self.__board.get_position_by_tile(goal_tile))
             self.__players.append(new_player)
         else:
             raise ValueError("Game is full, no more players can be added")
@@ -104,7 +107,7 @@ class State:
         :return: True if the Tile is available as a goal Tile, False otherwise
         """
         for player in self.__players:
-            if player.get_goal_tile() == potential_tile:
+            if self.__board.get_tile_by_position(player.get_goal_tile()) == potential_tile:
                 return False
         return True
 
@@ -151,7 +154,8 @@ class State:
         """
         if self.__players:
             active_player = self.__players[self.__active_player_index]
-            current_tile = active_player.get_current_tile()
+            current_tile_position = active_player.get_current_tile()
+            current_tile = self.__board.get_tile_by_position(current_tile_position)
             all_reachable = self.__board.reachable_tiles(current_tile)
             return target_tile in all_reachable
         raise ValueError("No players to check")
@@ -169,17 +173,18 @@ class State:
         """
         next_tile = self.__board.get_next_tile()
         self.__board.slide_and_insert(index, direction)
-        self.__adjust_slid_off_players(next_tile)
+        self.__adjust_all_players(index, direction)
+        self.__previous_moves.append((index, direction))
 
-    def __adjust_slid_off_players(self, inserted_tile: Tile) -> None:
+    def __adjust_all_players(self, slide_index: int, slide_direction: Direction) -> None:
         """
         Move any players that may have been slid off of the board in the previous move onto the newly inserted Tile
         :return: None
         side effect: Potentially mutates the Players of this State if they get slid off this State's Board
         """
         for player in self.__players:
-            if player.get_current_tile() == self.__board.get_next_tile():
-                player.set_current_tile(inserted_tile)
+            player.get_current_tile().adjust_position_in_bound(slide_index, slide_direction,
+                                                               len(self.__board.get_tile_grid()))
 
     def get_players(self) -> List[Player]:
         """

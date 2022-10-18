@@ -201,20 +201,14 @@ def test_is_active_player_at_goal_removed_all_players(sample_seeded_game_state):
 
 # ----- Test can_active_player_reach_given_tile Method -----
 # verifies can_active_player_reach_given_tile returns True if the player can reach the given tile and False otherwise
-def test_player_cannot_reach_current_tile(sample_seeded_game_state):
-    sample_seeded_game_state.add_player()
-    current_player = sample_seeded_game_state.get_players()[0]
-    current_tile = current_player.get_current_tile()
-    assert not sample_seeded_game_state.can_active_player_reach_given_tile(current_tile)
-
-
 def test_player_can_reach_tile_above(sample_seeded_game_state):
     sample_seeded_game_state.add_player()
     current_board = sample_seeded_game_state.get_board()
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
-    current_tile = current_player.get_current_tile()
+    current_tile_pos = current_player.get_current_tile()
     reachable_tile = current_board.get_tile_grid()[4][5]
+    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
     assert reachable_tile in current_board.reachable_tiles(current_tile)
     # assertion for new method
@@ -226,8 +220,9 @@ def test_player_can_reach_tile_below(sample_seeded_game_state):
     current_board = sample_seeded_game_state.get_board()
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
-    current_tile = current_player.get_current_tile()
+    current_tile_pos = current_player.get_current_tile()
     reachable_tile = current_board.get_tile_grid()[6][5]
+    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
     assert reachable_tile in current_board.reachable_tiles(current_tile)
     # assertion for new method
@@ -239,8 +234,9 @@ def test_player_can_not_reach_tile_right(sample_seeded_game_state):
     current_board = sample_seeded_game_state.get_board()
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
-    current_tile = current_player.get_current_tile()
+    current_tile_pos = current_player.get_current_tile()
     unreachable_tile = current_board.get_tile_grid()[5][6]
+    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     assert not unreachable_tile.has_path(Direction.Left)
     # validate that reachable tile is not reachable using previously tested reachable_tiles method
     assert unreachable_tile not in current_board.reachable_tiles(current_tile)
@@ -253,8 +249,9 @@ def test_player_can_reach_tile_left(sample_seeded_game_state):
     current_board = sample_seeded_game_state.get_board()
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
-    current_tile = current_player.get_current_tile()
+    current_tile_pos = current_player.get_current_tile()
     reachable_tile = current_board.get_tile_grid()[5][4]
+    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
     assert reachable_tile in current_board.reachable_tiles(current_tile)
     # assertion for new method
@@ -306,10 +303,12 @@ def test_slide_bumps_player_on_edge(sample_seeded_game_state):
     player_one = sample_seeded_game_state.get_players()[0]
     edge_tile = sample_seeded_game_state.get_board().get_tile_grid()[6][0]
     next_tile = sample_seeded_game_state.get_board().get_next_tile()
-    player_one.set_current_tile(edge_tile)
-    assert player_one.get_current_tile() == edge_tile
+    edge_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
+    player_one.set_current_tile(edge_tile_pos)
+    assert player_one.get_current_tile() == edge_tile_pos
     sample_seeded_game_state.slide_and_insert(0, Direction.Down)
-    assert player_one.get_current_tile() == next_tile
+    next_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(next_tile)
+    assert player_one.get_current_tile() == next_tile_pos
 
 
 def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
@@ -322,13 +321,17 @@ def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
     edge_tile = sample_seeded_game_state.get_board().get_tile_grid()[2][6]
     unbumped_tile = sample_seeded_game_state.get_board().get_tile_grid()[2][5]
     next_tile = sample_seeded_game_state.get_board().get_next_tile()
-    player_one.set_current_tile(edge_tile)
-    player_two.set_current_tile(unbumped_tile)
-    player_three.set_current_tile(edge_tile)
-    assert player_one.get_current_tile() == edge_tile
-    assert player_two.get_current_tile() == unbumped_tile
-    assert player_three.get_current_tile() == edge_tile
+    edge_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
+    edge_tile_pos_two = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
+    unbumped_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(unbumped_tile)
+    player_one.set_current_tile(edge_tile_pos)
+    player_two.set_current_tile(unbumped_tile_pos)
+    player_three.set_current_tile(edge_tile_pos_two)
+    assert player_one.get_current_tile() == edge_tile_pos
+    assert player_two.get_current_tile() == unbumped_tile_pos
+    assert player_three.get_current_tile() == edge_tile_pos
     sample_seeded_game_state.slide_and_insert(2, Direction.Right)
-    assert player_one.get_current_tile() == next_tile
-    assert player_two.get_current_tile() == unbumped_tile
-    assert player_three.get_current_tile() == next_tile
+    next_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(next_tile)
+    assert player_one.get_current_tile() == next_tile_pos
+    assert player_two.get_current_tile() == unbumped_tile_pos
+    assert player_three.get_current_tile() == next_tile_pos
