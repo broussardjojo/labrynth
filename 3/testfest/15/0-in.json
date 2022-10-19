@@ -1,4 +1,77 @@
-{"connectors":[["┌","┐","│","─","┐","└","┌"],["└","┘","│","┘","┬","├","┴"],["─","─","│","┤","┼","│","─"],["┐","└","┌","┘","┬","├","┴"],["┤","┼","│","─","┐","└","┌"],["┘","┬","├","┴","┤","┼","│"],["─","┐","└","┌","┘","┬","├"]],"treasures":[[["zircon","ruby-diamond-profile"],["zircon","rose-quartz"],["zoisite","yellow-jasper"],["zoisite","yellow-baguette"],["zoisite","white-square"],["zoisite","unakite"],["zoisite","tourmaline"]],[["zircon","rock-quartz"],["zircon","rhodonite"],["zoisite","yellow-heart"],["zoisite","tourmaline-laser-cut"],["zoisite","tigers-eye"],["zoisite","tanzanite-trillion"],["zoisite","super-seven"]],[["zoisite","zoisite"],["zoisite","zircon"],["zoisite","yellow-beryl-oval"],["zoisite","sunstone"],["zoisite","stilbite"],["zoisite","star-cabochon"],["zoisite","spinel"]],[["zoisite","sphalerite"],["zoisite","ruby"],["zoisite","ruby-diamond-profile"],["zoisite","rose-quartz"],["zoisite","rock-quartz"],["zoisite","rhodonite"],["zoisite","red-spinel-square-emerald-cut"]],[["zoisite","red-diamond"],["zoisite","raw-citrine"],["zoisite","raw-beryl"],["zoisite","purple-square-cushion"],["zoisite","purple-spinel-trillion"],["zoisite","purple-oval"],["zoisite","purple-cabochon"]],[["zoisite","prehnite"],["zoisite","prasiolite"],["zoisite","pink-spinel-cushion"],["zoisite","pink-round"],["zoisite","pink-opal"],["zoisite","pink-emerald-cut"],["zoisite","peridot"]],[["zoisite","padparadscha-sapphire"],["zoisite","padparadscha-oval"],["zoisite","orange-radiant"],["zoisite","moss-agate"],["zoisite","morganite-oval"],["zoisite","moonstone"],["zoisite","mexican-opal"]]]}
-
-{"column#":5,"row#":0}
-
+{
+    "connectors": [
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"],
+        ["┼","┼","┼","┼","┼","┼","┼"]
+    ],
+    "treasures": [
+        [
+            ["alexandrite","pink-emerald-cut"],
+            ["alexandrite","pink-opal"],
+            ["alexandrite","pink-round"],
+            ["alexandrite","pink-spinel-cushion"],
+            ["alexandrite","purple-cabochon"],
+            ["alexandrite","purple-oval"],
+            ["alexandrite","purple-spinel-trillion"]
+        ],
+        [
+            ["amethyst","pink-emerald-cut"],
+            ["amethyst","pink-opal"],
+            ["amethyst","pink-round"],
+            ["amethyst","pink-spinel-cushion"],
+            ["amethyst","purple-cabochon"],
+            ["amethyst","purple-oval"],
+            ["amethyst","purple-spinel-trillion"]
+        ],
+        [
+            ["ametrine","pink-emerald-cut"],
+            ["ametrine","pink-opal"],
+            ["ametrine","pink-round"],
+            ["ametrine","pink-spinel-cushion"],
+            ["ametrine","purple-cabochon"],
+            ["ametrine","purple-oval"],
+            ["ametrine","purple-spinel-trillion"]
+        ],
+        [
+            ["ammolite","pink-emerald-cut"],
+            ["ammolite","pink-opal"],
+            ["ammolite","pink-round"],
+            ["ammolite","pink-spinel-cushion"],
+            ["ammolite","purple-cabochon"],
+            ["ammolite","purple-oval"],
+            ["ammolite","purple-spinel-trillion"]
+        ],
+        [
+            ["apatite","pink-emerald-cut"],
+            ["apatite","pink-opal"],
+            ["apatite","pink-round"],
+            ["apatite","pink-spinel-cushion"],
+            ["apatite","purple-cabochon"],
+            ["apatite","purple-oval"],
+            ["apatite","purple-spinel-trillion"]
+        ],
+        [
+            ["aplite","pink-emerald-cut"],
+            ["aplite","pink-opal"],
+            ["aplite","pink-round"],
+            ["aplite","pink-spinel-cushion"],
+            ["aplite","purple-cabochon"],
+            ["aplite","purple-oval"],
+            ["aplite","purple-spinel-trillion"]
+        ],
+        [
+            ["aquamarine","pink-emerald-cut"],
+            ["aquamarine","pink-opal"],
+            ["aquamarine","pink-round"],
+            ["aquamarine","pink-spinel-cushion"],
+            ["aquamarine","purple-cabochon"],
+            ["aquamarine","purple-oval"],
+            ["aquamarine","purple-spinel-trillion"]
+        ]
+    ]
+}
+{"column#":4,"row#":3}

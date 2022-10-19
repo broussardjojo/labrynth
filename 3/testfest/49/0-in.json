@@ -1,73 +1,191 @@
+{
+    "connectors": 
+    [
+        ["─", "┐", "└", "┘", "┬", "┴", "┼"],
+        ["┼", "┐", "─", "─", "┬", "─", "┼"],
+        ["─", "└", "┼", "┘", "┴", "┼", "┼"],
+        ["├", "┐", "└", "┘", "┬", "┴", "─"],
+        ["─", "┐", "└", "┼", "┬", "─", "└"],
+        ["├", "┌", "├", "│", "│", "└", "┼"],
+        ["─", "┼", "└", "│", "─", "┴", "┐"]
+    ],
+    "treasures":
+    [
+        [
+            [
+                "alexandrite-pear-shape", "alexandrite-pear-shape"
+            ],
+            [
+                "alexandrite-pear-shape", "alexandrite"
+            ],
+            [
+                "alexandrite-pear-shape", "almandine-garnet"
+            ],
+            [
+                "alexandrite-pear-shape", "amethyst"
+            ],
+            [
+                "alexandrite-pear-shape", "ametrine"
+            ],
+            [
+                "alexandrite-pear-shape", "ammolite"
+            ],
+            [
+                "alexandrite-pear-shape", "apatite"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "aplite"
+            ],
+            [
+                "alexandrite-pear-shape", "apricot-square-radiant"
+            ],
+            [
+                "alexandrite-pear-shape", "aquamarine"
+            ],
+            [
+                "alexandrite-pear-shape", "australian-marquise"
+            ],
+            [
+                "alexandrite-pear-shape", "aventurine"
+            ],
+            [
+                "alexandrite-pear-shape", "azurite"
+            ],
+            [
+                "alexandrite-pear-shape", "beryl"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "black-obsidian"
+            ],
+            [
+                "alexandrite-pear-shape", "black-onyx"
+            ],
+            [
+                "alexandrite-pear-shape", "black-spinel-cushion"
+            ],
+            [
+                "alexandrite-pear-shape", "blue-ceylon-sapphire"
+            ],
+            [
+                "alexandrite-pear-shape", "blue-cushion"
+            ],
+            [
+                "alexandrite-pear-shape", "blue-pear-shape"
+            ],
+            [
+                "alexandrite-pear-shape", "blue-spinel-heart"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "bulls-eye"
+            ],
+            [
+                "alexandrite-pear-shape", "carnelian"
+            ],
+            [
+                "alexandrite-pear-shape", "chrome-diopside"
+            ],
+            [
+                "alexandrite-pear-shape", "chrysoberyl-cushion"
+            ],
+            [
+                "alexandrite-pear-shape", "chrysolite"
+            ],
+            [
+                "alexandrite-pear-shape", "citrine-checkerboard"
+            ],
+            [
+                "alexandrite-pear-shape", "citrine"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "clinohumite"
+            ],
+            [
+                "alexandrite-pear-shape", "color-change-oval"
+            ],
+            [
+                "alexandrite-pear-shape", "cordierite"
+            ],
+            [
+                "alexandrite-pear-shape", "diamond"
+            ],
+            [
+                "alexandrite-pear-shape", "dumortierite"
+            ],
+            [
+                "alexandrite-pear-shape", "emerald"
+            ],
+            [
+                "alexandrite-pear-shape", "fancy-spinel-marquise"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "garnet"
+            ],
+            [
+                "alexandrite-pear-shape", "golden-diamond-cut"
+            ],
+            [
+                "alexandrite-pear-shape", "goldstone"
+            ],
+            [
+                "alexandrite-pear-shape", "grandidierite"
+            ],
+            [
+                "alexandrite-pear-shape", "gray-agate"
+            ],
+            [
+                "alexandrite-pear-shape", "green-aventurine"
+            ],
+            [
+                "alexandrite-pear-shape", "green-beryl-antique"
+            ]
+            
+        ],
+        [
+            [
+                "alexandrite-pear-shape", "green-beryl"
+            ],
+            [
+                "alexandrite-pear-shape", "green-princess-cut"
+            ],
+            [
+                "alexandrite-pear-shape", "grossular-garnet"
+            ],
+            [
+                "alexandrite-pear-shape", "hackmanite"
+            ],
+            [
+                "alexandrite-pear-shape", "heliotrope"
+            ],
+            [
+                "alexandrite-pear-shape", "hematite"
+            ],
+            [
+                "alexandrite-pear-shape", "iolite-emerald-cut"
+            ]
+            
+        ]
+    ]
+}
 
 
-{ "connectors" : [ ["┌", "┌", "┌", "┐", "┘", "┘", "┘"],
-
-                    ["┘", "┘", "├", "│", "┘", "┘", "┘"],
-
-                  ["┘", "┌", "┘", "│", "┘", "┘", "┘"],
-
-     ["─", "┼", "─", "┼", "─", "─", "─"],
-
-      ["┘", "┘", "┘", "─", "┘", "┘", "┘"],
-
-      ["┘", "┘", "┘", "─", "┘", "┘", "┘"],
-
-      ["┘", "┘", "┘", "─", "┘", "┘", "┘"] ]
-
-,
-
-        "treasures"  : [[["diamond", "zoisite"],
-        ["diamond", "alexandrite"],
-        ["diamond", "alexandrite-pear-shape"],
-        ["diamond", "almandine-garnet"],
-          ["diamond", "amethyst"],
-          ["diamond", "ametrine"],
-          ["diamond", "ammolite"]],
-          [["diamond", "apatite"],
-          ["diamond", "aplite"],
-          ["diamond", "apricot-square-radiant"],
-          ["diamond", "aquamarine"],
-          ["diamond", "australian-marquise"],
-          ["diamond", "aventurine"],
-          ["diamond", "azurite"]],
-          [["diamond", "beryl"],
-          ["diamond", "black-obsidian"],
-          ["diamond", "black-onyx"],
-          ["diamond", "black-spinel-cushion"],
-          ["diamond", "blue-ceylon-sapphire"],
-          ["diamond", "blue-cushion"],
-          ["diamond", "blue-pear-shape"]],
-          [["diamond", "blue-spinel-heart"],
-          ["diamond", "bulls-eye"],
-          ["diamond", "carnelian"],
-          ["diamond", "chrome-diopside"],
-          ["diamond", "chrysoberyl-cushion"],
-          ["diamond", "chrysolite"],
-          ["diamond", "citrine-checkerboard"]],
-          [["diamond", "citrine"],
-          ["diamond", "clinohumite"],
-          ["diamond", "color-change-oval"],
-          ["diamond", "cordierite"],
-          ["diamond", "diamond"],
-          ["diamond", "dumortierite"],
-          ["diamond", "emerald"]],
-          [["diamond", "fancy-spinel-marquise"],
-          ["diamond", "garnet"],
-          ["diamond", "golden-diamond-cut"],
-          ["diamond", "goldstone"],
-          ["diamond", "grandidierite"],
-          ["diamond", "gray-agate"],
-          ["diamond", "green-aventurine"]],
-          [["diamond", "green-beryl-antique"],
-          ["diamond", "green-beryl"],
-          ["diamond", "green-princess-cut"],
-          ["diamond", "grossular-garnet"],
-          ["diamond", "hackmanite"],
-          ["diamond", "heliotrope"],
-          ["diamond", "hematite"]]]}
 
 
-{ "row#"    : 0,
-
-        "column#" : 3 }
-
+{
+    "row#"    : 0,
+    "column#" : 0 
+}
