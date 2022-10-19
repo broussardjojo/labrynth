@@ -3,6 +3,10 @@ from position import Position
 
 
 class Player:
+    """
+    A Player is a representation of a player of a game of Labyrinth. A Player has a home position, a goal position and a
+    current position, which defaults to their home position.
+    """
     def __init__(self, home_position: Position, goal_position: Position):
         """
         A Constructor for a Player which assigns the provided home, goal, and current Positions to the respective fields

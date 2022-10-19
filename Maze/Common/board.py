@@ -20,12 +20,23 @@ class Board:
     RIGHT_OFFSET = 1
 
     def __init__(self, tile_grid: List[List[Tile]], next_tile: Tile):
+        """
+        Base constructor for a Board that assigns the Board a 2-D List of Tiles to represent the tile grid and a Tile
+        which represents the next Tile for the Board.
+        :param tile_grid: a 2-D List of Tiles that represents the grid of tiles on a Board
+        :param next_tile: a Tile that represents the next Tile to be inserted on a Board
+        """
         self.__tile_grid = tile_grid
         self.__next_tile = next_tile
         self.__dimensions = len(tile_grid)
 
     @classmethod
     def from_list_of_tiles(cls, tile_grid: List[List[Tile]]):
+        """
+        A constructor for a Board, taking in a 2-D List of Tiles used to create a tile_grid and generates the next_tile.
+        :param tile_grid: a 2-D list of tiles that represents the grid of tiles on a Board
+        :return: an instance of a Board
+        """
         gem_name_list = generate_gem_list()
         next_tile = cls.__generate_unique_tile(gem_name_list, tile_grid)
         return cls(tile_grid, next_tile)
@@ -36,6 +47,7 @@ class Board:
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
         It creates a tile_grid and generates the next_tile.
         :param dimensions: an integer representing the length and width of the board
+        :return: an instance of a Board
         """
         if 'seed' in kwargs:
             random.seed(kwargs['seed'])

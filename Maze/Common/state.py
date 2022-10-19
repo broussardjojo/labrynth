@@ -10,6 +10,10 @@ from position import Position
 
 
 class ObservableState:
+    """
+    Base class for a State which only exposes information to untrusted users of this class. It does not give access to
+    Player information or allow users to change the Board for this State.
+    """
     def __init__(self, board: Board):
         """
         A constructor for a State, taking in a Board which represents the board for a game of Labyrinth.
@@ -47,13 +51,6 @@ class ObservableState:
             all_reachable = self.__board.reachable_tiles(current_tile)
             return target_tile in all_reachable
         raise ValueError("No players to check")
-
-    def get_players(self) -> List[Player]:
-        """
-        Gives the list of players for this State.
-        :return: a List of Player which represents the players for this game State
-        """
-        return self.__players
 
 
 class State(ObservableState):
@@ -237,3 +234,10 @@ class State(ObservableState):
                 new_col = player_col + 1 if player_col < max_valid_pos else 0
                 return Position(player_row, new_col)
         return Position(player_row, player_col)
+
+    def get_players(self) -> List[Player]:
+        """
+        Gives the list of players for this State.
+        :return: a List of Player which represents the players for this game State
+        """
+        return self.__players
