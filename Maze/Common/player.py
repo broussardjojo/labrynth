@@ -1,5 +1,4 @@
-from tile import Tile
-from position import Position
+from .position import Position
 
 
 class Player:

@@ -4,3 +4,5 @@ Maze/Common/.pytest_cache
 .DS_Store
 Maze/.DS_Store
 Maze/Common/__pycache__/
+Maze/__pycache__/
+Maze/Players/__pycache__/

@@ -1,11 +1,11 @@
 from typing import List, Set
-from tile import Tile
-from gem import Gem
-from shapes import Shape, Line, Corner, TShaped, Cross
-from utils import generate_gem_list
+from .tile import Tile
+from .gem import Gem
+from .shapes import Shape, Line, Corner, TShaped, Cross
+from .utils import generate_gem_list
 import random
-from direction import Direction
-from position import Position
+from .direction import Direction
+from .position import Position
 
 
 class Board:

@@ -1,5 +1,5 @@
 from abc import ABC
-from direction import Direction
+from .direction import Direction
 
 
 class Shape(ABC):

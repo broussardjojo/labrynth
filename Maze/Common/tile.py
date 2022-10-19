@@ -1,8 +1,8 @@
 from typing import List
 
-from gem import Gem
-from shapes import Shape
-from direction import Direction
+from .gem import Gem
+from .shapes import Shape
+from .direction import Direction
 
 
 class Tile:
