@@ -1,7 +1,7 @@
 Pair: mactaggartt-rodriguezdia \
 Commit: [32acda181e733db1664bb2e0cd920c358331ddfa](https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/tree/32acda181e733db1664bb2e0cd920c358331ddfa) \
 Self-eval: https://github.khoury.northeastern.edu/CS4500-F22/mactaggartt-rodriguezdia/blob/97709704c1e072606429fdb838af4c466a72617c/3/self-3.md \
-Score: 45/85 \
+Score: 50/85 \
 Grader: Mike Delmonaco
 
 ## Programming (20 pts self-eval, 45 pts code):
@@ -21,8 +21,6 @@ If you don't implement something, say so. You will get partial credit, rather th
 
 I might have taken points off for misdirecting on your shift/insert unit tests, but you already lost all of your accuracy points. You linked to board tests, when
 you should've said that you didn't test this on the state, only the board. Being explicit and clear for something like that is important.
-
--5 Should have tested a player being shifted, but not over the edge.
 
 ## Design (20 pts):
 
