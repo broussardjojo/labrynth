@@ -5,6 +5,7 @@ from .tile import Tile
 from .shapes import Line
 from .gem import Gem
 from .direction import Direction
+from .position import Position
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def rotated_seeded_spare_tile():
 
 @pytest.fixture
 def sample_seeded_game_state(seeded_board):
-    return State(seeded_board)
+    return State.from_random_state(seeded_board)
 
 
 # ----- Test Rotate Method -----
@@ -176,7 +177,7 @@ def test_is_active_player_at_goal(sample_seeded_game_state):
     sample_seeded_game_state.add_player()
     active_player = sample_seeded_game_state.get_players()[0]
     goal_tile = active_player.get_goal_position()
-    active_player._Player__current_position = goal_tile
+    sample_seeded_game_state.move_active_player_to(goal_tile)
     assert sample_seeded_game_state.is_active_player_at_goal()
 
 
@@ -335,3 +336,83 @@ def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
     assert player_one.get_current_position() == next_tile_pos
     assert player_two.get_current_position() == unbumped_tile_pos
     assert player_three.get_current_position() == next_tile_pos
+
+
+# ----- Tests for change_active_player_turn ------
+def test_change_active_player_turn_not_at_end(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    assert sample_seeded_game_state.get_active_player_index() == 0
+    sample_seeded_game_state.change_active_player_turn()
+    assert sample_seeded_game_state.get_active_player_index() == 1
+
+
+def test_change_active_player_turn_at_end(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    assert sample_seeded_game_state.get_active_player_index() == 0
+    sample_seeded_game_state.change_active_player_turn()
+    assert sample_seeded_game_state.get_active_player_index() == 1
+    sample_seeded_game_state.change_active_player_turn()
+    assert sample_seeded_game_state.get_active_player_index() == 2
+    sample_seeded_game_state.change_active_player_turn()
+    assert sample_seeded_game_state.get_active_player_index() == 3
+    sample_seeded_game_state.change_active_player_turn()
+    assert sample_seeded_game_state.get_active_player_index() == 0
+
+
+# ----- Test is_active_player_at_goal Method -----
+# verifies the method returns true when the active player is at their home Position
+def test_is_active_player_at_home(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    assert sample_seeded_game_state.is_active_player_at_home()
+
+
+def test_is_active_player_not_at_home(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    active_player = sample_seeded_game_state.get_players()[0]
+    goal_position = active_player.get_goal_position()
+    sample_seeded_game_state.move_active_player_to(goal_position)
+    assert not sample_seeded_game_state.is_active_player_at_home()
+
+
+# ----- Test the move_active_player_to method -----
+# validates that the move active player moves the currently active player to the specified location
+def test_move_active_player_to_moves_active(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    active_player = sample_seeded_game_state.get_players()[0]
+    assert active_player.get_current_position() == Position(5, 5)
+    sample_seeded_game_state.move_active_player_to(Position(0, 4))
+    assert active_player.get_current_position() == Position(0, 4)
+
+
+def test_move_active_player_to_moves_active_two(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    active_player = sample_seeded_game_state.get_players()[0]
+    assert active_player.get_current_position() == Position(5, 5)
+    sample_seeded_game_state.move_active_player_to(Position(6, 6))
+    assert active_player.get_current_position() == Position(6, 6)
+
+
+def test_move_active_player_to_does_not_move_inactive(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    non_active_player_one = sample_seeded_game_state.get_players()[1]
+    non_active_player_two = sample_seeded_game_state.get_players()[2]
+    assert non_active_player_one.get_current_position() == Position(1, 1)
+    assert non_active_player_two.get_current_position() == Position(1, 3)
+    sample_seeded_game_state.move_active_player_to(Position(6, 6))
+    assert non_active_player_one.get_current_position() == Position(1, 1)
+    assert non_active_player_two.get_current_position() == Position(1, 3)

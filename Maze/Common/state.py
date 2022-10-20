@@ -1,46 +1,15 @@
 from random import choice
-from typing import List
+from typing import List, Tuple
 
 from .board import Board
 from .player import Player
 from .tile import Tile
 from .direction import Direction
+from .utils import ALL_NAMED_COLORS
 
 from .position import Position
-
-
-class ObservableState:
-    """
-    Base class for a State which only exposes information to untrusted users of this class. It does not give access to
-    Player information or allow users to change the Board for this State.
-    """
-    def __init__(self, board: Board):
-        """
-        A constructor for a State, taking in a Board which represents the board for a game of Labyrinth.
-        :param board: a Board representing the board for a game of Labyrinth
-        """
-        self.__board = board
-
-    def get_board(self) -> Board:
-        """
-        Gets the __board in this State
-        :return: a Board representing this State's board
-        """
-        return self.__board
-
-    # TODO: Test this method
-    def can_reach_position_from_given_position(self, start_position, end_position):
-        """
-        Method to check if a given position can be reached from another given position on this State's Board
-        :param start_position: Position to begin from
-        :param end_position: Position to end at
-        :return: True if there is a path from the start Position to the end Position in the current condition of the
-        Board
-        """
-        current_tile = self.__board.get_tile_by_position(start_position)
-        target_tile = self.__board.get_tile_by_position(end_position)
-        all_reachable = self.__board.reachable_tiles(current_tile)
-        return target_tile in all_reachable
+from ..Players.riemann import Riemann
+from .observableState import ObservableState
 
 
 class State(ObservableState):
@@ -49,11 +18,38 @@ class State(ObservableState):
     Player.
     """
 
-    def __init__(self, board: Board ):
+    def __init__(self, board: Board, previous_moves: List[Tuple[int, Direction]], players: List[Player],
+                 active_player_index: int):
         super().__init__(board)
-        self.__previous_moves = []
-        self.__players = []
-        self.__active_player_index = 0
+        self.__previous_moves = previous_moves
+        self.__players = players
+        self.__active_player_index = active_player_index
+
+    @classmethod
+    def from_random_state(cls, board: Board):
+        """
+        A constructor for a State, taking in a Board and creating an empty game state with no players
+        :param board: a Board representing the game board to use in this state
+        :return: an instance of a State
+        """
+        previous_moves = []
+        players = []
+        active_player_index = 0
+        return cls(board, previous_moves, players, active_player_index)
+
+    @classmethod
+    def from_current_state(cls, board: Board, players: List[Player], previous_move: Tuple[int, Direction]):
+        """
+        A constructor for a State, taking in a Board and creating an empty game state with no players
+        :param board: a Board representing the game board to use in this state
+        :param players: a List of Players representing the current players in the game
+        :param previous_move: a Tuple containing an int representing the previous slide index and a Direction
+        representing the previous slide Direction
+        :return: an instance of a State
+        """
+        previous_moves = [previous_move]
+        active_player_index = 0
+        return cls(board, previous_moves, players, active_player_index)
 
     def rotate_spare_tile(self, degrees: int) -> None:
         """
@@ -80,8 +76,9 @@ class State(ObservableState):
         if self.__are_available_home_and_goal_tile():
             home_tile = self.__generate_players_tile(want_home=True)
             goal_tile = self.__generate_players_tile(want_home=False)
+            goal_position = super().get_board().get_position_by_tile(goal_tile)
             new_player = Player(super().get_board().get_position_by_tile(home_tile),
-                                super().get_board().get_position_by_tile(goal_tile))
+                                goal_position, Riemann(goal_position), self.__get_unique_color())
             self.get_players().append(new_player)
         else:
             raise ValueError("Game is full, no more players can be added")
@@ -148,7 +145,6 @@ class State(ObservableState):
                 return False
         return True
 
-    # TODO: Adjust indexing so active_player_index is correct after removing player
     def kick_out_active_player(self) -> None:
         """
         Removes the currently active player from this State's list of players.
@@ -157,13 +153,15 @@ class State(ObservableState):
         """
         if self.__players:
             self.__players.pop(self.__active_player_index)
+            if self.__active_player_index >= len(self.__players):
+                self.__active_player_index = 0
         else:
             raise ValueError("No players to remove")
 
     def is_active_player_at_goal(self) -> bool:
         """
-        Checks if the active player for this State is at their goal Tile.
-        :return: True if the active player is at their goal Tile, otherwise False
+        Checks if the active player for this State is at their goal Position.
+        :return: True if the active player is at their goal Position, otherwise False
         :raises: ValueError if there are no players in this State
         """
         if self.__players:
@@ -246,8 +244,21 @@ class State(ObservableState):
             active_player = self.__players[self.__active_player_index]
             current_tile_position = active_player.get_current_position()
             target_tile_position = super().get_board().get_position_by_tile(target_tile)
-            return self.can_reach_position_from_given_position(current_tile_position, target_tile_position)
+            return self.__can_reach_position_from_given_position(current_tile_position, target_tile_position)
         raise ValueError("No players to check")
+
+    def __can_reach_position_from_given_position(self, start_position, end_position):
+        """
+        Method to check if a given position can be reached from another given position on this State's Board
+        :param start_position: Position to begin from
+        :param end_position: Position to end at
+        :return: True if there is a path from the start Position to the end Position in the current condition of the
+        Board
+        """
+        current_tile = super().get_board().get_tile_by_position(start_position)
+        target_tile = super().get_board().get_tile_by_position(end_position)
+        all_reachable = super().get_board().reachable_tiles(current_tile)
+        return target_tile in all_reachable
 
     def get_active_player_index(self) -> int:
         """
@@ -256,6 +267,45 @@ class State(ObservableState):
         """
         return self.__active_player_index
 
-    # TODO: Add ability to move a player via the state
-    # TODO: Add method to check if active player is at the goal
-    # TODO: Add method to increment player turn
+    def is_active_player_at_home(self) -> bool:
+        """
+        Checks if the active player for this State is at their home Position.
+        :return: True if the active player is at their goal Position, otherwise False
+        :raises: ValueError if there are no players in this State
+        """
+        if self.__players:
+            return self.__players[self.__active_player_index].get_current_position() == \
+                   self.__players[self.__active_player_index].get_home_position()
+        raise ValueError("No players to check")
+
+    def change_active_player_turn(self) -> None:
+        """
+        Change the active player's turn
+        :return: None
+        """
+        if self.__active_player_index < len(self.__players) - 1:
+            self.__active_player_index += 1
+        else:
+            self.__active_player_index = 0
+
+    def __get_unique_color(self) -> str:
+        """
+        Gets a unique color for a Player from the list of named colors
+        :return: A string representing a color for a player to use
+        :raises: ValueError if there are no named colors available for Players to use
+        """
+        currently_used_colors = [player.get_color() for player in self.__players]
+        for color in ALL_NAMED_COLORS:
+            if color not in currently_used_colors:
+                return color
+        raise ValueError("No colors left")
+
+    def move_active_player_to(self, position_to_move_to: Position) -> None:
+        """
+        Method to move the currently active player to the specified position
+        NOTE: Assuming only trusted users have access to this class and this method meaning only valid moves can be made
+        :param position_to_move_to: a Position representing the destination to move a player to
+        :return: None
+        Side Effect: Mutates the currently active Player
+        """
+        self.__players[self.__active_player_index].set_current_position(position_to_move_to)

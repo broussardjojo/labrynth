@@ -1,26 +1,10 @@
 import functools
 import sys
-from json import JSONDecoder
 from typing import List, Set
-from .shapes import Line, Cross, Corner, TShaped
 from .gem import Gem
 from .board import Board
 from .tile import Tile
-
-# Dictionary to convert a shape character to a Shape
-shape_dict = {
-    '└': Corner(0),
-    '┌': Corner(1),
-    '┐': Corner(2),
-    '┘': Corner(3),
-    '│': Line(0),
-    '─': Line(1),
-    '┬': TShaped(0),
-    '┤': TShaped(1),
-    '┴': TShaped(2),
-    '├': TShaped(3),
-    '┼': Cross()
-}
+from .utils import get_json_obj_list, shape_dict
 
 
 def get_index_by_tile_on_grid(base_tile: Tile, tile_grid: List[List[Tile]]) -> (int, int):
@@ -36,16 +20,7 @@ def get_index_by_tile_on_grid(base_tile: Tile, tile_grid: List[List[Tile]]) -> (
                 return row, col
 
 
-def get_gems(gem_name_list: List[str]) -> (Gem, Gem):
-    """
-    Retrieve a pair of gems given a list of Gem names
-    :param gem_name_list: List of Gem names (hopefully two for our use case)
-    :return: Two Gems objects
-    """
-    return Gem(gem_name_list[0]), Gem(gem_name_list[1])
-
-
-def make_board(board_dict: dict) -> List[List[Tile]]:
+def make_tile_grid(board_dict: dict) -> List[List[Tile]]:
     """
     Makes a board given a dictionary of connectors and treasures
     :param board_dict: A dictionary of connectors and treasures in the following format
@@ -60,6 +35,15 @@ def make_board(board_dict: dict) -> List[List[Tile]]:
             gem1, gem2 = get_gems(board_dict['treasures'][row][col])
             tile_grid[row].append(Tile(shape, gem1, gem2))
     return tile_grid
+
+
+def get_gems(gem_name_list: List[str]) -> (Gem, Gem):
+    """
+    Retrieve a pair of gems given a list of Gem names
+    :param gem_name_list: List of Gem names (hopefully two for our use case)
+    :return: Two Gems objects
+    """
+    return Gem(gem_name_list[0]), Gem(gem_name_list[1])
 
 
 def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
@@ -79,21 +63,6 @@ def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
     elif coord_one['column#'] > coord_two['column#']:
         return 1
     return 0
-
-
-def get_json_obj_list(input_data) -> List[dict]:
-    """
-    Read standard input one JSON object at a time and convert it into a list of dictionaries
-    :return: A list of dictionaries representing the two inputs (a board and a starting coordinate)
-    """
-    decoder = JSONDecoder()
-    json_obj_list = []
-    while len(input_data) > 0:
-        json_obj, index = decoder.raw_decode(input_data)
-        json_obj_list.append(json_obj)
-        input_data = input_data[index:]
-        input_data = input_data.lstrip()
-    return json_obj_list
 
 
 def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board) -> List[dict]:
@@ -118,7 +87,7 @@ def main() -> List[dict]:
     :return: A sorted list of coordinates
     """
     json_obj_list = get_json_obj_list(sys.stdin.read().lstrip())
-    board = Board.from_list_of_tiles(make_board(json_obj_list[0]))
+    board = Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]))
     coord_json = json_obj_list[1]
     base_tile = board.get_tile_grid()[coord_json['row#']][coord_json['column#']]
     reachable_list = board.reachable_tiles(base_tile)

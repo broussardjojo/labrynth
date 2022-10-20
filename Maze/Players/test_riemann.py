@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from ..Common.state import ObservableState
+from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from .riemann import Riemann
 from .move import Move

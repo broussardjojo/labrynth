@@ -4,7 +4,7 @@ from typing import List, Set
 from .move import Move
 from ..Common.direction import Direction
 from ..Common.position import Position
-from ..Common.state import ObservableState
+from ..Common.observableState import ObservableState
 from ..Common.tile import Tile
 from .strategy import Strategy
 from ..Common.board import Board

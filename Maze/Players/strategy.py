@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..Common.state import ObservableState
+from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from .move import Move
 

@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 from typing import List
 from .direction import Direction
+from json import JSONDecoder
+from .tile import Tile
+from .shapes import TShaped, Line, Corner, Cross
 
 
 def remove_gem_extension(filename: Path) -> str:
@@ -32,7 +35,28 @@ def generate_gem_list() -> List[str]:
     return gem_list
 
 
+# Dictionary to convert a shape character to a Shape
+shape_dict = {
+    '└': Corner(0),
+    '┌': Corner(1),
+    '┐': Corner(2),
+    '┘': Corner(3),
+    '│': Line(0),
+    '─': Line(1),
+    '┬': TShaped(0),
+    '┤': TShaped(1),
+    '┴': TShaped(2),
+    '├': TShaped(3),
+    '┼': Cross()
+}
+
+
 def get_opposite_direction(input_direction: Direction) -> Direction:
+    """
+    Get the opposite direction of the given direction
+    :param input_direction: A Direction representing the direction to flip
+    :return: A Direction representing the flipped input Direction
+    """
     if input_direction == Direction.Up:
         return Direction.Down
     if input_direction == Direction.Down:
@@ -41,3 +65,21 @@ def get_opposite_direction(input_direction: Direction) -> Direction:
         return Direction.Left
     if input_direction == Direction.Left:
         return Direction.Right
+
+
+ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
+
+
+def get_json_obj_list(input_data) -> List[dict]:
+    """
+    Read standard input one JSON object at a time and convert it into a list of dictionaries
+    :return: A list of dictionaries representing the two inputs (a board and a starting coordinate)
+    """
+    decoder = JSONDecoder()
+    json_obj_list = []
+    while len(input_data) > 0:
+        json_obj, index = decoder.raw_decode(input_data)
+        json_obj_list.append(json_obj)
+        input_data = input_data[index:]
+        input_data = input_data.lstrip()
+    return json_obj_list
