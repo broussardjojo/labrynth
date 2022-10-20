@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List
+from .direction import Direction
 
 
 def remove_gem_extension(filename: Path) -> str:
@@ -29,3 +30,14 @@ def generate_gem_list() -> List[str]:
             filepath = Path(filename)
             gem_list.append(remove_gem_extension(filepath))
     return gem_list
+
+
+def get_opposite_direction(input_direction: Direction) -> Direction:
+    if input_direction == Direction.Up:
+        return Direction.Down
+    if input_direction == Direction.Down:
+        return Direction.Up
+    if input_direction == Direction.Right:
+        return Direction.Left
+    if input_direction == Direction.Left:
+        return Direction.Right

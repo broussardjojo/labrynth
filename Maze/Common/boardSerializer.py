@@ -2,10 +2,10 @@ import functools
 import sys
 from json import JSONDecoder
 from typing import List, Set
-from shapes import Line, Cross, Corner, TShaped
-from gem import Gem
-from board import Board
-from tile import Tile
+from .shapes import Line, Cross, Corner, TShaped
+from .gem import Gem
+from .board import Board
+from .tile import Tile
 
 # Dictionary to convert a shape character to a Shape
 shape_dict = {
@@ -45,7 +45,7 @@ def get_gems(gem_name_list: List[str]) -> (Gem, Gem):
     return Gem(gem_name_list[0]), Gem(gem_name_list[1])
 
 
-def make_board(board_dict: dict) -> Board:
+def make_board(board_dict: dict) -> List[List[Tile]]:
     """
     Makes a board given a dictionary of connectors and treasures
     :param board_dict: A dictionary of connectors and treasures in the following format
@@ -59,7 +59,7 @@ def make_board(board_dict: dict) -> Board:
             shape = shape_dict[board_dict['connectors'][row][col]]
             gem1, gem2 = get_gems(board_dict['treasures'][row][col])
             tile_grid[row].append(Tile(shape, gem1, gem2))
-    return Board.from_list_of_tiles(tile_grid)
+    return tile_grid
 
 
 def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
@@ -81,19 +81,18 @@ def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
     return 0
 
 
-def get_json_obj_list() -> List[dict]:
+def get_json_obj_list(input_data) -> List[dict]:
     """
     Read standard input one JSON object at a time and convert it into a list of dictionaries
     :return: A list of dictionaries representing the two inputs (a board and a starting coordinate)
     """
-    stdin = sys.stdin.read().lstrip()
     decoder = JSONDecoder()
     json_obj_list = []
-    while len(stdin) > 0:
-        json_obj, index = decoder.raw_decode(stdin)
+    while len(input_data) > 0:
+        json_obj, index = decoder.raw_decode(input_data)
         json_obj_list.append(json_obj)
-        stdin = stdin[index:]
-        stdin = stdin.lstrip()
+        input_data = input_data[index:]
+        input_data = input_data.lstrip()
     return json_obj_list
 
 
@@ -118,8 +117,8 @@ def main() -> List[dict]:
     Main method which composes many helper methods to read input, make a board, get the reachable tiles, and sort them
     :return: A sorted list of coordinates
     """
-    json_obj_list = get_json_obj_list()
-    board = make_board(json_obj_list[0])
+    json_obj_list = get_json_obj_list(sys.stdin.read().lstrip())
+    board = Board.from_list_of_tiles(make_board(json_obj_list[0]))
     coord_json = json_obj_list[1]
     base_tile = board.get_tile_grid()[coord_json['row#']][coord_json['column#']]
     reachable_list = board.reachable_tiles(base_tile)

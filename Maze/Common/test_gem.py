@@ -1,47 +1,47 @@
 import pytest
-import gem
+from .gem import Gem
 
 
 # ------ Tests for Gem Constructor -------
 # Tests to validate Gem constructor recognizes valid gem names and does not throw an exception
 def test_generate_valid_gem_alexandrite():
-    gem.Gem('alexandrite')
+    Gem('alexandrite')
 
 
 def test_generate_valid_gem_beryl():
-    gem.Gem('beryl')
+    Gem('beryl')
 
 
 def test_generate_valid_gem_spinel():
-    gem.Gem('spinel')
+    Gem('spinel')
 
 
 def test_generate_valid_gem_unakite():
-    gem.Gem('unakite')
+    Gem('unakite')
 
 
 def test_generate_valid_gem_yellow_baguette():
-    gem.Gem('yellow-baguette')
+    Gem('yellow-baguette')
 
 
 def test_generate_valid_gem_red_spinel_square_emerald_cut():
-    gem.Gem('red-spinel-square-emerald-cut')
+    Gem('red-spinel-square-emerald-cut')
 
 
 # Tests to validate Gem constructor recognizes invalid gem names and does throw an exception
 def test_generate_invalid_gem1():
     with pytest.raises(ValueError) as error_message:
-        gem.Gem('alexandria')
+        Gem('alexandria')
     assert str(error_message.value) == 'Invalid Gem Name'
 
 
 def test_generate_invalid_gem2():
     with pytest.raises(ValueError) as error_message:
-        gem.Gem('not-a-gem')
+        Gem('not-a-gem')
     assert str(error_message.value) == 'Invalid Gem Name'
 
 
 def test_generate_invalid_gem3():
     with pytest.raises(ValueError) as error_message:
-        gem.Gem('alexandritePear-shape')
+        Gem('alexandritePear-shape')
     assert str(error_message.value) == 'Invalid Gem Name'

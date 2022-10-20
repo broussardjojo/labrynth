@@ -31,13 +31,15 @@ class Board:
         self.__dimensions = len(tile_grid)
 
     @classmethod
-    def from_list_of_tiles(cls, tile_grid: List[List[Tile]]):
+    def from_list_of_tiles(cls, tile_grid: List[List[Tile]], **kwargs):
         """
         A constructor for a Board, taking in a 2-D List of Tiles used to create a tile_grid and generates the next_tile.
         :param tile_grid: a 2-D list of tiles that represents the grid of tiles on a Board
         :return: an instance of a Board
         """
         gem_name_list = generate_gem_list()
+        if 'seed' in kwargs:
+            random.seed(kwargs['seed'])
         next_tile = cls.__generate_unique_tile(gem_name_list, tile_grid)
         return cls(tile_grid, next_tile)
 

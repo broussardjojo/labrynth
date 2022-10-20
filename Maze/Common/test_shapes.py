@@ -1,6 +1,6 @@
 import pytest
-from shapes import TShaped, Cross, Corner, Line
-from direction import Direction
+from .shapes import TShaped, Cross, Corner, Line
+from .direction import Direction
 
 
 # ----- Examples -----

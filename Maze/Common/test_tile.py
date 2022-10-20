@@ -1,8 +1,8 @@
 import pytest
-from tile import Tile
-from shapes import Corner, Line, TShaped, Cross
-from gem import Gem
-from direction import Direction
+from .tile import Tile
+from .shapes import Corner, Line, TShaped, Cross
+from .gem import Gem
+from .direction import Direction
 
 
 # ------ Examples of Shapes -------

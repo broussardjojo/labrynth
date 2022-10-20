@@ -1,10 +1,10 @@
 import pytest
-from board import Board
-from state import State
-from tile import Tile
-from shapes import Line
-from gem import Gem
-from direction import Direction
+from .board import Board
+from .state import State
+from .tile import Tile
+from .shapes import Line
+from .gem import Gem
+from .direction import Direction
 
 
 @pytest.fixture

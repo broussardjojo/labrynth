@@ -1,6 +1,5 @@
-import pytest
 from pathlib import Path
-from utils import remove_gem_extension, generate_gem_list
+from .utils import remove_gem_extension, generate_gem_list
 
 
 # test the remove_gem_extension function

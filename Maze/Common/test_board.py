@@ -1,9 +1,9 @@
 import pytest
-from board import Board
-from direction import Direction
-from position import Position
-from tile import Tile
-from shapes import Corner, Cross
+from .board import Board
+from .direction import Direction
+from .position import Position
+from .tile import Tile
+from .shapes import Corner, Cross
 
 
 # ------ Example Boards ------
