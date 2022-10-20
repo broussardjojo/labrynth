@@ -14,8 +14,8 @@ def make_list_of_players(player_dict_list: List[dict]) -> List[Player]:
     """
     player_list = []
     for player_dict in player_dict_list:
-        current_position = Position(player_dict["current"]["column#"], player_dict["current"]["row#"])
-        home_position = Position(player_dict["home"]["column#"], player_dict["home"]["row#"])
+        current_position = Position(player_dict["current"]["row#"], player_dict["current"]["column#"], )
+        home_position = Position(player_dict["home"]["row#"], player_dict["home"]["column#"],)
         player_color = player_dict["color"]
         player_list.append(Player.from_current_home_color(current_position, home_position, player_color))
     return player_list

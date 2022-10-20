@@ -4,7 +4,23 @@ from typing import List, Set
 from .gem import Gem
 from .board import Board
 from .tile import Tile
-from .utils import get_json_obj_list, shape_dict
+from .utils import get_json_obj_list, shape_dict, coord_custom_compare
+
+
+def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board) -> List[dict]:
+    """
+    Formats a list of Tiles into a list of outputs in the specified format: {"column#: col, "row#", row}
+    :param reachable_list: List of Tiles which represents the reachable Tiles
+    :param board: A Board which represents the Board the reachable Tiles come from
+    :return: A List of Dictionaries in the format: {"column#: col, "row#", row}
+    """
+    output_json_list = []
+    for reachable_tile in reachable_list:
+        reachable_tile_position = board.get_position_by_tile(reachable_tile)
+        output_json_list.append(
+            {'column#': reachable_tile_position.get_col(), 'row#': reachable_tile_position.get_row()}
+        )
+    return output_json_list
 
 
 def get_index_by_tile_on_grid(base_tile: Tile, tile_grid: List[List[Tile]]) -> (int, int):
@@ -37,6 +53,12 @@ def make_tile_grid(board_dict: dict) -> List[List[Tile]]:
     return tile_grid
 
 
+def make_individual_tile(tile_dict: dict) -> Tile:
+    shape = shape_dict[tile_dict['tilekey']]
+    gem1, gem2 = get_gems([tile_dict["1-image"], tile_dict["2-image"]])
+    return Tile(shape, gem1, gem2)
+
+
 def get_gems(gem_name_list: List[str]) -> (Gem, Gem):
     """
     Retrieve a pair of gems given a list of Gem names
@@ -44,41 +66,6 @@ def get_gems(gem_name_list: List[str]) -> (Gem, Gem):
     :return: Two Gems objects
     """
     return Gem(gem_name_list[0]), Gem(gem_name_list[1])
-
-
-def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
-    """
-    Custom comparator to compare two coordinates of this format: {"column#: col, "row#", row}
-    :param coord_one: dictionary of this format: {"column#: col, "row#", row}
-    :param coord_two: dictionary of this format: {"column#: col, "row#", row}
-    :return: -1 if coord_one comes first in the grid, 1 if coord_two comes first in the grid, 0 if they are the same
-    location (hopefully never for our use case)
-    """
-    if coord_one['row#'] < coord_two['row#']:
-        return -1
-    elif coord_one['row#'] > coord_two['row#']:
-        return 1
-    elif coord_one['column#'] < coord_two['column#']:
-        return -1
-    elif coord_one['column#'] > coord_two['column#']:
-        return 1
-    return 0
-
-
-def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board) -> List[dict]:
-    """
-    Formats a list of Tiles into a list of outputs in the specified format: {"column#: col, "row#", row}
-    :param reachable_list: List of Tiles which represents the reachable Tiles
-    :param board: A Board which represents the Board the reachable Tiles come from
-    :return: A List of Dictionaries in the format: {"column#: col, "row#", row}
-    """
-    output_json_list = []
-    for reachable_tile in reachable_list:
-        row, col = get_index_by_tile_on_grid(reachable_tile, board.get_tile_grid())
-        output_json_list.append(
-            {'column#': col, 'row#': row}
-        )
-    return output_json_list
 
 
 def main() -> List[dict]:

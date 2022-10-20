@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Union, Set
 from .direction import Direction
 from json import JSONDecoder
-from .tile import Tile
 from .shapes import TShaped, Line, Corner, Cross
+from .tile import Tile
 
 
 def remove_gem_extension(filename: Path) -> str:
@@ -41,8 +41,8 @@ shape_dict = {
     '┌': Corner(1),
     '┐': Corner(2),
     '┘': Corner(3),
-    '│': Line(0),
-    '─': Line(1),
+    '│': Line(1),
+    '─': Line(0),
     '┬': TShaped(0),
     '┤': TShaped(1),
     '┴': TShaped(2),
@@ -70,7 +70,7 @@ def get_opposite_direction(input_direction: Direction) -> Direction:
 ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
 
 
-def get_json_obj_list(input_data) -> List[dict]:
+def get_json_obj_list(input_data) -> List[Union[dict, str, int]]:
     """
     Read standard input one JSON object at a time and convert it into a list of dictionaries
     :return: A list of dictionaries representing the two inputs (a board and a starting coordinate)
@@ -83,3 +83,22 @@ def get_json_obj_list(input_data) -> List[dict]:
         input_data = input_data[index:]
         input_data = input_data.lstrip()
     return json_obj_list
+
+
+def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
+    """
+    Custom comparator to compare two coordinates of this format: {"column#: col, "row#", row}
+    :param coord_one: dictionary of this format: {"column#: col, "row#", row}
+    :param coord_two: dictionary of this format: {"column#: col, "row#", row}
+    :return: -1 if coord_one comes first in the grid, 1 if coord_two comes first in the grid, 0 if they are the same
+    location (hopefully never for our use case)
+    """
+    if coord_one['row#'] < coord_two['row#']:
+        return -1
+    elif coord_one['row#'] > coord_two['row#']:
+        return 1
+    elif coord_one['column#'] < coord_two['column#']:
+        return -1
+    elif coord_one['column#'] > coord_two['column#']:
+        return 1
+    return 0

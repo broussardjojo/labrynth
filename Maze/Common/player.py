@@ -4,6 +4,7 @@ from .observableState import ObservableState
 from .utils import ALL_NAMED_COLORS
 from ..Players.move import Move
 from ..Players.riemann import Riemann
+from .position import Position
 import re
 
 
@@ -12,7 +13,8 @@ class Player:
     A Player is a representation of a player of a game of Labyrinth. A Player has a home position, a goal position and a
     current position, which defaults to their home position.
     """
-    def __init__(self, home_position: Position, goal_position: Position, strategy: Strategy, color: str):
+    def __init__(self, home_position: Position, goal_position: Position,
+                 current_position: Position, strategy: Strategy, color: str):
         """
         A Constructor for a Player which assigns the provided home, goal, and current Positions to the respective fields
         :param home_position: the Position of this Player's home Tile where they begin the game
@@ -20,15 +22,31 @@ class Player:
         :param strategy: the Strategy that this Player will employ to determine their next move
         :param color: the color that this Player will use; can be a hexcode RGB value or a color name
         """
+        color_regex = re.compile("^([A-Fa-f0-9]{6})$")
         if color in ALL_NAMED_COLORS or re.search(
-                "^[A-F|[0-9]][A-F|[0-9]][A-F|[0-9]][A-F|[0-9]][A-F|[0-9]][A-F|[0-9]]$", color):
+                color_regex, color):
             self.__color = color
         else:
             raise ValueError("Invalid Player Color")
         self.__home_position = home_position
         self.__goal_position = goal_position
-        self.__current_position = home_position
+        self.__current_position = current_position
         self.__strategy = strategy
+
+    @classmethod
+    def from_goal_home_color_strategy(cls, goal_position: Position, home_position: Position, color: str,
+                                      strategy: Strategy):
+        """
+        Constructor to create a Player from a given goal position, home position, color, and strategy
+        NOTE: Assigns current position to supplied home position (initializing a player)
+        :param goal_position: a Position representing the goal Position of this Player
+        :param home_position: a Position representing the home Position of this Player
+        :param color: a string representing the color of this Player's avatar
+        :param strategy: the Strategy that this Player will employ to determine their next move
+        :return: an instance of a Player
+        """
+        current_position = home_position
+        return cls(home_position, goal_position, current_position, strategy, color)
 
     @classmethod
     def from_current_home_color(cls, current_position: Position, home_position: Position, color: str):
@@ -44,7 +62,7 @@ class Player:
         """
         goal_position = current_position
         strategy = Riemann(goal_position)
-        return cls(home_position, goal_position, strategy, color)
+        return cls(home_position, goal_position, current_position, strategy, color)
 
     def get_home_position(self) -> Position:
         """

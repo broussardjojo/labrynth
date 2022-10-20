@@ -216,9 +216,11 @@ class Board:
         :param acc_tiles: accumulator representing the Set of all reachable Tiles
         :return: a Set of all reachable Tiles including the base Tile
         """
+        print(self.get_position_by_tile(base_tile))
         acc_tiles.add(base_tile)
         for direction_offset in [self.RIGHT_OFFSET, self.LEFT_OFFSET]:
             neighbor = self.__check_neighbor(base_tile, 0, direction_offset)
+            print(self.get_position_by_tile(neighbor))
             if neighbor not in acc_tiles:
                 self.__reachable_tiles_helper(neighbor, acc_tiles)
         for direction_offset in [self.UP_OFFSET, self.DOWN_OFFSET]:
@@ -237,6 +239,14 @@ class Board:
         it will return the given base Tile
         """
         neighbor_path = self.__get_opposite_path(base_path)
+        print(base_path)
+        print(neighbor_path)
+        print(base_tile.has_path(base_path))
+        print(neighbor_tile.has_path(Direction.Up))
+        print(neighbor_tile.has_path(Direction.Down))
+        print(neighbor_tile.has_path(Direction.Left))
+        print(neighbor_tile.has_path(Direction.Right))
+        print(neighbor_tile.has_path(neighbor_path))
         if base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path):
             return neighbor_tile
         return base_tile
@@ -250,9 +260,9 @@ class Board:
         """
         if base_path == Direction.Up:
             return Direction.Down
-        elif base_path == Direction.Down:
+        if base_path == Direction.Down:
             return Direction.Up
-        elif base_path == Direction.Right:
+        if base_path == Direction.Right:
             return Direction.Left
         return Direction.Right
 
@@ -269,14 +279,20 @@ class Board:
         base_row = base_position.get_row()
         base_col = base_position.get_col()
         if self.__valid_tile_location(base_row + row_offset, base_col + col_offset):
+            print('here checking:')
             neighbor_tile = self.__tile_grid[base_row + row_offset][base_col + col_offset]
+            print(self.get_position_by_tile(neighbor_tile))
             if col_offset == self.RIGHT_OFFSET:
+                print('Right')
                 return self.__connected_tile(base_tile, neighbor_tile, Direction.Right)
             elif col_offset == self.LEFT_OFFSET:
+                print('Left')
                 return self.__connected_tile(base_tile, neighbor_tile, Direction.Left)
             elif row_offset == self.UP_OFFSET:
+                print('Up')
                 return self.__connected_tile(base_tile, neighbor_tile, Direction.Up)
             elif row_offset == self.DOWN_OFFSET:
+                print('Down')
                 return self.__connected_tile(base_tile, neighbor_tile, Direction.Down)
         else:
             return base_tile
