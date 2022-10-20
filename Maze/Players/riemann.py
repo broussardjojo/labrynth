@@ -17,7 +17,6 @@ class Riemann(BaseStrategy):
         super().__init__()
         self.__goal_position = goal_position
 
-    # TODO: Test this method
     def possible_next_target_positions(self, board: Board) -> bool:
         """
         Method to determine if there are any unchecked positions left
@@ -26,7 +25,7 @@ class Riemann(BaseStrategy):
         """
         return not len(super().get_checked_positions()) == len(board.get_tile_grid())**2
 
-    # TODO: Test this method
+
     def get_next_target_position(self, board: Board) -> Position:
         """
         Method to determine the next target Position according to the Riemann strategy, first the goal Position, then

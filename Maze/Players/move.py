@@ -12,6 +12,7 @@ class Move:
      A pass move which does not allow access to the sliding, rotating, and moving information (which may be
       garbage values)
     """
+
     def __init__(self, slide_index: int, slide_direction: Direction, spare_tile_rotation_degrees: int,
                  destination_position: Position, pass_move: bool):
         """
@@ -85,7 +86,7 @@ class Move:
         of other information). False otherwise
         """
         if isinstance(other, Move):
-            if not other.__pass_move and not self.__pass_move:
+            if other.__pass_move and self.__pass_move:
                 return True
             return other.__slide_index == self.__slide_index and other.__slide_direction == self.__slide_direction \
                    and other.__spare_tile_rotation_degrees == self.__spare_tile_rotation_degrees \

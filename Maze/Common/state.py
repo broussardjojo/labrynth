@@ -49,7 +49,7 @@ class State(ObservableState):
     Player.
     """
 
-    def __init__(self, board: Board):
+    def __init__(self, board: Board ):
         super().__init__(board)
         self.__previous_moves = []
         self.__players = []

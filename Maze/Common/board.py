@@ -256,7 +256,7 @@ class Board:
             return Direction.Left
         return Direction.Right
 
-    def __check_neighbor(self, base_tile, row_offset: int, col_offset: int) -> Tile:
+    def __check_neighbor(self, base_tile: Tile, row_offset: int, col_offset: int) -> Tile:
         """
         Checks if the given Tile has a connected neighbor at the given offsets
         :param base_tile: A Tile representing the source tile to search from

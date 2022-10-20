@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List
+from typing import List, Set
 
 from .move import Move
 from ..Common.direction import Direction
@@ -18,6 +18,7 @@ class BaseStrategy(Strategy):
     and rotate to see if it's possible to reach it, then gets a new target and repeats, passing if there are no
     more targets to try.
     """
+
     def __init__(self):
         """
         Constructor for a BaseStrategy which initializes the __checked_positions list to an empty list because no
@@ -90,13 +91,35 @@ class BaseStrategy(Strategy):
                 rotations = 0
                 for rotation in range(4):
                     board.get_next_tile().rotate(1)
+                    adjusted_base_tile = self.__adjust_base_tile_on_edge(board, base_tile,
+                                                                         index, slide_direction)
                     board.slide_and_insert(index, slide_direction)
-                    if target_tile in board.reachable_tiles(base_tile) and target_tile != base_tile:
+                    reachable_positions = \
+                        self.__get_reachable_positions_from_tile(board, board.reachable_tiles(adjusted_base_tile))
+                    slid_target_tile = board.get_tile_by_position(target_position)
+                    if target_position in reachable_positions and slid_target_tile != base_tile:
                         self.__reset_checked_positions()
-                        return Move(index, slide_direction, rotations*90, target_position, False)
+                        return Move(index, slide_direction, rotations * 90, target_position, False)
                     self.__undo_slide(index, slide_direction, board)
                     rotations += 1
         return Move(-1, Direction.Up, 0, target_position, True)
+
+    @staticmethod
+    def __adjust_base_tile_on_edge(board: Board, base_tile: Tile, index: int, slide_direction: Direction) -> Tile:
+        base_tile_position = board.get_position_by_tile(base_tile)
+        if (slide_direction == Direction.Up and base_tile_position.get_row() == 0
+                and index == base_tile_position.get_col()):
+            return board.get_next_tile()
+        if (slide_direction == Direction.Down and base_tile_position.get_row() == len(board.get_tile_grid()) - 1
+                and index == base_tile_position.get_col()):
+            return board.get_next_tile()
+        if (slide_direction == Direction.Left and base_tile_position.get_col() == 0
+                and index == base_tile_position.get_row()):
+            return board.get_next_tile()
+        if (slide_direction == Direction.Right and base_tile_position.get_col() == len(board.get_tile_grid()) - 1
+                and index == base_tile_position.get_row()):
+            return board.get_next_tile()
+        return base_tile
 
     def __generate_possible_move(self, board_copy: Board, base_tile: Tile, target_tile: Tile) -> Move:
         """
@@ -134,3 +157,7 @@ class BaseStrategy(Strategy):
         """
         opposite_direction = get_opposite_direction(prev_direction)
         board.slide_and_insert(prev_index, opposite_direction)
+
+    @staticmethod
+    def __get_reachable_positions_from_tile(board: Board, reachable_tiles: Set[Tile]) -> List[Position]:
+        return list(map(board.get_position_by_tile, reachable_tiles))
