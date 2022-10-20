@@ -8,6 +8,7 @@ class Riemann(BaseStrategy):
     A strategy which checks all possible ways to get the goal Position, then checks all possible Positions on the grid
     from top left to bottom right row by row as secondary goal Positions.
     """
+
     def __init__(self, goal_position: Position):
         """
         Constructor for a Riemann strategy which calls the BaseStrategy constructor and initializes the goal_position
@@ -23,8 +24,7 @@ class Riemann(BaseStrategy):
         :param board: a Board representing the board to check positions on
         :return: True if there are any unchecked positions, otherwise false
         """
-        return not len(super().get_checked_positions()) == len(board.get_tile_grid())**2
-
+        return not len(super().get_checked_positions()) == len(board.get_tile_grid()) ** 2
 
     def get_next_target_position(self, board: Board) -> Position:
         """
@@ -41,4 +41,3 @@ class Riemann(BaseStrategy):
                 if potential_position not in super().get_checked_positions():
                     return potential_position
         raise ValueError("Error: No Positions left to check")
-
