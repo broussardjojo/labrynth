@@ -10,6 +10,16 @@ from ..Common.boardSerializer import get_json_obj_list, make_board
 from ..Common.board import Board
 
 
+# ----- Examples ------
+# This board has the following shape:
+#   ["┬","┐","─","─","┐","└","┌"],
+#   ["└","│","─","┘","┬","├","┴"],
+#   ["─","│","│","┐","│","│","─"],
+#   ["┐","│","─","┬","┬","├","┴"],
+#   ["┤","┼","│","┐","┐","└","│"],
+#   ["┘","├","│","┬","┤","┼","│"],
+#   ["─","┴","└","┐","┘","┬","├"]
+# It's spare tile is a "┬" shape
 @pytest.fixture
 def basic_seeded_board():
     path = Path(__file__).parent / "basicBoard.json"
@@ -75,6 +85,10 @@ def test_generate_move_cannot_reach_goal(riemann_strategy, observable_state):
     target_position = Position(3, 3)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
     desired_move = Move(2, Direction.Left, 0, Position(0, 0), False)
-    print(move)
-    print(desired_move)
     assert move == desired_move
+
+# TODO: Create tests to the following:
+# 1. Reach goal by moving either up or down
+# 2. Reach goal by needing to rotate spare tile
+# 3. Reach non-goal tiles in correct order (~3 more)
+# 4. Pass turn (~2 tests)

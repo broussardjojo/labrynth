@@ -13,7 +13,16 @@ from abc import abstractmethod
 
 
 class BaseStrategy(Strategy):
+    """
+    A BaseStrategy representing a general type of strategy which picks a target and tries every possible slide/insert
+    and rotate to see if it's possible to reach it, then gets a new target and repeats, passing if there are no
+    more targets to try.
+    """
     def __init__(self):
+        """
+        Constructor for a BaseStrategy which initializes the __checked_positions list to an empty list because no
+        positions have been checked yet.
+        """
         self.__checked_positions = []
 
     def generate_move(self, current_state: ObservableState, current_position: Position,
@@ -22,6 +31,8 @@ class BaseStrategy(Strategy):
         Generates a Move based on a BaseStrategy format: 1. pick a target destination, 2. try all moves to achieve that,
         3. if successful, do that move, if not, pick a new target and repeat
         :param current_state: an ObservableState representing the current state of the board
+        NOTE: an ObservableState provides access to a reference to the a Board so it is important to make a deep copy
+        to prevent unwanted mutations.
         :param current_position: a Position representing the original position to move from
         :param target_position: a Position representing the end goal to go to
         :return: A Move representing either a rotate, slide/insert, and move or a Pass
@@ -33,20 +44,46 @@ class BaseStrategy(Strategy):
 
     @abstractmethod
     def get_next_target_position(self, board: Board) -> Position:
+        """
+        Method to be implemented in classes that extend BaseStrategy, determines the next position to check
+        :param board: The board to get the next Position from
+        :return: a Position representing the next Position to use as a goal
+        """
         pass
 
     @abstractmethod
     def possible_next_target_positions(self, board: Board) -> bool:
+        """
+        Method to check if there are any possible positions left to check
+        :param board: A Board which can be used to determine how many tiles we should check
+        :return: True if there are more positions to check, False otherwise
+        """
         pass
 
-    def __reset_checked_positions(self):
+    def __reset_checked_positions(self) -> None:
+        """
+        Method to clear the list of checked positions so the next move can be determined from scratch
+        :return: None
+        """
         self.__checked_positions = []
 
-    def get_checked_positions(self):
+    def get_checked_positions(self) -> List[Position]:
+        """
+        Getter for the __checked_positions attribute
+        :return: A List of Positions representing all positions that have been checked in this run of the Strategy
+        """
         return self.__checked_positions
 
     def __check_possible_slides(self, board: Board, target_tile: Tile,
                                 base_tile: Tile, directions: List[Direction]) -> Move:
+        """
+        A method to check all possible moves in the order sliding the specified row or column in the provided directions
+        :param board: A Board to perform temporary slides on
+        :param target_tile: A Tile representing the target Tile to look for
+        :param base_tile: A Tile representing the Tile to start from
+        :param directions: The Directions to slide the rows/columns in
+        :return: A Move representing either a valid Move to the target or a pass if no move is found
+        """
         target_position = board.get_position_by_tile(target_tile)
         for index in range(0, len(board.get_tile_grid()), 2):
             for slide_direction in directions:
@@ -61,7 +98,15 @@ class BaseStrategy(Strategy):
                     rotations += 1
         return Move(-1, Direction.Up, 0, target_position, True)
 
-    def __generate_possible_move(self, board_copy, base_tile, target_tile) -> Move:
+    def __generate_possible_move(self, board_copy: Board, base_tile: Tile, target_tile: Tile) -> Move:
+        """
+        Checks if there is a possible move by sliding rows, then columns, loops through targets to move to in an order
+        specified in implementations
+        :param board_copy: A Board to perform temporary slides on
+        :param base_tile: A Tile representing the Tile to start from
+        :param target_tile: A Tile representing the target Tile to look for
+        :return: A Move representing either a valid Move to a target or a pass if no move is found
+        """
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
                                                      [Direction.Left, Direction.Right])
         if not possible_move.is_pass():
@@ -75,9 +120,17 @@ class BaseStrategy(Strategy):
             return self.__generate_possible_move(board_copy, base_tile,
                                                  board_copy.get_tile_by_position(
                                                      self.get_next_target_position(board_copy)))
+        self.__reset_checked_positions()
         return possible_move
 
     @staticmethod
     def __undo_slide(prev_index: int, prev_direction: Direction, board: Board) -> None:
+        """
+        A method to reverse a slide on a given board given an index and direction of the previous move
+        :param prev_index: an int representing the previous index (row or column) that was slid on
+        :param prev_direction: a Direction representing the direction the previous slide was made in
+        :param board: A Board to perform temporary slides on
+        :return: None
+        """
         opposite_direction = get_opposite_direction(prev_direction)
         board.slide_and_insert(prev_index, opposite_direction)

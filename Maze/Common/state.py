@@ -28,7 +28,15 @@ class ObservableState:
         """
         return self.__board
 
+    # TODO: Test this method
     def can_reach_position_from_given_position(self, start_position, end_position):
+        """
+        Method to check if a given position can be reached from another given position on this State's Board
+        :param start_position: Position to begin from
+        :param end_position: Position to end at
+        :return: True if there is a path from the start Position to the end Position in the current condition of the
+        Board
+        """
         current_tile = self.__board.get_tile_by_position(start_position)
         target_tile = self.__board.get_tile_by_position(end_position)
         all_reachable = self.__board.reachable_tiles(current_tile)
@@ -140,6 +148,7 @@ class State(ObservableState):
                 return False
         return True
 
+    # TODO: Adjust indexing so active_player_index is correct after removing player
     def kick_out_active_player(self) -> None:
         """
         Removes the currently active player from this State's list of players.
@@ -246,3 +255,7 @@ class State(ObservableState):
         :return: An int representing the current active player's index in the list of players
         """
         return self.__active_player_index
+
+    # TODO: Add ability to move a player via the state
+    # TODO: Add method to check if active player is at the goal
+    # TODO: Add method to increment player turn
