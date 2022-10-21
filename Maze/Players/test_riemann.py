@@ -6,7 +6,7 @@ from ..Common.position import Position
 from .riemann import Riemann
 from .move import Move
 from ..Common.direction import Direction
-from ..Common.boardSerializer import get_json_obj_list, make_board
+from ..Common.boardSerializer import get_json_obj_list, make_tile_grid
 from ..Common.board import Board
 
 
@@ -26,7 +26,7 @@ def basic_seeded_board():
     with path.open() as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
-        return Board.from_list_of_tiles(make_board(json_obj_list[0]), seed=30)
+        return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def basic_seeded_board_two():
     with path.open() as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
-        return Board.from_list_of_tiles(make_board(json_obj_list[0]), seed=30)
+        return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
 
 
 @pytest.fixture

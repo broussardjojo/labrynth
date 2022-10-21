@@ -75,6 +75,13 @@ class Shape(ABC):
         """
         return hash(self.__right) * hash(self.__left) + hash(self.__top) ^ hash(self.__bottom)
 
+    def __str__(self):
+        """
+        Override the to string method for a shape
+        :return: A string representing the paths of this shapes
+        """
+        return f"Top: {self.__top} Right: {self.__right} Bottom: {self.__bottom} Left: {self.__left}"
+
 
 class Corner(Shape):
     """

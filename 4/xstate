@@ -1,2 +1,3 @@
 #!/bin/bash
-python3 -m Common.stateSerializer
+cd ..
+python3 -m Maze.Common.stateSerializer

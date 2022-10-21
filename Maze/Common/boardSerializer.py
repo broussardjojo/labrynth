@@ -1,6 +1,7 @@
 import functools
 import sys
 from typing import List, Set
+from copy import deepcopy
 from .gem import Gem
 from .board import Board
 from .tile import Tile
@@ -47,9 +48,10 @@ def make_tile_grid(board_dict: dict) -> List[List[Tile]]:
     for row in range(len(board_dict['connectors'])):
         tile_grid.append([])
         for col in range(len(board_dict['connectors'][row])):
-            shape = shape_dict[board_dict['connectors'][row][col]]
+            shape = deepcopy(shape_dict[board_dict['connectors'][row][col]])
             gem1, gem2 = get_gems(board_dict['treasures'][row][col])
-            tile_grid[row].append(Tile(shape, gem1, gem2))
+            tile = Tile(shape, gem1, gem2)
+            tile_grid[row].append(tile)
     return tile_grid
 
 

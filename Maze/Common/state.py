@@ -77,8 +77,9 @@ class State(ObservableState):
             home_tile = self.__generate_players_tile(want_home=True)
             goal_tile = self.__generate_players_tile(want_home=False)
             goal_position = super().get_board().get_position_by_tile(goal_tile)
-            new_player = Player(super().get_board().get_position_by_tile(home_tile),
-                                goal_position, Riemann(goal_position), self.__get_unique_color())
+            new_player = Player.from_goal_home_color_strategy(goal_position,
+                                                              super().get_board().get_position_by_tile(home_tile),
+                                                              self.__get_unique_color(), Riemann(goal_position))
             self.get_players().append(new_player)
         else:
             raise ValueError("Game is full, no more players can be added")

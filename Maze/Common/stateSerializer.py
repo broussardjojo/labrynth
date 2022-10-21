@@ -8,7 +8,6 @@ from .boardSerializer import make_tile_grid, make_individual_tile, get_output_li
 from .playerSerializer import make_list_of_players
 from .state import State
 from .direction import Direction
-from .position import Position
 
 
 def get_direction_from_direction_str(direction_str: str) -> Direction:
@@ -42,8 +41,6 @@ def main() -> str:
     slide_index = json_obj_list[1]
     slide_direction = get_direction_from_direction_str(json_obj_list[2])
     rotate_degrees = json_obj_list[3]
-    print(slide_index)
-    print(slide_direction)
     state.rotate_spare_tile(rotate_degrees)
     state.slide_and_insert(slide_index, slide_direction)
     current_player = state.get_players()[0]

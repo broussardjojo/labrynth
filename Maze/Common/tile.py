@@ -86,3 +86,6 @@ class Tile:
         :return: an int representing how many times to rotate this Tile
         """
         return (rotations % self.FULL_ROTATION) + self.FULL_ROTATION
+
+    def __str__(self):
+        return f"Shape: {str(self.__shape)} Gem1: {str(self.__gem1)} Gem2: {str(self.__gem2)}"

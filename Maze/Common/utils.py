@@ -1,10 +1,9 @@
 import os
 from pathlib import Path
-from typing import List, Union, Set
+from typing import List, Union
 from .direction import Direction
 from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross
-from .tile import Tile
 
 
 def remove_gem_extension(filename: Path) -> str:
@@ -41,8 +40,8 @@ shape_dict = {
     '┌': Corner(1),
     '┐': Corner(2),
     '┘': Corner(3),
-    '│': Line(1),
-    '─': Line(0),
+    '│': Line(0),
+    '─': Line(1),
     '┬': TShaped(0),
     '┤': TShaped(1),
     '┴': TShaped(2),
