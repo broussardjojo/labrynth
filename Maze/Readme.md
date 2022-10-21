@@ -183,9 +183,11 @@ A `Gem` has a name and an image_path
 
 A `Player` has a three `Position`, current, home, and goal, a `Strategy` and a color.
 
-It has the following public class method:
+It has the following public class methods:
 
 - from_current_home_color(current_position, home_position, color)
+- from_goal_home_color_strategy(goal_position, home_position, color, strategy)
+
 
 It has the following public methods:
 
