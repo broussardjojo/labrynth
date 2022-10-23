@@ -1,10 +1,9 @@
-from .position import Position
-from ..Players.strategy import Strategy
-from .observableState import ObservableState
-from .utils import ALL_NAMED_COLORS
-from ..Players.move import Move
-from ..Players.riemann import Riemann
-from .position import Position
+from .strategy import Strategy
+from ..Common.observableState import ObservableState
+from ..Common.utils import ALL_NAMED_COLORS
+from .move import Move
+from .riemann import Riemann
+from ..Common.position import Position
 import re
 
 
@@ -13,8 +12,9 @@ class Player:
     A Player is a representation of a player of a game of Labyrinth. A Player has a home position, a goal position and a
     current position, which defaults to their home position.
     """
+
     def __init__(self, home_position: Position, goal_position: Position,
-                 current_position: Position, strategy: Strategy, color: str):
+                 current_position: Position, strategy: Strategy, color: str, name: str, age: int):
         """
         A Constructor for a Player which assigns the provided home, goal, and current Positions to the respective fields
         :param home_position: the Position of this Player's home Tile where they begin the game
@@ -32,13 +32,17 @@ class Player:
         self.__goal_position = goal_position
         self.__current_position = current_position
         self.__strategy = strategy
+        self.__name = name
+        self.__age = age
+        self.__has_won = False
 
     @classmethod
     def from_goal_home_color_strategy(cls, goal_position: Position, home_position: Position, color: str,
                                       strategy: Strategy):
         """
         Constructor to create a Player from a given goal position, home position, color, and strategy
-        NOTE: Assigns current position to supplied home position (initializing a player)
+        NOTE: Assigns current position to supplied home position (initializing a player). Assigns name to default name
+        "helloworld" and age to default age 1.
         :param goal_position: a Position representing the goal Position of this Player
         :param home_position: a Position representing the home Position of this Player
         :param color: a string representing the color of this Player's avatar
@@ -46,15 +50,18 @@ class Player:
         :return: an instance of a Player
         """
         current_position = home_position
-        return cls(home_position, goal_position, current_position, strategy, color)
+        name = "helloworld"
+        age = 1
+        return cls(home_position, goal_position, current_position, strategy, color, name, age)
 
     @classmethod
     def from_current_home_color(cls, current_position: Position, home_position: Position, color: str):
         """
         Constructor to create a Player given a current position, home position, and color
-        NOTE: makes two arbitrary decisions:
+        NOTE: makes four arbitrary decisions:
         1. Assigns the Player's goal to it's current Position
         2. Assigns the Player's strategy to Riemann
+        Also Assigns name to default name "helloworld" and age to default age 1.
         :param current_position: a Position representing the current Position of this Player
         :param home_position: a Position representing the home Position of this Player
         :param color: a string representing the color of this Player's avatar
@@ -62,7 +69,9 @@ class Player:
         """
         goal_position = current_position
         strategy = Riemann(goal_position)
-        return cls(home_position, goal_position, current_position, strategy, color)
+        name = "helloworld"
+        age = 1
+        return cls(home_position, goal_position, current_position, strategy, color, name, age)
 
     def get_home_position(self) -> Position:
         """
@@ -92,7 +101,7 @@ class Player:
         """
         self.__current_position = new_position
 
-    def get_next_move(self, current_state: ObservableState) -> Move:
+    def take_turn(self, current_state: ObservableState) -> Move:
         """
         Get the next move for this player based on it's Strategy
         :param current_state: an ObservableState representing the current state of the game
@@ -106,3 +115,22 @@ class Player:
         :return: The color of the current Player
         """
         return self.__color
+
+    def name(self) -> str:
+        """
+        Getter for this Player's name
+        :return: this Player's name
+        """
+        return self.__name
+
+    def won(self, has_won: bool) -> None:
+        """
+        Sets the has_won field for this Player to be the given boolean
+        :param has_won: a boolean representing when this Player has won, True if they have, otherwise False
+        :return: None
+        """
+        self.__has_won = has_won
+
+    def setup(self, current_state: ObservableState, goal: Position) -> None:
+        self.__goal_position = goal
+        # TODO: create data representation for player has reached goal

@@ -2,7 +2,7 @@ from random import choice
 from typing import List, Tuple
 
 from .board import Board
-from .player import Player
+from ..Players.player import Player
 from .tile import Tile
 from .direction import Direction
 from .utils import ALL_NAMED_COLORS
@@ -50,6 +50,18 @@ class State(ObservableState):
         previous_moves = [previous_move]
         active_player_index = 0
         return cls(board, previous_moves, players, active_player_index)
+
+    @classmethod
+    def from_board_and_players(cls, selected_board: Board, list_of_players: List[Player]):
+        """
+        A constructor for a State, taking in a Board and a list of players and creating a state with no previous moves.
+        :param selected_board: a Board representing the game board to use in this state
+        :param list_of_players:  a List of Players representing the current players in the game
+        :return: an instance of a State
+        """
+        previous_moves = []
+        active_player_index = 0
+        return cls(selected_board, previous_moves, list_of_players, active_player_index)
 
     def rotate_spare_tile(self, degrees: int) -> None:
         """

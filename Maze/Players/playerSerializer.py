@@ -1,7 +1,7 @@
 from typing import List
-from .position import Position
+from Maze.Common.position import Position
 
-from .player import Player
+from Maze.Players.player import Player
 
 
 def make_list_of_players(player_dict_list: List[dict]) -> List[Player]:

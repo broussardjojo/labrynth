@@ -5,7 +5,7 @@ from .utils import get_json_obj_list, coord_custom_compare
 import sys
 from .board import Board
 from .boardSerializer import make_tile_grid, make_individual_tile, get_output_list_from_reachable_tiles
-from .playerSerializer import make_list_of_players
+from Maze.Players.playerSerializer import make_list_of_players
 from .state import State
 from .direction import Direction
 
