@@ -128,7 +128,7 @@ class Board:
         :raises: ValueError if the given index is not eligible to slide
         side effect: mutates __tile_grid and mutates __next_tile
         """
-        if self.__can_slide(index):
+        if self.can_slide(index):
             if direction == Direction.Up:
                 self.__slide_up(index)
             elif direction == Direction.Down:
@@ -140,7 +140,8 @@ class Board:
         else:
             raise ValueError("Invalid index")
 
-    def __can_slide(self, index: int) -> bool:
+    def can_slide(self, index: int) -> bool:
+        # TODO: test and add to readme.md
         """
         Checks if the given index is on this Board.
         :param index: an int representing a row or column on this Board

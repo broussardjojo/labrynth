@@ -1,9 +1,12 @@
+import random
 from .strategy import Strategy
 from ..Common.observableState import ObservableState
 from ..Common.utils import ALL_NAMED_COLORS
 from .move import Move
 from .riemann import Riemann
 from ..Common.position import Position
+from ..Common.board import Board
+from multipledispatch import dispatch
 import re
 
 
@@ -131,6 +134,39 @@ class Player:
         """
         self.__has_won = has_won
 
+    @dispatch(ObservableState, Position)
     def setup(self, current_state: ObservableState, goal: Position) -> None:
+        """
+        Method to give this player the initial state of the board and its goal Position
+        :param current_state: An ObservableState representing the initial State of the game
+        :param goal: A Position representing the goal Position for this player
+        :return: None
+        """
         self.__goal_position = goal
-        # TODO: create data representation for player has reached goal
+
+    @dispatch(Position)
+    def setup(self, home: Position) -> None:
+        """
+        An overloaded version of the setup method that doesn't take in the State of the game, this lack of parameter
+        represents that this player has reached its goal and is being given a reminder to go home
+        :param home: A Position representing the home Position of this player (which is its new goal to reach)
+        :return: None
+        """
+        self.__goal_position = home
+
+    @staticmethod
+    def propose_board0(rows: int, columns: int, **kwargs) -> Board:
+        """
+        A method for a player to propose a Board, the player will propose a random Board which may be seeded
+        NOTE: We are working under the assumption that a board is still square and will thus create a square board
+        of size NxN where N is equal to the maximum of rows and columns
+        :param rows: an int representing the minimum number of rows to make the Board from
+        :param columns: an int representing the minimum number of columns to make the Board from
+        :param kwargs: key word arguments that can be passed in, currently the only supported key word argument is
+        seed
+        :return: A Board representing the Board this player proposes
+        """
+        dimensions = max(rows, columns)
+        if 'seed' in kwargs:
+            return Board.from_random_board(dimensions, seed=kwargs['seed'])
+        return Board.from_random_board(dimensions)

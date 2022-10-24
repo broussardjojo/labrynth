@@ -24,6 +24,7 @@ class State(ObservableState):
         self.__previous_moves = previous_moves
         self.__players = players
         self.__active_player_index = active_player_index
+        self.__players_reached_goal = set()
 
     @classmethod
     def from_random_state(cls, board: Board):
@@ -176,10 +177,14 @@ class State(ObservableState):
         Checks if the active player for this State is at their goal Position.
         :return: True if the active player is at their goal Position, otherwise False
         :raises: ValueError if there are no players in this State
+        side effect: adds active player to Set of __players_reached_goal if they are at their goal
         """
         if self.__players:
-            return self.__players[self.__active_player_index].get_current_position() == \
-                   self.__players[self.__active_player_index].get_goal_position()
+            active_player = self.__players[self.__active_player_index]
+            if active_player.get_current_position() == active_player.get_goal_position():
+                self.__players_reached_goal.add(active_player)
+                return True
+            return False
         raise ValueError("No players to check")
 
     def slide_and_insert(self, index: int, direction: Direction) -> None:
@@ -287,8 +292,8 @@ class State(ObservableState):
         :raises: ValueError if there are no players in this State
         """
         if self.__players:
-            return self.__players[self.__active_player_index].get_current_position() == \
-                   self.__players[self.__active_player_index].get_home_position()
+            active_player = self.__players[self.__active_player_index]
+            return active_player.get_current_position() == active_player.get_home_position()
         raise ValueError("No players to check")
 
     def change_active_player_turn(self) -> None:
@@ -322,3 +327,24 @@ class State(ObservableState):
         Side Effect: Mutates the currently active Player
         """
         self.__players[self.__active_player_index].set_current_position(position_to_move_to)
+
+    def active_player_has_reached_goal(self):
+        """
+        Checks if the active player has ever reached their goal position
+        :return: True if the active player for this State has ever reached their goal position, otherwise False
+        """
+        return self.__players[self.__active_player_index] in self.__players_reached_goal
+
+    def get_last_non_pass(self) -> (int, Direction):
+        """
+        Returns the last move, namely, the last index and Direction the board was slid.
+        :return: The index and Direction the board was slid during the last move. If there is no previous move, return
+        arbitrary values garunteed not to interfere with game play
+        """
+        if len(self.__previous_moves) > 0:
+            return self.__previous_moves[-1]
+        return -1, Direction.Up
+
+    def get_closest_players_to_victory(self):
+        # TODO: write and test method
+        pass
