@@ -1,0 +1,212 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/4/xstate)
+(testing /course/cs4500f22/ta/github/4/60/Tests/3-in.json /course/cs4500f22/ta/github/4/60/Tests/3-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 59, in <module>
+    print(main())
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 38, in main
+    previous_move = make_previous_move(json_obj_list[0]['last'])
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 24, in make_previous_move
+    return prev_move[0], get_direction_from_direction_str(prev_move[1])
+TypeError: 'NoneType' object is not subscriptable
+---------------------------------
+(*** score 0)
+(*** on)
+'(#hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("│" "─" "┐" "└" "┌" "┘" "┬")
+                     ("│" "─" "┐" "└" "┌" "┘" "┬")
+                     ("┘" "┌" "│" "┐" "└" "─" "┬")
+                     ("│" "│" "┌" "─" "┐" "└" "┬")
+                     ("┘" "│" "┌" "─" "┐" "└" "┬")
+                     ("│" "─" "┐" "└" "┌" "└" "└")
+                     ("┘" "┌" "│" "┐" "└" "└" "└")))
+                   (treasures
+                    .
+                    ((("grossular-garnet" "black-obsidian")
+                      ("tigers-eye" "yellow-beryl-oval")
+                      ("chrysoberyl-cushion" "color-change-oval")
+                      ("sunstone" "prasiolite")
+                      ("citrine" "purple-oval")
+                      ("emerald" "heliotrope")
+                      ("zircon" "pink-spinel-cushion"))
+                     (("grossular-garnet" "goldstone")
+                      ("ruby-diamond-profile" "zoisite")
+                      ("star-cabochon" "ruby")
+                      ("chrome-diopside" "beryl")
+                      ("moonstone" "rock-quartz")
+                      ("kunzite-oval" "green-beryl")
+                      ("emerald" "green-princess-cut"))
+                     (("stilbite" "orange-radiant")
+                      ("padparadscha-sapphire" "rose-quartz")
+                      ("purple-spinel-trillion" "garnet")
+                      ("blue-ceylon-sapphire" "fancy-spinel-marquise")
+                      ("apricot-square-radiant" "emerald")
+                      ("rhodonite" "almandine-garnet")
+                      ("tigers-eye" "apatite"))
+                     (("pink-opal" "australian-marquise")
+                      ("dumortierite" "tourmaline-laser-cut")
+                      ("hematite" "ametrine")
+                      ("hackmanite" "carnelian")
+                      ("citrine-checkerboard" "heliotrope")
+                      ("green-princess-cut" "zircon")
+                      ("pink-spinel-cushion" "yellow-heart"))
+                     (("red-spinel-square-emerald-cut" "carnelian")
+                      ("ammolite" "green-beryl")
+                      ("aquamarine" "blue-pear-shape")
+                      ("clinohumite" "chrysoberyl-cushion")
+                      ("red-spinel-square-emerald-cut" "padparadscha-oval")
+                      ("carnelian" "grandidierite")
+                      ("raw-citrine" "golden-diamond-cut"))
+                     (("cordierite" "green-aventurine")
+                      ("tanzanite-trillion" "chrome-diopside")
+                      ("garnet" "morganite-oval")
+                      ("golden-diamond-cut" "grossular-garnet")
+                      ("tourmaline-laser-cut" "blue-pear-shape")
+                      ("magnesite" "chrysolite")
+                      ("purple-cabochon" "moss-agate"))
+                     (("spinel" "sunstone")
+                      ("pink-spinel-cushion" "carnelian")
+                      ("apricot-square-radiant" "jaspilite")
+                      ("magnesite" "moonstone")
+                      ("ametrine" "ruby")
+                      ("citrine" "diamond")
+                      ("blue-ceylon-sapphire" "chrysoberyl-cushion"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "red")
+                    (current . #hasheq((column# . 3) (row# . 2)))
+                    (home . #hasheq((column# . 5) (row# . 5))))
+            #hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 4)))
+                    (home . #hasheq((column# . 1) (row# . 1))))))
+          (spare
+           .
+           #hasheq((1-image . "grossular-garnet")
+                   (2-image . "sunstone")
+                   (tilekey . "└"))))
+  2
+  "LEFT"
+  90)
+(*** expected)
+'((#hasheq((column# . 2) (row# . 2))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/4/60/Tests/4-in.json /course/cs4500f22/ta/github/4/60/Tests/4-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 59, in <module>
+    print(main())
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 38, in main
+    previous_move = make_previous_move(json_obj_list[0]['last'])
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 24, in make_previous_move
+    return prev_move[0], get_direction_from_direction_str(prev_move[1])
+TypeError: 'NoneType' object is not subscriptable
+---------------------------------
+(*** score 0)
+(*** on)
+'(#hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("│" "─" "┐" "└" "┌" "┘" "┬")
+                     ("│" "─" "┐" "└" "┌" "┘" "┬")
+                     ("│" "│" "┌" "─" "┐" "└" "┬")
+                     ("┘" "┌" "│" "┐" "└" "─" "┬")
+                     ("┘" "│" "┌" "─" "┐" "└" "┬")
+                     ("│" "─" "│" "└" "┌" "└" "└")
+                     ("┘" "┌" "│" "┐" "└" "└" "└")))
+                   (treasures
+                    .
+                    ((("grossular-garnet" "black-obsidian")
+                      ("tigers-eye" "yellow-beryl-oval")
+                      ("chrysoberyl-cushion" "color-change-oval")
+                      ("sunstone" "prasiolite")
+                      ("citrine" "purple-oval")
+                      ("emerald" "heliotrope")
+                      ("zircon" "pink-spinel-cushion"))
+                     (("grossular-garnet" "goldstone")
+                      ("ruby-diamond-profile" "zoisite")
+                      ("star-cabochon" "ruby")
+                      ("chrome-diopside" "beryl")
+                      ("moonstone" "rock-quartz")
+                      ("kunzite-oval" "green-beryl")
+                      ("emerald" "green-princess-cut"))
+                     (("stilbite" "orange-radiant")
+                      ("padparadscha-sapphire" "rose-quartz")
+                      ("purple-spinel-trillion" "garnet")
+                      ("blue-ceylon-sapphire" "fancy-spinel-marquise")
+                      ("apricot-square-radiant" "emerald")
+                      ("rhodonite" "almandine-garnet")
+                      ("tigers-eye" "apatite"))
+                     (("pink-opal" "australian-marquise")
+                      ("dumortierite" "tourmaline-laser-cut")
+                      ("hematite" "ametrine")
+                      ("hackmanite" "carnelian")
+                      ("citrine-checkerboard" "heliotrope")
+                      ("green-princess-cut" "zircon")
+                      ("pink-spinel-cushion" "yellow-heart"))
+                     (("red-spinel-square-emerald-cut" "carnelian")
+                      ("ammolite" "green-beryl")
+                      ("aquamarine" "blue-pear-shape")
+                      ("clinohumite" "chrysoberyl-cushion")
+                      ("red-spinel-square-emerald-cut" "padparadscha-oval")
+                      ("carnelian" "grandidierite")
+                      ("raw-citrine" "golden-diamond-cut"))
+                     (("cordierite" "green-aventurine")
+                      ("tanzanite-trillion" "chrome-diopside")
+                      ("garnet" "morganite-oval")
+                      ("golden-diamond-cut" "grossular-garnet")
+                      ("tourmaline-laser-cut" "blue-pear-shape")
+                      ("magnesite" "chrysolite")
+                      ("purple-cabochon" "moss-agate"))
+                     (("spinel" "sunstone")
+                      ("pink-spinel-cushion" "carnelian")
+                      ("apricot-square-radiant" "jaspilite")
+                      ("magnesite" "moonstone")
+                      ("ametrine" "ruby")
+                      ("citrine" "diamond")
+                      ("blue-ceylon-sapphire" "chrysoberyl-cushion"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "red")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 5) (row# . 5))))
+            #hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 2)))
+                    (home . #hasheq((column# . 1) (row# . 1))))))
+          (spare
+           .
+           #hasheq((1-image . "grossular-garnet")
+                   (2-image . "sunstone")
+                   (tilekey . "┬"))))
+  2
+  "UP"
+  180)
+(*** expected)
+'((#hasheq((column# . 2) (row# . 3))
+   #hasheq((column# . 3) (row# . 3))
+   #hasheq((column# . 2) (row# . 4))
+   #hasheq((column# . 2) (row# . 5))
+   #hasheq((column# . 1) (row# . 6))
+   #hasheq((column# . 2) (row# . 6))
+   #hasheq((column# . 3) (row# . 6))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+()
+((passed 0) (total 2) (partial-score 0))
+

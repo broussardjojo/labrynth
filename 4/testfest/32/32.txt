@@ -1,0 +1,16 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/4/xstate)
+(testing /course/cs4500f22/ta/github/4/32/Tests/1-in.json /course/cs4500f22/ta/github/4/32/Tests/1-out.json)
+(testing /course/cs4500f22/ta/github/4/32/Tests/3-in.json /course/cs4500f22/ta/github/4/32/Tests/3-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 59, in <module>
+    print(main())
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Common/stateSerializer.py", line 34, in main
+    tile_grid = make_tile_grid(json_obj_list[0]['board'])
+IndexError: list index out of range
+((/course/cs4500f22/ta/github/4/32/Tests/1-in.json /course/cs4500f22/ta/github/4/32/Tests/1-out.json) (/course/cs4500f22/ta/github/4/32/Tests/3-in.json /course/cs4500f22/ta/github/4/32/Tests/3-out.json))
+((passed 2) (total 2) (partial-score 2))
+
