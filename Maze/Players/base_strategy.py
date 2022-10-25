@@ -41,12 +41,13 @@ class BaseStrategy(Strategy):
         board_copy = deepcopy(current_state.get_board())
         base_tile = board_copy.get_tile_by_position(current_position)
         target_tile = board_copy.get_tile_by_position(target_position)
-        return self.__generate_possible_move(board_copy, base_tile, target_tile)
+        return self.__generate_possible_move(board_copy, base_tile, target_tile, target_position)
 
     @abstractmethod
-    def get_next_target_position(self, board: Board) -> Position:
+    def get_next_target_position(self, board: Board, original_target: Position) -> Position:
         """
         Method to be implemented in classes that extend BaseStrategy, determines the next position to check
+        :param original_target: a Position representing the original goal tile to be reached
         :param board: The board to get the next Position from
         :return: a Position representing the next Position to use as a goal
         """
@@ -121,13 +122,15 @@ class BaseStrategy(Strategy):
             return board.get_next_tile()
         return base_tile
 
-    def __generate_possible_move(self, board_copy: Board, base_tile: Tile, target_tile: Tile) -> Move:
+    def __generate_possible_move(self, board_copy: Board, base_tile: Tile, target_tile: Tile,
+                                 original_goal: Position) -> Move:
         """
         Checks if there is a possible move by sliding rows, then columns, loops through targets to move to in an order
         specified in implementations
         :param board_copy: A Board to perform temporary slides on
         :param base_tile: A Tile representing the Tile to start from
         :param target_tile: A Tile representing the target Tile to look for
+        :param original_goal: A Position representing the original goal Position to look for
         :return: A Move representing either a valid Move to a target or a pass if no move is found
         """
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
@@ -142,7 +145,8 @@ class BaseStrategy(Strategy):
         if self.possible_next_target_positions(board_copy):
             return self.__generate_possible_move(board_copy, base_tile,
                                                  board_copy.get_tile_by_position(
-                                                     self.get_next_target_position(board_copy)))
+                                                     self.get_next_target_position(board_copy, original_goal)),
+                                                 original_goal)
         self.__reset_checked_positions()
         return possible_move
 

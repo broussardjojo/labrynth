@@ -1,4 +1,3 @@
-import random
 from .strategy import Strategy
 from ..Common.observableState import ObservableState
 from ..Common.utils import ALL_NAMED_COLORS
@@ -71,7 +70,7 @@ class Player:
         :return: an instance of a Player
         """
         goal_position = current_position
-        strategy = Riemann(goal_position)
+        strategy = Riemann()
         name = "helloworld"
         age = 1
         return cls(home_position, goal_position, current_position, strategy, color, name, age)

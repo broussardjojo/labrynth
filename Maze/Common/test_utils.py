@@ -1,5 +1,7 @@
 from pathlib import Path
-from .utils import remove_gem_extension, generate_gem_list
+
+from .position import Position
+from .utils import remove_gem_extension, generate_gem_list, get_euclidean_distance_between
 
 
 # test the remove_gem_extension function
@@ -38,3 +40,22 @@ def test_generate_gem_list_contains_yellow_baguette():
 def test_generate_gem_list_contains_green_princess_cut():
     gem_list = generate_gem_list()
     assert "green-princess-cut" in gem_list
+
+
+# Test euclidean distance between positions
+def test_get_euclidean_distance_between():
+    position_one = Position(0, 3)
+    position_two = Position(2, 3)
+    assert get_euclidean_distance_between(position_one, position_two) == 4
+
+
+def test_get_euclidean_distance_between_two():
+    position_one = Position(-3, 9)
+    position_two = Position(1, 2)
+    assert get_euclidean_distance_between(position_one, position_two) == 65
+
+
+def test_get_euclidean_distance_between_three():
+    position_one = Position(12, 12)
+    position_two = Position(12, 12)
+    assert get_euclidean_distance_between(position_one, position_two) == 0

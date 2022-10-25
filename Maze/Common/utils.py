@@ -4,6 +4,7 @@ from typing import List, Union
 from .direction import Direction
 from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross
+from .position import Position
 
 
 def remove_gem_extension(filename: Path) -> str:
@@ -101,3 +102,17 @@ def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
     elif coord_one['column#'] > coord_two['column#']:
         return 1
     return 0
+
+
+def get_euclidean_distance_between(position_one: Position, position_two: Position) -> int:
+    """
+    Determines the Euclidean distance between two Positions using the distance formula: (x1-x2)^2 + (y1-y2)^2
+    NOTE: While the distance formula does take the square root of the result at the end, we chose not to do this
+    as we are comparing which is larger and not by how much in the only use of this function, taking the square
+    root would lead to either casting results to ints (inaccurate) or having to use floats (prone to error)
+    :param position_one: The first Position (p1)
+    :param position_two: The second Position (p2)
+    :return: An int representing the euclidean distance between two given positions
+    """
+    return (position_one.get_row() - position_two.get_row()) ** 2 + \
+           (position_one.get_col() - position_two.get_col()) ** 2

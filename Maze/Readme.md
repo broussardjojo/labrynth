@@ -162,6 +162,7 @@ It has the following public methods:
 - get_all_stationary_tiles()
 - get_tile_grid()
 - get_next_tile()
+- can_slide(index)
 
 A `Tile` has a `Shape` and two `Gems`
 

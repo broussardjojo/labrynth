@@ -45,8 +45,8 @@ def target_position():
 
 
 @pytest.fixture
-def riemann_strategy(target_position):
-    return Riemann(target_position)
+def riemann_strategy():
+    return Riemann()
 
 
 # This board has the following shape:
@@ -200,20 +200,20 @@ def test_possible_next_target_positions_filled_list(riemann_strategy, observable
 # verifies the goal_position is returned when the list of checked positions is empty
 def test_get_next_target_position(riemann_strategy, observable_state, target_position):
     assert len(riemann_strategy.get_checked_positions()) == 0
-    assert riemann_strategy.get_next_target_position(observable_state.get_board()) == target_position
+    assert riemann_strategy.get_next_target_position(observable_state.get_board(), target_position) == target_position
 
 
 # verifies the first non-target-position is (0,0)
 def test_get_next_target_position_target_not_available(riemann_strategy, observable_state, target_position):
     riemann_strategy.get_checked_positions().append(target_position)
-    assert riemann_strategy.get_next_target_position(observable_state.get_board()) == Position(0, 0)
+    assert riemann_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(0, 0)
 
 
 # verifies the second non-target-position is (0,1)
 def test_get_next_target_position_target_or_top_left_not_available(riemann_strategy, observable_state, target_position):
     riemann_strategy.get_checked_positions().append(target_position)
     riemann_strategy.get_checked_positions().append(Position(0, 0))
-    assert riemann_strategy.get_next_target_position(observable_state.get_board()) == Position(0, 1)
+    assert riemann_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(0, 1)
 
 
 # verifies the riemann strategy goes row by row
@@ -221,7 +221,7 @@ def test_get_next_target_position_next_row(riemann_strategy, observable_state, t
     riemann_strategy.get_checked_positions().append(target_position)
     for col in range(7):
         riemann_strategy.get_checked_positions().append(Position(0, col))
-    assert riemann_strategy.get_next_target_position(observable_state.get_board()) == Position(1, 0)
+    assert riemann_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(1, 0)
 
 
 # verifies the last target to check is position (6,6)
@@ -230,7 +230,7 @@ def test_get_next_target_position_last_position(riemann_strategy, observable_sta
         for col in range(7):
             riemann_strategy.get_checked_positions().append(Position(row, col))
     riemann_strategy.get_checked_positions().remove(Position(6, 6))
-    assert riemann_strategy.get_next_target_position(observable_state.get_board()) == Position(6, 6)
+    assert riemann_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(6, 6)
 
 
 # verifies a value error is raised when there are no more targets to check
@@ -239,5 +239,5 @@ def test_get_next_target_position_no_positions(riemann_strategy, observable_stat
         for row in range(7):
             for col in range(7):
                 riemann_strategy.get_checked_positions().append(Position(row, col))
-        riemann_strategy.get_next_target_position(observable_state.get_board())
+        riemann_strategy.get_next_target_position(observable_state.get_board(), target_position)
     assert str(error_message.value) == "Error: No Positions left to check"

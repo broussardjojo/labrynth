@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List, Set, Any
 from .tile import Tile
 from .gem import Gem
 from .shapes import Shape, Line, Corner, TShaped, Cross
@@ -141,7 +141,6 @@ class Board:
             raise ValueError("Invalid index")
 
     def can_slide(self, index: int) -> bool:
-        # TODO: test and add to readme.md
         """
         Checks if the given index is on this Board.
         :param index: an int representing a row or column on this Board
@@ -352,3 +351,19 @@ class Board:
         :return: the next tile for this Board
         """
         return self.__next_tile
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Overrides equals to see if this Board is the same as the given other object
+        :param other: object being compared to this Board
+        :return: True if this Board is the same as the given object, otherwise False
+        """
+        if isinstance(other, Board):
+            if self.__dimensions == other.__dimensions:
+                for row in range(self.__dimensions):
+                    for col in range(self.__dimensions):
+                        if self.__tile_grid[row][col] != other.__tile_grid[row][col]:
+                            return False
+                return self.__next_tile == other.__next_tile
+        return False
+

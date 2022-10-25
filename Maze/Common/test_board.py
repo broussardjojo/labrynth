@@ -250,3 +250,28 @@ def test_invalid_tile_by_position_negative(basic_board):
     with pytest.raises(ValueError) as error_message:
         basic_board.get_tile_by_position(test_position)
     assert str(error_message.value) == "Position not on board"
+
+
+# ----- Test can_slide method ------
+def test_can_slide_on_board(basic_board):
+    assert basic_board.can_slide(2)
+
+
+def test_can_slide_on_board_two(basic_board):
+    assert basic_board.can_slide(4)
+
+
+def test_can_slide_not_on_board(basic_board):
+    assert not basic_board.can_slide(-1)
+
+
+def test_can_slide_not_on_board_two(basic_board):
+    assert not basic_board.can_slide(7)
+
+
+def test_can_slide_on_board_stationary(basic_board):
+    assert not basic_board.can_slide(1)
+
+
+def test_can_slide_on_board_stationary_two(basic_board):
+    assert not basic_board.can_slide(3)

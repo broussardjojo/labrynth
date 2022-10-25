@@ -1,11 +1,11 @@
 from random import choice
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 from .board import Board
 from ..Players.player import Player
 from .tile import Tile
 from .direction import Direction
-from .utils import ALL_NAMED_COLORS
+from .utils import ALL_NAMED_COLORS, get_euclidean_distance_between
 
 from .position import Position
 from ..Players.riemann import Riemann
@@ -92,7 +92,7 @@ class State(ObservableState):
             goal_position = super().get_board().get_position_by_tile(goal_tile)
             new_player = Player.from_goal_home_color_strategy(goal_position,
                                                               super().get_board().get_position_by_tile(home_tile),
-                                                              self.__get_unique_color(), Riemann(goal_position))
+                                                              self.__get_unique_color(), Riemann())
             self.get_players().append(new_player)
         else:
             raise ValueError("Game is full, no more players can be added")
@@ -329,6 +329,7 @@ class State(ObservableState):
         self.__players[self.__active_player_index].set_current_position(position_to_move_to)
 
     def active_player_has_reached_goal(self):
+        # TODO: Test
         """
         Checks if the active player has ever reached their goal position
         :return: True if the active player for this State has ever reached their goal position, otherwise False
@@ -336,6 +337,7 @@ class State(ObservableState):
         return self.__players[self.__active_player_index] in self.__players_reached_goal
 
     def get_last_non_pass(self) -> (int, Direction):
+        # TODO: Test
         """
         Returns the last move, namely, the last index and Direction the board was slid.
         :return: The index and Direction the board was slid during the last move. If there is no previous move, return
@@ -345,6 +347,39 @@ class State(ObservableState):
             return self.__previous_moves[-1]
         return -1, Direction.Up
 
-    def get_closest_players_to_victory(self):
-        # TODO: write and test method
-        pass
+    def get_closest_players_to_victory(self) -> List[Player]:
+        # TODO: Test
+        """
+        A method to get the player or players who are closest to victory (either the players that have reached their
+        goal and are closest to home or, if no players have reached their goal, the players closest to reaching their
+        goal)
+        :return: A list of Players representing the winning Players
+        """
+        if len(self.__players_reached_goal) > 0:
+            return self.__get_closest_players_to_goal_or_home(list(self.__players_reached_goal), is_goal=False)
+        return self.__get_closest_players_to_goal_or_home(self.__players, is_goal=True)
+
+    def __get_closest_players_to_goal_or_home(self, possible_winners: List[Player], is_goal: bool):
+        """
+        A method to get the closest players to either their goal or their home
+        :param possible_winners: A List of Players representing the players who are eligible to win the game
+        :param is_goal: A bool that is True if the target destination to check against is the goal, False if it is the
+        home
+        :return: A list of Players representing the winning Players
+        """
+        closest_players = []
+        board_size = len(super().get_board().get_tile_grid())
+        current_min_distance = get_euclidean_distance_between(Position(0, 0), Position(board_size, board_size))
+        for player in possible_winners:
+            if is_goal:
+                player_distance = get_euclidean_distance_between(player.get_current_position(),
+                                                                 player.get_goal_position())
+            else:
+                player_distance = get_euclidean_distance_between(player.get_current_position(),
+                                                                 player.get_home_position())
+            if player_distance < current_min_distance:
+                current_min_distance = player_distance
+                closest_players = [player]
+            elif player_distance == current_min_distance:
+                closest_players.append(player)
+        return closest_players

@@ -45,8 +45,8 @@ def target_position():
 
 
 @pytest.fixture
-def euclid_strategy(target_position):
-    return Euclid(target_position)
+def euclid_strategy():
+    return Euclid()
 
 
 # This board has the following shape:
@@ -147,7 +147,7 @@ def test_generate_move_cannot_reach_goal_two(euclid_strategy, observable_state):
     current_position = Position(1, 3)
     target_position = Position(5, 5)
     move = euclid_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(0, Direction.Left, 0, Position(0, 3), False)
+    desired_move = Move(0, Direction.Left, 0, Position(1, 2), False)
     assert move == desired_move
 
 
@@ -200,20 +200,20 @@ def test_possible_next_target_positions_filled_list(euclid_strategy, observable_
 # verifies the goal_position is returned when the list of checked positions is empty
 def test_get_next_target_position(euclid_strategy, observable_state, target_position):
     assert len(euclid_strategy.get_checked_positions()) == 0
-    assert euclid_strategy.get_next_target_position(observable_state.get_board()) == target_position
+    assert euclid_strategy.get_next_target_position(observable_state.get_board(), target_position) == target_position
 
 
 # verifies the first non-target-position is (2,5)
 def test_get_next_target_position_target_not_available(euclid_strategy, observable_state, target_position):
     euclid_strategy.get_checked_positions().append(target_position)
-    assert euclid_strategy.get_next_target_position(observable_state.get_board()) == Position(2, 5)
+    assert euclid_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(2, 5)
 
 
 # verifies the second non-target-position is (3,4)
 def test_get_next_target_position_target_or_top_left_not_available(euclid_strategy, observable_state, target_position):
     euclid_strategy.get_checked_positions().append(target_position)
     euclid_strategy.get_checked_positions().append(Position(2, 5))
-    assert euclid_strategy.get_next_target_position(observable_state.get_board()) == Position(3, 4)
+    assert euclid_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(3, 4)
 
 
 # verifies the euclid strategy checks next closest after all neighbors are checked
@@ -223,7 +223,7 @@ def test_get_next_target_position_next_row(euclid_strategy, observable_state, ta
     euclid_strategy.get_checked_positions().append(Position(3, 4))
     euclid_strategy.get_checked_positions().append(Position(3, 6))
     euclid_strategy.get_checked_positions().append(Position(4, 5))
-    assert euclid_strategy.get_next_target_position(observable_state.get_board()) == Position(2, 4)
+    assert euclid_strategy.get_next_target_position(observable_state.get_board(), target_position) == Position(2, 4)
 
 
 # verifies a value error is raised when there are no more targets to check
@@ -232,5 +232,5 @@ def test_get_next_target_position_no_positions(euclid_strategy, observable_state
         for row in range(7):
             for col in range(7):
                 euclid_strategy.get_checked_positions().append(Position(row, col))
-        euclid_strategy.get_next_target_position(observable_state.get_board())
+        euclid_strategy.get_next_target_position(observable_state.get_board(), target_position)
     assert str(error_message.value) == "Error: No Positions left to check"
