@@ -6,6 +6,9 @@ from .shapes import Line
 from .gem import Gem
 from .direction import Direction
 from .position import Position
+from ..Players.euclid import Euclid
+from ..Players.player import Player
+from ..Players.riemann import Riemann
 
 
 @pytest.fixture
@@ -26,6 +29,26 @@ def rotated_seeded_spare_tile():
 @pytest.fixture
 def sample_seeded_game_state(seeded_board):
     return State.from_random_state(seeded_board)
+
+
+@pytest.fixture
+def player_one():
+    return Player.from_goal_home_color_strategy(Position(3, 1), Position(5, 1), "pink", Riemann())
+
+
+@pytest.fixture
+def player_two():
+    return Player.from_goal_home_color_strategy(Position(5, 5), Position(3, 3), "red", Riemann())
+
+
+@pytest.fixture
+def player_three():
+    return Player.from_goal_home_color_strategy(Position(1, 1), Position(3, 1), "black", Euclid())
+
+
+@pytest.fixture
+def sample_seeded_game_state_from_players(seeded_board, player_one, player_two, player_three):
+    return State.from_board_and_players(seeded_board, [player_one, player_two, player_three])
 
 
 # ----- Test Rotate Method -----
@@ -416,3 +439,109 @@ def test_move_active_player_to_does_not_move_inactive(sample_seeded_game_state):
     sample_seeded_game_state.move_active_player_to(Position(6, 6))
     assert non_active_player_one.get_current_position() == Position(1, 1)
     assert non_active_player_two.get_current_position() == Position(1, 3)
+
+
+# ----- Test active_player_has_reached_goal ---------
+def test_active_player_has_reached_goal(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    player = sample_seeded_game_state.get_players()[sample_seeded_game_state.get_active_player_index()]
+    sample_seeded_game_state.move_active_player_to(player.get_goal_position())
+    sample_seeded_game_state.is_active_player_at_goal()
+    assert sample_seeded_game_state.active_player_has_reached_goal()
+
+
+def test_active_player_has_not_reached_goal_one(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    player = sample_seeded_game_state.get_players()[sample_seeded_game_state.get_active_player_index()]
+    assert not sample_seeded_game_state.active_player_has_reached_goal()
+    sample_seeded_game_state.move_active_player_to(player.get_goal_position())
+    sample_seeded_game_state.is_active_player_at_goal()
+    assert sample_seeded_game_state.active_player_has_reached_goal()
+
+
+def test_active_player_has_not_reached_goal_two(sample_seeded_game_state):
+    sample_seeded_game_state.add_player()
+    sample_seeded_game_state.add_player()
+    player = sample_seeded_game_state.get_players()[sample_seeded_game_state.get_active_player_index()]
+    sample_seeded_game_state.move_active_player_to(player.get_goal_position())
+    sample_seeded_game_state.is_active_player_at_goal()
+    sample_seeded_game_state.change_active_player_turn()
+    assert not sample_seeded_game_state.active_player_has_reached_goal()
+
+
+# ---- Test get_closest_player_to_victory ---------
+def test_get_closest_player_to_victory_no_goals_start(sample_seeded_game_state_from_players, player_one,
+                                                      player_two, player_three):
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_one, player_three]
+
+
+def test_get_closest_player_to_victory_no_goals_moved(sample_seeded_game_state_from_players, player_one,
+                                                      player_two, player_three):
+    player_one.set_current_position(Position(4, 6))
+    player_two.set_current_position(Position(0, 0))
+    player_three.set_current_position(Position(5, 3))
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_three]
+
+
+def test_get_closest_player_to_victory_at_goal_moved(sample_seeded_game_state_from_players, player_one,
+                                                     player_two, player_three):
+    player_one.set_current_position(Position(3, 1))
+    player_two.set_current_position(Position(2, 0))
+    player_three.set_current_position(Position(3, 3))
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_one]
+
+
+def test_get_closest_player_to_victory_at_goal_moved_two(sample_seeded_game_state_from_players, player_one,
+                                                         player_two, player_three):
+    player_one.set_current_position(Position(3, 1))
+    player_two.set_current_position(Position(2, 0))
+    player_three.set_current_position(Position(1, 1))
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_one]
+
+
+def test_get_closest_player_to_victory_at_goal_multiple_goals_reached(sample_seeded_game_state_from_players, player_one,
+                                                                      player_two, player_three):
+    player_one.set_current_position(Position(3, 1))
+    player_two.set_current_position(Position(5, 5))
+    player_three.set_current_position(Position(3, 3))
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    sample_seeded_game_state_from_players.change_active_player_turn()
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_one]
+
+
+def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_two(sample_seeded_game_state_from_players,
+                                                                          player_one,
+                                                                          player_two, player_three):
+    player_one.set_current_position(Position(3, 1))
+    player_two.set_current_position(Position(5, 5))
+    player_three.set_current_position(Position(2, 5))
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    sample_seeded_game_state_from_players.change_active_player_turn()
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    player_two.set_current_position(Position(3, 4))
+    assert sample_seeded_game_state_from_players.get_closest_players_to_victory() == [player_two]
+
+
+def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_three(sample_seeded_game_state_from_players,
+                                                                            player_one,
+                                                                            player_two, player_three):
+    player_one.set_current_position(Position(3, 1))
+    player_two.set_current_position(Position(5, 5))
+    player_three.set_current_position(Position(6, 0))
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    sample_seeded_game_state_from_players.change_active_player_turn()
+    sample_seeded_game_state_from_players.is_active_player_at_goal()
+    player_two.set_current_position(Position(2, 3))
+    player_one.set_current_position(Position(4, 1))
+    assert player_one in sample_seeded_game_state_from_players.get_closest_players_to_victory()
+    assert player_two in sample_seeded_game_state_from_players.get_closest_players_to_victory()
+    assert player_three not in sample_seeded_game_state_from_players.get_closest_players_to_victory()
+
+
+def test_get_closest_player_to_victory_no_players(sample_seeded_game_state):
+    assert len(sample_seeded_game_state.get_players()) == 0
+    assert sample_seeded_game_state.get_closest_players_to_victory() == []

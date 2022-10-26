@@ -329,26 +329,20 @@ class State(ObservableState):
         self.__players[self.__active_player_index].set_current_position(position_to_move_to)
 
     def active_player_has_reached_goal(self):
-        # TODO: Test
         """
         Checks if the active player has ever reached their goal position
         :return: True if the active player for this State has ever reached their goal position, otherwise False
         """
         return self.__players[self.__active_player_index] in self.__players_reached_goal
 
-    def get_last_non_pass(self) -> (int, Direction):
-        # TODO: Test
+    def get_all_previous_non_passes(self) -> List[Tuple[int, Direction]]:
         """
-        Returns the last move, namely, the last index and Direction the board was slid.
-        :return: The index and Direction the board was slid during the last move. If there is no previous move, return
-        arbitrary values garunteed not to interfere with game play
+        Returns a list of all the previous slides and inserts.
+        :return: a list of (int, Direction) representing all the previous slides and inserts
         """
-        if len(self.__previous_moves) > 0:
-            return self.__previous_moves[-1]
-        return -1, Direction.Up
+        return self.__previous_moves
 
     def get_closest_players_to_victory(self) -> List[Player]:
-        # TODO: Test
         """
         A method to get the player or players who are closest to victory (either the players that have reached their
         goal and are closest to home or, if no players have reached their goal, the players closest to reaching their
@@ -371,6 +365,7 @@ class State(ObservableState):
         board_size = len(super().get_board().get_tile_grid())
         current_min_distance = get_euclidean_distance_between(Position(0, 0), Position(board_size, board_size))
         for player in possible_winners:
+            print(player.get_current_position())
             if is_goal:
                 player_distance = get_euclidean_distance_between(player.get_current_position(),
                                                                  player.get_goal_position())
