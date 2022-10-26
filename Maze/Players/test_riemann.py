@@ -4,7 +4,7 @@ import pytest
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from .riemann import Riemann
-from .move import Move
+from .move import Move, Pass
 from ..Common.direction import Direction
 from ..Common.boardSerializer import get_json_obj_list, make_tile_grid
 from ..Common.board import Board
@@ -76,7 +76,7 @@ def observable_state_two(basic_seeded_board_two):
 # test generate_move method returns a valid Move to the goal when available
 def test_generate_move_to_goal_right_one(riemann_strategy, observable_state, current_position, target_position):
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(0, Direction.Right, 0, target_position, False)
+    desired_move = Move(0, Direction.Right, 0, target_position)
     assert move == desired_move
 
 
@@ -84,7 +84,7 @@ def test_generate_move_to_goal_right_two(riemann_strategy, observable_state):
     current_position = Position(4, 4)
     target_position = Position(5, 5)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(4, Direction.Right, 0, target_position, False)
+    desired_move = Move(4, Direction.Right, 0, target_position)
     assert move == desired_move
 
 
@@ -92,7 +92,7 @@ def test_generate_move_to_goal_left(riemann_strategy, observable_state):
     current_position = Position(4, 6)
     target_position = Position(5, 5)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(4, Direction.Left, 0, target_position, False)
+    desired_move = Move(4, Direction.Left, 0, target_position)
     assert move == desired_move
 
 
@@ -100,7 +100,7 @@ def test_generate_move_to_goal_up(riemann_strategy, observable_state):
     current_position = Position(2, 6)
     target_position = Position(1, 5)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(6, Direction.Up, 0, target_position, False)
+    desired_move = Move(6, Direction.Up, 0, target_position)
     assert move == desired_move
 
 
@@ -108,7 +108,7 @@ def test_generate_move_to_goal_down(riemann_strategy, observable_state):
     current_position = Position(1, 2)
     target_position = Position(2, 3)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(2, Direction.Down, 0, target_position, False)
+    desired_move = Move(2, Direction.Down, 0, target_position)
     assert move == desired_move
 
 
@@ -122,7 +122,7 @@ def test_generate_move_to_goal_using_spare_tile_no_rotation(riemann_strategy, ob
     assert not spare_tile.has_path(Direction.Up)
     assert spare_tile.has_path(Direction.Right)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(2, Direction.Left, 0, target_position, False)
+    desired_move = Move(2, Direction.Left, 0, target_position)
     assert move == desired_move
 
 
@@ -130,7 +130,7 @@ def test_generate_move_to_goal_using_spare_tile_with_rotation(riemann_strategy, 
     current_position = Position(3, 0)
     target_position = Position(1, 1)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(4, Direction.Right, 90, target_position, False)
+    desired_move = Move(4, Direction.Right, 90, target_position)
     assert move == desired_move
 
 
@@ -139,7 +139,7 @@ def test_generate_move_cannot_reach_goal_one(riemann_strategy, observable_state)
     current_position = Position(2, 2)
     target_position = Position(3, 3)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(2, Direction.Left, 0, Position(0, 0), False)
+    desired_move = Move(2, Direction.Left, 0, Position(0, 0))
     assert move == desired_move
 
 
@@ -147,7 +147,7 @@ def test_generate_move_cannot_reach_goal_two(riemann_strategy, observable_state)
     current_position = Position(1, 3)
     target_position = Position(5, 5)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(0, Direction.Left, 0, Position(0, 1), False)
+    desired_move = Move(0, Direction.Left, 0, Position(0, 1))
     assert move == desired_move
 
 
@@ -155,7 +155,7 @@ def test_generate_move_cannot_reach_goal_three(riemann_strategy, observable_stat
     current_position = Position(5, 6)
     target_position = Position(1, 1)
     move = riemann_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(6, Direction.Up, 0, Position(3, 6), False)
+    desired_move = Move(6, Direction.Up, 0, Position(3, 6))
     assert move == desired_move
 
 
@@ -164,7 +164,7 @@ def test_generate_passed_move_one(riemann_strategy, observable_state_two):
     current_position = Position(5, 5)
     target_position = Position(1, 1)
     move = riemann_strategy.generate_move(observable_state_two, current_position, target_position)
-    desired_move = Move(3, Direction.Up, 0, Position(3, 6), True)
+    desired_move = Pass()
     assert move == desired_move
 
 
@@ -172,7 +172,7 @@ def test_generate_passed_move_two(riemann_strategy, observable_state_two):
     current_position = Position(4, 1)
     target_position = Position(5, 3)
     move = riemann_strategy.generate_move(observable_state_two, current_position, target_position)
-    desired_move = Move(3, Direction.Up, 0, Position(3, 6), True)
+    desired_move = Pass()
     assert move == desired_move
 
 

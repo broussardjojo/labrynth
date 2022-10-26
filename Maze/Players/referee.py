@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import signal
 from copy import deepcopy
 from .player import Player
@@ -8,7 +8,7 @@ from ..Common.board import Board
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.utils import get_opposite_direction
-from .move import Move
+from .move import Move, Pass
 from multipledispatch import dispatch
 
 
@@ -72,13 +72,10 @@ class Referee:
         :param active_player: a Player representing the active player to make this Move
         :return: None
         """
-        if not proposed_move.is_pass():
-            if self.__is_valid_move(proposed_move, game_state):
-                self.__perform_valid_move(proposed_move, active_player, game_state)
-            else:
-                self.__handle_cheater(active_player, game_state)
+        if self.__is_valid_move(proposed_move, game_state):
+            self.__perform_valid_move(proposed_move, active_player, game_state)
         else:
-            self.__passed_players.append(active_player)
+            self.__handle_cheater(active_player, game_state)
 
     def __handle_cheater(self, active_player: Player, game_state: State) -> None:
         """
@@ -102,7 +99,7 @@ class Referee:
         self.__handle_cheater(active_player, game_state)
         raise TimeoutError("Error: Player took to long to make their move")
 
-    def __get_proposed_move(self, active_player: Player, game_state: State) -> Move:
+    def __get_proposed_move(self, active_player: Player, game_state: State) -> Union[Move, Pass]:
         """
         Gets the proposed move from the active player. If the active player takes too long to communicate their desired
         move, then the game times them out and that player is removed from the game and added to a list of cheating
@@ -162,7 +159,8 @@ class Referee:
                 print(proposed_move)
             except TimeoutError:
                 continue
-            self.__perform_move(proposed_move, active_player, game_state)
+            proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, active_player, game_state),
+                                               lambda: self.__perform_pass(active_player))
             if self.__game_not_over(game_state):
                 continue
             break
@@ -272,3 +270,6 @@ class Referee:
         except ValueError:
             return False
         return state_copy.can_active_player_reach_given_tile(destination_tile)
+
+    def __perform_pass(self, active_player):
+        self.__passed_players.append(active_player)

@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
-from .move import Move
+from .move import Move, Pass
 
 
 class Strategy(ABC):
@@ -13,7 +14,7 @@ class Strategy(ABC):
     @abstractmethod
     def generate_move(self, current_state: ObservableState,
                       current_position: Position,
-                      target_position: Position) -> Move:
+                      target_position: Position) -> Union[Move, Pass]:
         """
         A method to generate a move selected by the implemented strategy
         :param current_state: An ObservableState representing the current state of the game
@@ -21,6 +22,6 @@ class Strategy(ABC):
         therefore it is important for users to copy the board before making changes to air on the side of caution
         :param current_position: The current Position of the Player (where the move should begin from)
         :param target_position: The target Position of the Player (where the goal/home is depending on implementation)
-        :return: A Move representing a Slide/Insert, rotate, and destination
+        :return: A Move representing a Slide/Insert, rotate, and destination or a Pass
         """
         pass
