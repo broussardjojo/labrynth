@@ -113,9 +113,6 @@ Contains the source code for our Player model
 ### playerSerializer.py
 Contains methods for creating a Player from JSON values
 
-### referee.py
-Contains the source code for our Referee model
-
 ### riemann.py
 Contains the source code for our Riemann strategy model
 
@@ -128,11 +125,21 @@ Contains unit tests for our Euclid strategy model
 ### test_player.py
 Contains unit tests for our Player model
 
+### test_riemann.py
+Contains unit tests for our Riemann strategy model
+
+## Referee
+Folder contains our implementation code in the following files:
+
+### __init__.py
+Python required file which labels the directory as a Python package, to help with relative imports
+
+### referee.py
+Contains the source code for our Referee model
+
 ### test_referee.py
 Contains unit tests for our Referee model
 
-### test_riemann.py
-Contains unit tests for our Riemann strategy model
 
 ## Resources
 Folder containing resources such as images
