@@ -301,6 +301,7 @@ class State(ObservableState):
         Change the active player's turn
         :return: None
         """
+        print('here for some reason')
         if self.__active_player_index < len(self.__players) - 1:
             self.__active_player_index += 1
         else:

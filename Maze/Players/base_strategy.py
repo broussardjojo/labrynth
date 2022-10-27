@@ -136,14 +136,18 @@ class BaseStrategy(Strategy):
         """
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
                                                      [Direction.Left, Direction.Right])
-        return possible_move.return_move_recurse_pass(lambda: self.__check_vertical(board_copy, target_tile,
-                                                                                    base_tile, original_goal))
+        return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_vertical(board_copy,
+                                                                                                 target_tile,
+                                                                                                 base_tile,
+                                                                                                 original_goal))
 
     def __check_vertical(self, board_copy, target_tile, base_tile, original_goal):
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
                                                      [Direction.Up, Direction.Down])
-        return possible_move.return_move_recurse_pass(lambda: self.__check_new_goal(board_copy, target_tile,
-                                                                                    base_tile, original_goal))
+        return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_new_goal(board_copy,
+                                                                                                 target_tile,
+                                                                                                 base_tile,
+                                                                                                 original_goal))
 
     def __check_new_goal(self, board_copy, target_tile, base_tile, original_goal):
         self.__checked_positions.append(board_copy.get_position_by_tile(target_tile))

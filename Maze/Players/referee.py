@@ -37,6 +37,7 @@ class Referee:
         self.__num_rounds = 0
         self.__all_player_goals = []
         self.__passed_players = []
+        self.__did_last_player_cheat = False
 
     @staticmethod
     def get_proposed_board(list_of_players: List[Player]) -> Board:
@@ -84,8 +85,10 @@ class Referee:
         :return: None
         side effect: mutates the cheater_players list, mutates the game_state by kicking out the active player
         """
+        print("player was cheating")
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
+        self.__did_last_player_cheat = True
 
     def __handle_timeout(self, active_player: Player, game_state: State) -> None:
         """
@@ -108,7 +111,7 @@ class Referee:
         :return: a desired Move from the active player
         """
         observable_state = ObservableState(game_state.get_board())
-        signal.signal(signal.SIGALRM, lambda a, b: self.__handle_timeout(active_player, game_state))
+        signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
         signal.alarm(10)
         proposed_move = active_player.take_turn(observable_state)
         signal.alarm(0)
@@ -149,16 +152,19 @@ class Referee:
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
         while True:
+            self.__did_last_player_cheat = False
             active_player_index = game_state.get_active_player_index()
             print(active_player_index)
-            if active_player_index == len(game_state.get_players()):
+            if active_player_index == len(game_state.get_players()) - 1:
                 self.__num_rounds += 1
             active_player = game_state.get_players()[active_player_index]
             try:
                 proposed_move = self.__get_proposed_move(active_player, game_state)
                 print(proposed_move)
             except TimeoutError:
-                continue
+                if self.__game_not_over(game_state):
+                    continue
+                break
             proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, active_player, game_state),
                                                lambda: self.__perform_pass(active_player))
             if self.__game_not_over(game_state):
@@ -200,6 +206,8 @@ class Referee:
         passes, or there are 0 players left in the game.
         :return: True if the game is over, otherwise False
         """
+        if len(game_state.get_players()) == 0:
+            return False
         active_player = game_state.get_players()[game_state.get_active_player_index()]
         if game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal():
             self.__winning_players = [active_player]
@@ -207,8 +215,9 @@ class Referee:
         if self.__num_rounds == 1000 or len(self.__passed_players) == len(game_state.get_players()):
             self.__winning_players = game_state.get_closest_players_to_victory()
             return False
-        game_state.change_active_player_turn()
-        return len(game_state.get_players()) > 0
+        if not self.__did_last_player_cheat:
+            game_state.change_active_player_turn()
+        return True
 
     def __inform_winning_players(self) -> None:
         """
@@ -263,8 +272,8 @@ class Referee:
         """
         state_copy = deepcopy(game_state)
         state_copy.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
+        state_copy.slide_and_insert(proposed_move.get_slide_index(), proposed_move.get_slide_direction())
         board_copy = state_copy.get_board()
-        board_copy.slide_and_insert(proposed_move.get_slide_index(), proposed_move.get_slide_direction())
         try:
             destination_tile = board_copy.get_tile_by_position(proposed_move.get_destination_position())
         except ValueError:

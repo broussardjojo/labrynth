@@ -11,6 +11,7 @@ from .riemann import Riemann
 from .strategy import Strategy
 from ..Common.board import Board
 from ..Common.boardSerializer import make_tile_grid
+from ..Common.direction import Direction
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.utils import get_json_obj_list
@@ -75,6 +76,16 @@ def player_four():
 
 
 @pytest.fixture
+def player_five():
+    return Player.from_goal_home_color_strategy(Position(1, 3), Position(3, 3), "yellow", Riemann())
+
+
+@pytest.fixture
+def referee():
+    return Referee()
+
+
+@pytest.fixture
 def seeded_game_state(seeded_board, player_one, player_two, player_three):
     return State.from_board_and_players(seeded_board, [player_one, player_two, player_three])
 
@@ -89,23 +100,23 @@ def seeded_game_state_three(basic_seeded_board_two, player_one, player_two, play
     return State.from_board_and_players(basic_seeded_board_two, [player_one, player_two, player_three])
 
 
+@pytest.fixture
+def seeded_game_state_four(basic_seeded_board_two, player_one, player_three, player_five):
+    return State.from_board_and_players(basic_seeded_board_two, [player_one, player_three, player_five])
+
+
 class ForeverStrategy(Strategy):
 
     def generate_move(self, current_state: ObservableState, current_position: Position,
                       target_position: Position) -> Move:
         while True:
             time.sleep(1)
-        return Move(0, Direction.Up, 0, Position(2, 0), False)
+        return Move(0, Direction.Up, 0, Position(2, 0))
 
 
 @pytest.fixture
 def forever_strategy():
     return ForeverStrategy()
-
-
-@pytest.fixture
-def referee():
-    return Referee()
 
 
 @pytest.fixture
@@ -121,6 +132,79 @@ def game_state_with_forever_player(seeded_board, player_forever, player_two, pla
 @pytest.fixture
 def game_state_with_forever_player_two(basic_seeded_board_two, player_forever, player_two, player_three, player_four):
     return State.from_board_and_players(basic_seeded_board_two, [player_forever, player_two, player_three, player_four])
+
+
+class BadRotationStrategy(Strategy):
+
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(0, Direction.Up, 14, Position(2, 0))
+
+
+@pytest.fixture
+def bad_rotation_strategy():
+    return BadRotationStrategy()
+
+
+@pytest.fixture
+def player_bad_rotation(bad_rotation_strategy):
+    return Player.from_goal_home_color_strategy(Position(5, 3), Position(3, 5), "orange", bad_rotation_strategy)
+
+
+@pytest.fixture
+def game_state_with_bad_rotation_player(seeded_board, player_bad_rotation, player_three, player_four):
+    return State.from_board_and_players(seeded_board, [player_bad_rotation, player_three, player_four])
+
+
+class BadSlideIndexStrategy(Strategy):
+
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(1, Direction.Up, 90, Position(2, 0))
+
+
+@pytest.fixture
+def bad_slide_index_strategy():
+    return BadSlideIndexStrategy()
+
+
+@pytest.fixture
+def player_bad_slide_index(bad_slide_index_strategy):
+    return Player.from_goal_home_color_strategy(Position(5, 3), Position(3, 5), "yellow", bad_slide_index_strategy)
+
+
+@pytest.fixture
+def game_state_with_bad_slide_index_player(seeded_board, player_bad_slide_index, player_three, player_four):
+    return State.from_board_and_players(seeded_board, [player_bad_slide_index, player_three, player_four])
+
+
+class BadMoveToStrategy(Strategy):
+
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(0, Direction.Up, 90, Position(2, 0))
+
+
+@pytest.fixture
+def bad_move_to_strategy():
+    return BadMoveToStrategy()
+
+
+@pytest.fixture
+def player_bad_move_to(bad_move_to_strategy):
+    return Player.from_goal_home_color_strategy(Position(1, 3), Position(6, 5), "red", bad_move_to_strategy)
+
+
+@pytest.fixture
+def game_state_with_bad_move_to_player(seeded_board, player_bad_move_to, player_three, player_four):
+    return State.from_board_and_players(seeded_board, [player_bad_move_to, player_three, player_four])
+
+
+@pytest.fixture
+def game_state_all_cheaters(seeded_board, player_bad_move_to, player_forever, player_bad_slide_index,
+                            player_bad_rotation):
+    return State.from_board_and_players(seeded_board, [player_bad_move_to, player_forever, player_bad_slide_index,
+                                                       player_bad_rotation])
 
 
 # ----- Test run_game -------
@@ -145,14 +229,60 @@ def test_run_game_all_pass(referee, seeded_game_state_three, player_one, player_
     assert cheating_players == []
 
 
-def test_run_game_cheaters(referee, game_state_with_forever_player, player_forever, player_three):
+def test_run_game_one_cheater(referee, game_state_with_forever_player, player_forever, player_three):
     winning_players, cheating_players = referee.run_game(game_state_with_forever_player)
     assert winning_players == [player_three]
     assert cheating_players == [player_forever]
 
 
-# TODO: figure out why there's more than one cheater
-def test_run_game_multiple_cheaters(referee, game_state_with_forever_player_two, player_forever, player_three):
+def test_run_game_one_cheater_two(referee, game_state_with_forever_player_two, player_forever, player_three):
     winning_players, cheating_players = referee.run_game(game_state_with_forever_player_two)
     assert winning_players == [player_three]
     assert cheating_players == [player_forever]
+
+
+def test_run_game_bad_rotation_cheater(referee, game_state_with_bad_rotation_player, player_bad_rotation, player_three):
+    winning_players, cheating_players = referee.run_game(game_state_with_bad_rotation_player)
+    assert winning_players == [player_three]
+    assert cheating_players == [player_bad_rotation]
+
+
+def test_run_game_bad_slide_index_cheater(referee, game_state_with_bad_slide_index_player, player_bad_slide_index,
+                                          player_three):
+    winning_players, cheating_players = referee.run_game(game_state_with_bad_slide_index_player)
+    assert winning_players == [player_three]
+    assert cheating_players == [player_bad_slide_index]
+
+
+def test_run_game_bad_move_to_cheater(referee, game_state_with_bad_move_to_player, player_bad_move_to,
+                                      player_three):
+    winning_players, cheating_players = referee.run_game(game_state_with_bad_move_to_player)
+    assert winning_players == [player_three]
+    assert cheating_players == [player_bad_move_to]
+
+
+def test_run_game_all_cheaters(referee, game_state_all_cheaters, player_bad_rotation, player_bad_slide_index,
+                               player_forever, player_bad_move_to):
+    winning_players, cheating_players = referee.run_game(game_state_all_cheaters)
+    assert winning_players == []
+    assert cheating_players == [player_bad_move_to, player_forever, player_bad_slide_index,
+                                player_bad_rotation]
+
+
+def test_game_ends_after_1000_turns(referee, seeded_game_state, player_one, player_two, player_three):
+    referee._Referee__num_rounds = 999
+    winning_players, cheating_players = referee.run_game(seeded_game_state)
+    assert winning_players == [player_one, player_three]
+    assert cheating_players == []
+    # validates that the players have exactly one move (in which player_one and player_three both move to their goal)
+    assert player_one.get_current_position() == Position(3, 1)
+    assert player_three.get_current_position() == Position(1, 1)
+
+
+def test_run_game_tie(referee, seeded_game_state_four, player_one, player_three, player_five):
+    player_one.set_current_position(Position(5, 5))
+    player_five.set_current_position(Position(5, 5))
+    player_three.set_current_position(Position(5, 5))
+    winning_players, cheating_players = referee.run_game(seeded_game_state_four)
+    assert winning_players == [player_one, player_five]
+    assert cheating_players == []

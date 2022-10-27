@@ -14,7 +14,7 @@ class Pass:
         return isinstance(other, Pass)
 
     @staticmethod
-    def return_move_recurse_pass(if_pass_perform_action: Callable[[], Any]):
+    def return_if_move_perform_action_if_pass(if_pass_perform_action: Callable[[], Any]):
         """
         Method on a Pass which when called will return the result of calling the given function object
         NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
@@ -81,7 +81,7 @@ class Move:
         """
         return self.__destination_position
 
-    def return_move_recurse_pass(self, if_pass_perform_action: Callable[[], Any]):
+    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]):
         """
         Acts as a getter for this Move object
         NOTE: This method is intended to be used in tandem with the same method in a Pass but could be used
