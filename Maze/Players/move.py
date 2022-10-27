@@ -1,9 +1,9 @@
-from typing import Any, Callable
+from typing import Any, Callable, List, Union
 
 from ..Common.direction import Direction
 from ..Common.position import Position
 from ..Common.directionSerializer import get_direction_string
-from ..Common.positionSerializer import get_position_string
+from ..Common.positionSerializer import get_position_dict
 
 
 class Pass:
@@ -51,12 +51,12 @@ class Pass:
         perform_pass_action()
 
     @staticmethod
-    def format_output():
+    def format_output() -> str:
         """
         Method on a pass which will return a string representing a Pass
         NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
         by itself without breaking anything
-        :return:
+        :return: The string "PASS"
         """
         return "PASS"
 
@@ -131,17 +131,18 @@ class Move:
         """
         perform_move_action()
 
-    def format_output(self):
+    def format_output(self) -> List[Union[int, Direction, dict]]:
         """
         Method on a pass which will return a string representing a Pass
         NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
         by itself without breaking anything
-        :return:
+        :return: a List containing this Move's slide index, slide direction, spare tile rotation,
+         and position dictionary
         """
         return [self.__slide_index,
                 get_direction_string(self.__slide_direction),
                 self.__spare_tile_rotation_degrees,
-                get_position_string(self.__destination_position)]
+                get_position_dict(self.__destination_position)]
 
     def __eq__(self, other: Any) -> bool:
         """

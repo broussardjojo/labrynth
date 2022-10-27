@@ -4,7 +4,15 @@ from .strategy import Strategy
 from Maze.Players.player import Player
 
 
-def make_player_with_all_information(player_dict: dict, strategy: Strategy, goal: Position):
+def make_player_with_all_information(player_dict: dict, strategy: Strategy, goal: Position) -> Player:
+    """
+    Makes a player with its current position, home position, color, strategy, and goal
+    NOTE: Makes arbitrary choice to name the player "Joe" and give an age of 10
+    :param player_dict: a dictionary representing information about a player: current position, home position, and color
+    :param strategy: a Strategy for this player to use
+    :param goal: a Position representing the goal for the player to reach
+    :return: a Player object created with the given information
+    """
     current_position = Position(player_dict["current"]["row#"], player_dict["current"]["column#"], )
     home_position = Position(player_dict["home"]["row#"], player_dict["home"]["column#"], )
     player_color = player_dict["color"]

@@ -265,7 +265,7 @@ class State(ObservableState):
             return self.__can_reach_position_from_given_position(current_tile_position, target_tile_position)
         raise ValueError("No players to check")
 
-    def __can_reach_position_from_given_position(self, start_position, end_position):
+    def __can_reach_position_from_given_position(self, start_position, end_position) -> bool:
         """
         Method to check if a given position can be reached from another given position on this State's Board
         :param start_position: Position to begin from
@@ -329,7 +329,7 @@ class State(ObservableState):
         """
         self.__players[self.__active_player_index].set_current_position(position_to_move_to)
 
-    def active_player_has_reached_goal(self):
+    def active_player_has_reached_goal(self) -> bool:
         """
         Checks if the active player has ever reached their goal position
         :return: True if the active player for this State has ever reached their goal position, otherwise False

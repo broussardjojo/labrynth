@@ -331,7 +331,7 @@ It has the following public methods:
 
 Here is a class diagram for our project:
 
-![class diagram](ClassDiagramM4.png)
+![class diagram](classDiagramM5.png)
 
 # Testing:
 

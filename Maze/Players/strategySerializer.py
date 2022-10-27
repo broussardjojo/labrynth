@@ -7,10 +7,16 @@ from ..Common.position import Position
 from ..Common.board import Board
 from .riemann import Riemann
 from .euclid import Euclid
+from .strategy import Strategy
 import sys
 
 
-def make_strategy(strategy_name: str):
+def make_strategy(strategy_name: str) -> Strategy:
+    """
+    Create either a Riemann or Euclid strategy
+    :param strategy_name: either Riemann or Euclid
+    :return: Either a Riemann or Euclid Strategy
+    """
     if strategy_name == "Riemann":
         return Riemann()
     return Euclid()

@@ -11,6 +11,11 @@ from .direction import Direction
 
 
 def get_direction_from_direction_str(direction_str: str) -> Direction:
+    """
+    Method to translate a string to one of four Directions: Down, Up, Right, and Left
+    :param direction_str: a string representing one of four directions
+    :return: a Direction representing a translated direction
+    """
     if direction_str == "DOWN":
         return Direction.Down
     if direction_str == "UP":
@@ -21,6 +26,12 @@ def get_direction_from_direction_str(direction_str: str) -> Direction:
 
 
 def make_previous_move(prev_move: Tuple[int, str]) -> Tuple[int, Direction]:
+    """
+    A method to get the previous move from an int and string
+    :param prev_move: a Tuple containing an int representing the index that was slid and a string representing the
+    direction that was slid
+    :return: a Tuple containing the given int and translated Direction
+    """
     return prev_move[0], get_direction_from_direction_str(prev_move[1])
 
 

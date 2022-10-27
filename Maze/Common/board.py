@@ -307,7 +307,7 @@ class Board:
             return self.__tile_grid[row][col]
         raise ValueError("Position not on board")
 
-    def __valid_tile_location(self, row, col):
+    def __valid_tile_location(self, row, col) -> bool:
         """
         Checks if the given indices are within the bounds of the board
         :param row: An int representing the row of the potential Tile
