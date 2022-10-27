@@ -1,14 +1,14 @@
 from typing import List, Union
 import signal
 from copy import deepcopy
-from .player import Player
+from ..Players.player import Player
 from ..Common.direction import Direction
 from ..Common.state import State
 from ..Common.board import Board
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.utils import get_opposite_direction
-from .move import Move, Pass
+from ..Players.move import Move, Pass
 from multipledispatch import dispatch
 
 

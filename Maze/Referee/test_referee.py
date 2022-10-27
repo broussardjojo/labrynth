@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from .euclid import Euclid
-from .move import Move
-from .player import Player
+from ..Players.euclid import Euclid
+from ..Players.move import Move
+from ..Players.player import Player
 from .referee import Referee
-from .riemann import Riemann
-from .strategy import Strategy
+from ..Players.riemann import Riemann
+from ..Players.strategy import Strategy
 from ..Common.board import Board
 from ..Common.boardSerializer import make_tile_grid
 from ..Common.direction import Direction
@@ -30,7 +30,7 @@ from ..Common.state import State
 # It's spare tile is a "┬" shape
 @pytest.fixture
 def seeded_board():
-    path = Path(__file__).parent / "basicBoard.json"
+    path = Path(__file__).parent.parent / "Players/basicBoard.json"
     with path.open() as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
@@ -48,7 +48,7 @@ def seeded_board():
 # It's spare tile is a "┬" shape
 @pytest.fixture
 def basic_seeded_board_two():
-    path = Path(__file__).parent / "basicBoardTwo.json"
+    path = Path(__file__).parent.parent / "Players/basicBoardTwo.json"
     with path.open() as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
@@ -272,7 +272,9 @@ def test_run_game_all_cheaters(referee, game_state_all_cheaters, player_bad_rota
 def test_game_ends_after_1000_turns(referee, seeded_game_state, player_one, player_two, player_three):
     referee._Referee__num_rounds = 999
     winning_players, cheating_players = referee.run_game(seeded_game_state)
-    assert winning_players == [player_one, player_three]
+    assert player_one in winning_players
+    assert player_three in winning_players
+    assert player_two not in winning_players
     assert cheating_players == []
     # validates that the players have exactly one move (in which player_one and player_three both move to their goal)
     assert player_one.get_current_position() == Position(3, 1)
