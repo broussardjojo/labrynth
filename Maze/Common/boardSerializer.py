@@ -6,6 +6,7 @@ from .gem import Gem
 from .board import Board
 from .tile import Tile
 from .utils import get_json_obj_list, shape_dict, coord_custom_compare
+from .positionSerializer import get_position_string
 
 
 def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board) -> List[dict]:
@@ -18,9 +19,7 @@ def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board
     output_json_list = []
     for reachable_tile in reachable_list:
         reachable_tile_position = board.get_position_by_tile(reachable_tile)
-        output_json_list.append(
-            {'column#': reachable_tile_position.get_col(), 'row#': reachable_tile_position.get_row()}
-        )
+        output_json_list.append(get_position_string(reachable_tile_position))
     return output_json_list
 
 

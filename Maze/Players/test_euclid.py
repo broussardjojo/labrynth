@@ -130,7 +130,7 @@ def test_generate_move_to_goal_using_spare_tile_with_rotation(euclid_strategy, o
     current_position = Position(3, 0)
     target_position = Position(1, 1)
     move = euclid_strategy.generate_move(observable_state, current_position, target_position)
-    desired_move = Move(4, Direction.Right, 90, target_position)
+    desired_move = Move(4, Direction.Right, 180, target_position)
     assert move == desired_move
 
 

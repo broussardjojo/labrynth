@@ -1,8 +1,9 @@
-from types import LambdaType, FunctionType
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 from ..Common.direction import Direction
 from ..Common.position import Position
+from ..Common.directionSerializer import get_direction_string
+from ..Common.positionSerializer import get_position_string
 
 
 class Pass:
@@ -27,6 +28,10 @@ class Pass:
     @staticmethod
     def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
         perform_pass_action()
+
+    @staticmethod
+    def format_output():
+        return "PASS"
 
 
 class Move:
@@ -89,6 +94,12 @@ class Move:
     @staticmethod
     def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
         perform_move_action()
+
+    def format_output(self):
+        return [self.__slide_index,
+                get_direction_string(self.__slide_direction),
+                self.__spare_tile_rotation_degrees,
+                get_position_string(self.__destination_position)]
 
     def __eq__(self, other: Any) -> bool:
         """

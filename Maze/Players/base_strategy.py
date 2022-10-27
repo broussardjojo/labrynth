@@ -1,6 +1,5 @@
 from copy import deepcopy
-from types import LambdaType
-from typing import List, Set, Union, Callable
+from typing import List, Set, Union
 
 from .move import Move, Pass
 from ..Common.direction import Direction
@@ -11,7 +10,8 @@ from .strategy import Strategy
 from ..Common.board import Board
 from ..Common.utils import get_opposite_direction
 from abc import abstractmethod
-from multipledispatch import dispatch
+
+FULL_ROTATION = 4
 
 
 class BaseStrategy(Strategy):
@@ -91,9 +91,8 @@ class BaseStrategy(Strategy):
         target_position = board.get_position_by_tile(target_tile)
         for index in range(0, len(board.get_tile_grid()), 2):
             for slide_direction in directions:
-                rotations = 0
-                for rotation in range(4):
-                    board.get_next_tile().rotate(1)
+                for rotation in range(FULL_ROTATION):
+                    board.get_next_tile().rotate(rotation)
                     adjusted_base_tile = self.__adjust_base_tile_on_edge(board, base_tile,
                                                                          index, slide_direction)
                     board.slide_and_insert(index, slide_direction)
@@ -102,9 +101,9 @@ class BaseStrategy(Strategy):
                     slid_target_tile = board.get_tile_by_position(target_position)
                     if target_position in reachable_positions and slid_target_tile != base_tile:
                         self.__reset_checked_positions()
-                        return Move(index, slide_direction, rotations * 90, target_position)
+                        return Move(index, slide_direction, rotation * 90, target_position)
                     self.__undo_slide(index, slide_direction, board)
-                    rotations += 1
+                    board.get_next_tile().rotate(FULL_ROTATION - rotation)
         return Pass()
 
     @staticmethod

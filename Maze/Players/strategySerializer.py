@@ -1,27 +1,19 @@
-import functools
 import json
-from typing import Tuple
-from .utils import get_json_obj_list, coord_custom_compare
+from ..Common.utils import get_json_obj_list
+from ..Common.boardSerializer import make_tile_grid, make_individual_tile
+from ..Players.playerSerializer import make_player_with_all_information
+from ..Common.observableState import ObservableState
+from ..Common.position import Position
+from ..Common.board import Board
+from .riemann import Riemann
+from .euclid import Euclid
 import sys
-from .board import Board
-from .boardSerializer import make_tile_grid, make_individual_tile, get_output_list_from_reachable_tiles
-from Maze.Players.playerSerializer import make_list_of_players
-from .state import State
-from .direction import Direction
 
 
-def get_direction_from_direction_str(direction_str: str) -> Direction:
-    if direction_str == "DOWN":
-        return Direction.Down
-    if direction_str == "UP":
-        return Direction.Up
-    if direction_str == "RIGHT":
-        return Direction.Right
-    return Direction.Left
-
-
-def make_previous_move(prev_move: Tuple[int, str]) -> Tuple[int, Direction]:
-    return prev_move[0], get_direction_from_direction_str(prev_move[1])
+def make_strategy(strategy_name: str):
+    if strategy_name == "Riemann":
+        return Riemann()
+    return Euclid()
 
 
 def main() -> str:
@@ -31,27 +23,19 @@ def main() -> str:
     :return: A sorted list of coordinates
     """
     json_obj_list = get_json_obj_list(sys.stdin.read().lstrip())
-    tile_grid = make_tile_grid(json_obj_list[0]['board'])
-    spare = make_individual_tile(json_obj_list[0]['spare'])
+    selected_strategy = make_strategy(json_obj_list[0])
+    tile_grid = make_tile_grid(json_obj_list[1]['board'])
+    spare = make_individual_tile(json_obj_list[1]['spare'])
     board = Board(tile_grid, spare)
-    players = make_list_of_players(json_obj_list[0]['plmt'])
-    previous_move = make_previous_move(json_obj_list[0]['last'])
-    state = State.from_current_state(board, players, previous_move)
-    board = state.get_board()
-    slide_index = json_obj_list[1]
-    slide_direction = get_direction_from_direction_str(json_obj_list[2])
-    rotate_degrees = json_obj_list[3]
-    state.rotate_spare_tile(rotate_degrees)
-    state.slide_and_insert(slide_index, slide_direction)
-    current_player = state.get_players()[0]
-    current_player_position = current_player.get_current_position()
-    current_player_tile = board.get_tile_by_position(current_player_position)
-    reachable_tiles = board.reachable_tiles(current_player_tile)
-    output_list = get_output_list_from_reachable_tiles(reachable_tiles, state.get_board())
-    output_list.sort(key=functools.cmp_to_key(coord_custom_compare))
-    json_output_list = json.dumps(output_list)
-    json_output_list_no_spaces = json_output_list.replace(' ', '')
-    return json_output_list_no_spaces
+    goal_position = Position(json_obj_list[2]["row#"], json_obj_list[2]["column#"])
+    observable_state = ObservableState(board)
+    active_player = make_player_with_all_information(dict(json_obj_list[1]['plmt'][0]),
+                                                     selected_strategy, goal_position)
+    proposed_move = active_player.take_turn(observable_state)
+    formatted_move = proposed_move.format_output()
+    json_move = json.dumps(formatted_move)
+    json_move_no_spaces = json_move.replace(' ', '')
+    return json_move_no_spaces
 
 
 # Entry point main method
