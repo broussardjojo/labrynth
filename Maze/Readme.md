@@ -15,20 +15,20 @@ Contains methods for creating a Board from JSON values and logic for the xboard 
 ### direction.py
 Contains the source code for our Direction Enum
 
+### directionSerializer.py
+Contains methods for creating a Direction from JSON values
+
 ### gem.py
 Contains the source code for our Gem model
 
 ### observableState.py
 Contains the source code for our Observable State model
 
-### player.py
-Contains the source code for our Player model
-
-### playerSerializer.py
-Contains methods for creating a Player from JSON values
-
 ### position.py
 Contains the source code for our Position model
+
+### positionSerializer.py
+Contains methods for creating a Position from JSON values
 
 ### shapes.py
 Contains the source code for our Abstract class shape and the
@@ -83,6 +83,9 @@ Contains our plan for the first three sprints from Milestone 1
 ### state.md
 Contains our plan for the next sprint, "game state", from Milestone 2
 
+### interactive-player.md
+Contains our plan for the next sprint, Milestone 6
+
 ## Players
 Folder contains our implementation code in the following files:
 
@@ -102,7 +105,16 @@ Contains an example of a board to be used for testing purposes
 Contains the source code for our Euclid strategy model
 
 ### move.py
-Contains the source code for our Move model
+Contains the source code for our Move model and Pass model
+
+### player.py
+Contains the source code for our Player model
+
+### playerSerializer.py
+Contains methods for creating a Player from JSON values
+
+### referee.py
+Contains the source code for our Referee model
 
 ### riemann.py
 Contains the source code for our Riemann strategy model
@@ -113,14 +125,17 @@ Contains the source code for our Strategy model
 ### test_euclid.py
 Contains unit tests for our Euclid strategy model
 
+### test_player.py
+Contains unit tests for our Player model
+
+### test_referee.py
+Contains unit tests for our Referee model
+
 ### test_riemann.py
 Contains unit tests for our Riemann strategy model
 
 ## Resources
 Folder containing resources such as images
-
-### __init.py___
-Python required file which labels the directory as a Python package, to help with relative imports
 
 ### gems
 Folder containing all images of gems
@@ -130,6 +145,9 @@ Folder containing images of pages of gems (not valid gems but provided in the ta
 
 #### gem-name.png
 Many files containing images of valid gems
+
+### __init.py___
+Python required file which labels the directory as a Python package, to help with relative imports
 
 ## Makefile
 File used to install necessary python libraries to run our code
@@ -248,6 +266,61 @@ It has the following public methods:
 - change_active_player_turn()
 - move_active_player_to(position)
 
+
+A `Move` has a slide index, slide direction, an int which represents the degrees to rotate the spare tile, and a 
+destination `Position`.
+
+It has the following public methods:
+
+- get_slide_index()
+- get_slide_direction()
+- get_spare_tile_rotation_degrees()
+- get_destination_position() 
+- return_if_move_perform_action_if_pass(if_pass_perform_action)
+- perform_move_or_pass(perform_move_action, perform_pass_action)
+- def format_output
+
+
+A `Pass` does not have any fields.
+
+It has the following public methods:
+
+-  return_if_move_perform_action_if_pass(if_pass_perform_action)
+- perform_move_or_pass(perform_move_action, perform_pass_action)
+- format_output()
+
+
+A `Player` has a home `Position`, goal `Position`, current `Position`, `Strategy`, color, name, and age.
+
+It has the following class methods:
+
+- from_goal_home_color_strategy(goal_position, home_position, color, strategy):
+- from_current_home_color(current_position, home_position, color)
+
+It has the following public methods:
+
+- get_home_position()
+- get_goal_position()
+- get_current_position()
+- set_current_position(new_position):
+- take_turn(current_state)
+- get_color()
+- name()
+- won(has_won)
+- setup(current_state, goal)
+- setup(home)
+- propose_board0(rows, columns)
+
+
+A 'Referee' has a List of cheating `Player`, a List of winning `Player`, the number of completed rounds, a List with the 
+goal `Position` for each `Player`, a list with each `Player` who has passed during a round, and a boolean that
+represents if the last active player has cheated.
+
+It has the following public methods:
+
+- get_proposed_board(list_of_players)
+- run_game(players)
+- run_game(game_state)
 
 Here is a class diagram for our project:
 
