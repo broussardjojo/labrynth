@@ -108,6 +108,15 @@ class BaseStrategy(Strategy):
 
     @staticmethod
     def __adjust_base_tile_on_edge(board: Board, base_tile: Tile, index: int, slide_direction: Direction) -> Tile:
+        """
+        Method to get an adjusted Tile based on a slide action
+        :param board: a Board representing the Board this slide was performed on
+        :param base_tile: a Tile representing the Tile in the starting location
+        :param index: an int representing the row/col of the slide
+        :param slide_direction: a Direction representing the direction of the slide
+        :return: A Tile representing either the base_tile if the base_tile was not slid off or the next_tile if the
+        base_tile was slid off.
+        """
         base_tile_position = board.get_position_by_tile(base_tile)
         if (slide_direction == Direction.Up and base_tile_position.get_row() == 0
                 and index == base_tile_position.get_col()):
@@ -132,7 +141,7 @@ class BaseStrategy(Strategy):
         :param base_tile: A Tile representing the Tile to start from
         :param target_tile: A Tile representing the target Tile to look for
         :param original_goal: A Position representing the original goal Position to look for
-        :return: A Move representing either a valid Move to a target or a pass if no move is found
+        :return: A Move representing either a valid Move to a target or a Pass if no move is found
         """
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
                                                      [Direction.Left, Direction.Right])
@@ -142,6 +151,15 @@ class BaseStrategy(Strategy):
                                                                                                  original_goal))
 
     def __check_vertical(self, board_copy, target_tile, base_tile, original_goal):
+        """
+        Checks if there is a possible move by sliding columns, loops through targets to move to in an order
+        specified in implementations
+        :param board_copy: A Board to perform temporary slides on
+        :param base_tile: A Tile representing the Tile to start from
+        :param target_tile: A Tile representing the target Tile to look for
+        :param original_goal: A Position representing the original goal Position to look for
+        :return: A Move representing either a valid Move to a target or a Pass if no move is found
+        """
         possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
                                                      [Direction.Up, Direction.Down])
         return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_new_goal(board_copy,
@@ -150,6 +168,14 @@ class BaseStrategy(Strategy):
                                                                                                  original_goal))
 
     def __check_new_goal(self, board_copy, target_tile, base_tile, original_goal):
+        """
+        Checks if there is a possible move for the next target to move to in an order specified in implementations
+        :param board_copy: A Board to perform temporary slides on
+        :param base_tile: A Tile representing the Tile to start from
+        :param target_tile: A Tile representing the target Tile to look for
+        :param original_goal: A Position representing the original goal Position to look for
+        :return: A Move representing either a valid Move to a target or a Pass if there are no more targets
+        """
         self.__checked_positions.append(board_copy.get_position_by_tile(target_tile))
         if self.possible_next_target_positions(board_copy):
             return self.__generate_possible_move(board_copy, base_tile,
@@ -173,4 +199,12 @@ class BaseStrategy(Strategy):
 
     @staticmethod
     def __get_reachable_positions_from_tile(board: Board, reachable_tiles: Set[Tile]) -> List[Position]:
+        """
+        Gets the list of reachable Positions on a Board from the Set of reachable Tiles
+        :param board: a Board representing the board to find the Positions on
+        :param reachable_tiles: a Set of Tiles representing all the reachable Tiles on a Board from a given starting
+        Tile
+        :return: A List of Positions representing all the reachable Positions on this Board from a given starting
+        Position
+        """
         return list(map(board.get_position_by_tile, reachable_tiles))

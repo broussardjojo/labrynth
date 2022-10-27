@@ -27,7 +27,6 @@ class Referee:
     - Player proposing invalid Board (either invalid size or invalid by some future determination i.e. "unfair" or bad
     for game play)
     """
-
     def __init__(self):
         """
         Creates an instance of a Referee given a game State
@@ -142,7 +141,6 @@ class Referee:
         return self.__run_game_helper(game_state)
 
     def __run_game_helper(self, game_state: State) -> (List[Player], List[Player]):
-        # TODO: Test
         """
         Method to run a game of Labyrinth, this method will run until the game is over, for each player in the list
         it will request a move, validate the move, perform the move or kick the player out, and check if the game is
@@ -176,7 +174,7 @@ class Referee:
     def __setup(self, game_state: State) -> None:
         """
         Method to setup the board and give each player their goal Tile
-        :return:
+        :return: None
         """
         for player in game_state.get_players():
             observable_state = ObservableState(game_state.get_board())
@@ -248,7 +246,7 @@ class Referee:
         return rotation_degrees % 90 == 0
 
     @staticmethod
-    def __check_slide_and_insert(slide_index: int, slide_direction: Direction, game_state: State):
+    def __check_slide_and_insert(slide_index: int, slide_direction: Direction, game_state: State) -> bool:
         """
         A method to validate the slide is a slideable row and not undoing the previous slide
         :param slide_index: The suggested index to slide on
@@ -280,5 +278,10 @@ class Referee:
             return False
         return state_copy.can_active_player_reach_given_tile(destination_tile)
 
-    def __perform_pass(self, active_player):
+    def __perform_pass(self, active_player) -> None:
+        """
+        A helper method to perform a Pass move
+        :param active_player: The currently active player who is passing their turn
+        :return: None
+        """
         self.__passed_players.append(active_player)

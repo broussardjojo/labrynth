@@ -7,14 +7,26 @@ from ..Common.positionSerializer import get_position_string
 
 
 class Pass:
-    def __str__(self):
+    """
+    A Class representing a Passed move, this means there is no sliding, inserting, rotating, or avatar moving
+    """
+    def __str__(self) -> str:
+        """
+        Override the to string method for a Pass
+        :return: The string "Pass"
+        """
         return "Pass"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
+        """
+        Overrides equality so all Pass objects are equal
+        :param other: An object to compare this Pass to
+        :return: True if the given object is a Pass, False otherwise
+        """
         return isinstance(other, Pass)
 
     @staticmethod
-    def return_if_move_perform_action_if_pass(if_pass_perform_action: Callable[[], Any]):
+    def return_if_move_perform_action_if_pass(if_pass_perform_action: Callable[[], Any]) -> Any:
         """
         Method on a Pass which when called will return the result of calling the given function object
         NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
@@ -27,10 +39,25 @@ class Pass:
 
     @staticmethod
     def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
+        """
+        Method on a Pass which will perform a given void action, when supplied with two void methods a Pass object
+        calls the second one.
+        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
+        by itself without breaking anything
+        :param perform_move_action: An unused argument describing the action to perform if this were a Move object
+        :param perform_pass_action: A function object representing the action to perform from this pass
+        :return: None
+        """
         perform_pass_action()
 
     @staticmethod
     def format_output():
+        """
+        Method on a pass which will return a string representing a Pass
+        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
+        by itself without breaking anything
+        :return:
+        """
         return "PASS"
 
 
@@ -93,9 +120,24 @@ class Move:
 
     @staticmethod
     def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
+        """
+        Method on a Move which will perform a given void action, when supplied with two void methods a Move object
+        calls the first one.
+        NOTE: This method is intended to be used in tandem with the same method in a Pass but could be used
+        by itself without breaking anything
+        :param perform_move_action: A function object representing the action to perform from this Move
+        :param perform_pass_action: An unused argument describing the action to perform if this were a Pass object
+        :return: None
+        """
         perform_move_action()
 
     def format_output(self):
+        """
+        Method on a pass which will return a string representing a Pass
+        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
+        by itself without breaking anything
+        :return:
+        """
         return [self.__slide_index,
                 get_direction_string(self.__slide_direction),
                 self.__spare_tile_rotation_degrees,

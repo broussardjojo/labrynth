@@ -133,6 +133,8 @@ class Player:
         """
         self.__has_won = has_won
 
+    # Note: while we are passing our user-defined types: ObservableState and Position, dispatch is only checking the
+    # number of arguments, not their type, it treats all user-defined types as "object"
     @dispatch(ObservableState, Position)
     def setup(self, current_state: ObservableState, goal: Position) -> None:
         """
@@ -143,6 +145,8 @@ class Player:
         """
         self.__goal_position = goal
 
+    # Note: while we are passing our user-defined types: ObservableState and Position, dispatch is only checking the
+    # number of arguments, not their type, it treats all user-defined types as "object"
     @dispatch(Position)
     def setup(self, home: Position) -> None:
         """
