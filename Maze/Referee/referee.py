@@ -10,6 +10,7 @@ from ..Common.position import Position
 from ..Common.utils import get_opposite_direction
 from ..Players.move import Move, Pass
 from multipledispatch import dispatch
+from .observer import Observer
 
 
 class Referee:
@@ -27,10 +28,16 @@ class Referee:
     - Player proposing invalid Board (either invalid size or invalid by some future determination i.e. "unfair" or bad
     for game play)
     """
-    def __init__(self):
+    def __init__(self, has_observer: bool = False):
         """
         Creates an instance of a Referee given a game State
         """
+        self.__has_observer = has_observer
+        if has_observer:
+            self.__observer = Observer()
+        self.__reset_referee()
+
+    def __reset_referee(self):
         self.__cheater_players = []
         self.__winning_players = []
         self.__num_rounds = 0
@@ -84,7 +91,6 @@ class Referee:
         :return: None
         side effect: mutates the cheater_players list, mutates the game_state by kicking out the active player
         """
-        print("player was cheating")
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
         self.__did_last_player_cheat = True
@@ -97,7 +103,6 @@ class Referee:
         :return: None
         raises: TimeoutError
         """
-        print("player timed out")
         self.__handle_cheater(active_player, game_state)
         raise TimeoutError("Error: Player took to long to make their move")
 
@@ -125,6 +130,7 @@ class Referee:
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
+        self.__reset_referee()
         selected_board = self.get_proposed_board(players)
         game_state = State.from_board_and_players(selected_board, players)
         self.__setup(game_state)
@@ -138,6 +144,7 @@ class Referee:
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
+        self.__reset_referee()
         return self.__run_game_helper(game_state)
 
     def __run_game_helper(self, game_state: State) -> (List[Player], List[Player]):
@@ -152,20 +159,22 @@ class Referee:
         while True:
             self.__did_last_player_cheat = False
             active_player_index = game_state.get_active_player_index()
-            print(active_player_index)
             if active_player_index == len(game_state.get_players()) - 1:
                 self.__num_rounds += 1
             active_player = game_state.get_players()[active_player_index]
             try:
                 proposed_move = self.__get_proposed_move(active_player, game_state)
-                print(proposed_move)
             except TimeoutError:
                 if self.__game_not_over(game_state):
+                    if self.__has_observer:
+                        self.__observer.receive_new_state(game_state)
                     continue
                 break
             proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, active_player, game_state),
                                                lambda: self.__perform_pass(active_player))
             if self.__game_not_over(game_state):
+                if self.__has_observer:
+                    self.__observer.receive_new_state(game_state)
                 continue
             break
         self.__inform_winning_players()
@@ -205,13 +214,19 @@ class Referee:
         :return: True if the game is over, otherwise False
         """
         if len(game_state.get_players()) == 0:
+            if self.__has_observer:
+                self.__observer.game_is_over()
             return False
         active_player = game_state.get_players()[game_state.get_active_player_index()]
         if game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal():
             self.__winning_players = [active_player]
+            if self.__has_observer:
+                self.__observer.game_is_over()
             return False
         if self.__num_rounds == 1000 or len(self.__passed_players) == len(game_state.get_players()):
             self.__winning_players = game_state.get_closest_players_to_victory()
+            if self.__has_observer:
+                self.__observer.game_is_over()
             return False
         if not self.__did_last_player_cheat:
             game_state.change_active_player_turn()

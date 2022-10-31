@@ -301,7 +301,6 @@ class State(ObservableState):
         Change the active player's turn
         :return: None
         """
-        print('here for some reason')
         if self.__active_player_index < len(self.__players) - 1:
             self.__active_player_index += 1
         else:
@@ -366,7 +365,6 @@ class State(ObservableState):
         board_size = len(super().get_board().get_tile_grid())
         current_min_distance = get_euclidean_distance_between(Position(0, 0), Position(board_size, board_size))
         for player in possible_winners:
-            print(player.get_current_position())
             if is_goal:
                 player_distance = get_euclidean_distance_between(player.get_current_position(),
                                                                  player.get_goal_position())
