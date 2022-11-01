@@ -173,3 +173,10 @@ class Player:
         if 'seed' in kwargs:
             return Board.from_random_board(dimensions, seed=kwargs['seed'])
         return Board.from_random_board(dimensions)
+
+    def get_name(self) -> str:
+        """
+        Gets the name of this player
+        :return: the name of this player as a string
+        """
+        return self.__name

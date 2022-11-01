@@ -11,7 +11,7 @@ class Gem:
         before assigning it to the gem_name field
         :param gem_name: a string representing the name of the gem
         """
-        gem_filepath = self.__get_gem_filepath(gem_name)
+        gem_filepath = self.__generate_gem_filepath(gem_name)
         if gem_filepath.is_file():
             self.__gem_name = gem_name
             self.__gem_filepath = gem_filepath
@@ -28,7 +28,7 @@ class Gem:
             return self.__gem_name == other.__gem_name
 
     @staticmethod
-    def __get_gem_filepath(gem_name: str) -> Path:
+    def __generate_gem_filepath(gem_name: str) -> Path:
         """
         Get the filepath of a Gem based on the given string name
         :param gem_name: string representing the name of a Gem
@@ -40,6 +40,13 @@ class Gem:
         gem_filename = (current_directory / path_to_images).resolve()
         gem_filepath = Path(f'{gem_filename}{extension}')
         return gem_filepath
+
+    def get_gem_filepath(self) -> Path:
+        """
+        Gives the filepath for this Gem
+        :return: this Gem's filepath as a Path
+        """
+        return self.__gem_filepath
 
     def __str__(self):
         """
