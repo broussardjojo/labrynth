@@ -1,6 +1,9 @@
+from copy import deepcopy
 from tkinter import Canvas, Tk, Button
+from mttkinter import mtTkinter
 from typing import List
 from threading import Thread
+
 
 from ..Common.position import Position
 from ..Common.board import Board
@@ -24,10 +27,10 @@ class Observer:
         Creates an instance of an Observer
         """
         self.__list_of_states: List[State] = []
-        self.__current_state_index = 0
+        self.__current_state_index = -1
         self.__is_game_over = False
+        self.__drawn_last_state = False
         self.__window = Tk()
-        self.__gem_img_dict = {}
 
     def receive_new_state(self, next_state: State) -> None:
         """
@@ -35,9 +38,8 @@ class Observer:
         :param next_state: a State representing the state of the game to be observed
         :return: None
         """
-        self.__list_of_states.append(next_state)
-        if len(self.__list_of_states) == 1:
-            self.__redraw_view()
+        print("heyyyyy")
+        self.__list_of_states.append(deepcopy(next_state))
 
     def game_is_over(self) -> None:
         """
@@ -60,7 +62,9 @@ class Observer:
         Draws a game over screen if the game is over, else draws the current state of the game
         :return: None
         """
-        if self.__current_state_index == len(self.__list_of_states) - 1 and self.__is_game_over:
+        if self.__current_state_index == len(self.__list_of_states):
+            self.__drawn_last_state = True
+        if self.__is_game_over and self.__drawn_last_state:
             self.__draw_game_over_screen()
         else:
             self.__draw_current_state()
@@ -157,12 +161,14 @@ class Observer:
         drawn tile
         """
         players = self.__list_of_states[self.__current_state_index].get_players()
+        offset = 0
         for player in players:
             if player.get_current_position() == Position(row, col):
-                return self.__add_avatar_to_canvas(drawn_tile, player)
+                drawn_tile = self.__add_avatar_to_canvas(drawn_tile, player, offset)
+                offset += 5
         return drawn_tile
 
-    def __add_avatar_to_canvas(self, drawn_tile, player) -> Canvas:
+    def __add_avatar_to_canvas(self, drawn_tile, player, offset) -> Canvas:
         """
         Draws the given player's avatar on the given canvas
         :param drawn_tile: a canvas representing a drawing of a tile on the current state's board
@@ -170,8 +176,8 @@ class Observer:
         :return: a canvas with the given player's avatar drawn on it
         """
         player_color = player.get_color()
-        drawn_tile.create_oval(self.TILE_CANVAS_DIM - self.AVATAR_SIZE, self.AVATAR_SIZE,
-                               self.TILE_CANVAS_DIM, 0,
+        drawn_tile.create_oval(self.TILE_CANVAS_DIM - self.AVATAR_SIZE, self.AVATAR_SIZE + offset,
+                               self.TILE_CANVAS_DIM, 0 + offset,
                                fill=player_color, outline=player_color)
         return drawn_tile
 
@@ -190,8 +196,8 @@ class Observer:
         self.__redraw_view()
 
 
-def perform_task(observer):
-    print("here")
+if __name__ == "__main__":
+    observer = Observer()
     board = Board.from_random_board(seed=9)
     state = State.from_random_state(board)
     state.add_player()
@@ -204,10 +210,3 @@ def perform_task(observer):
     state2.add_player()
     state2.add_player()
     observer.receive_new_state(state2)
-
-
-if __name__ == "__main__":
-    observer2 = Observer()
-    thread = Thread(target=perform_task, args=(observer2,))
-    thread.start()
-    observer2.display_gui()

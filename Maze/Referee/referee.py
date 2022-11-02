@@ -1,3 +1,4 @@
+from threading import Thread
 from typing import List, Union
 import signal
 from copy import deepcopy
@@ -33,7 +34,7 @@ class Referee:
         Creates an instance of a Referee given a game State
         """
         self.__has_observer = has_observer
-        if has_observer:
+        if self.__has_observer:
             self.__observer = Observer()
         self.__reset_referee()
 
@@ -115,10 +116,10 @@ class Referee:
         :return: a desired Move from the active player
         """
         observable_state = ObservableState(game_state.get_board())
-        signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
-        signal.alarm(10)
+        # signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
+        # signal.alarm(10)
         proposed_move = active_player.take_turn(observable_state)
-        signal.alarm(0)
+        # signal.alarm(0)
         return proposed_move
 
     @dispatch([Player])
@@ -145,7 +146,13 @@ class Referee:
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
         self.__reset_referee()
-        return self.__run_game_helper(game_state)
+        if self.__has_observer:
+            thread = Thread(target=self.__run_game_helper, args=(game_state,))
+            thread.start()
+            self.__observer.display_gui()
+        else:
+            # TODO: fix return values
+            return self.__run_game_helper(game_state)
 
     def __run_game_helper(self, game_state: State) -> (List[Player], List[Player]):
         """
@@ -156,6 +163,8 @@ class Referee:
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
+        if self.__has_observer:
+            self.__observer.receive_new_state(game_state)
         while True:
             self.__did_last_player_cheat = False
             active_player_index = game_state.get_active_player_index()
@@ -166,15 +175,13 @@ class Referee:
                 proposed_move = self.__get_proposed_move(active_player, game_state)
             except TimeoutError:
                 if self.__game_not_over(game_state):
-                    if self.__has_observer:
-                        self.__observer.receive_new_state(game_state)
                     continue
                 break
             proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, active_player, game_state),
                                                lambda: self.__perform_pass(active_player))
+            if self.__has_observer:
+                self.__observer.receive_new_state(game_state)
             if self.__game_not_over(game_state):
-                if self.__has_observer:
-                    self.__observer.receive_new_state(game_state)
                 continue
             break
         self.__inform_winning_players()
