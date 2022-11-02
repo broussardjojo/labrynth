@@ -1,0 +1,17 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/5/xchoice)
+(testing /course/cs4500f22/ta/github/5/26/Tests/4-in.json /course/cs4500f22/ta/github/5/26/Tests/4-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+((/course/cs4500f22/ta/github/5/26/Tests/4-in.json /course/cs4500f22/ta/github/5/26/Tests/4-out.json))
+((passed 1) (total 1) (partial-score 1))
+

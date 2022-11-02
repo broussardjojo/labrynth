@@ -1,0 +1,316 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/5/xchoice)
+(testing /course/cs4500f22/ta/github/5/63/Tests/0-in.json /course/cs4500f22/ta/github/5/63/Tests/0-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")))
+                   (treasures
+                    .
+                    ((("alexandrite" "pink-emerald-cut")
+                      ("alexandrite" "pink-opal")
+                      ("alexandrite" "pink-round")
+                      ("alexandrite" "pink-spinel-cushion")
+                      ("alexandrite" "purple-cabochon")
+                      ("alexandrite" "purple-oval")
+                      ("alexandrite" "purple-spinel-trillion"))
+                     (("amethyst" "pink-emerald-cut")
+                      ("amethyst" "pink-opal")
+                      ("amethyst" "pink-round")
+                      ("amethyst" "pink-spinel-cushion")
+                      ("amethyst" "purple-cabochon")
+                      ("amethyst" "purple-oval")
+                      ("amethyst" "purple-spinel-trillion"))
+                     (("ametrine" "pink-emerald-cut")
+                      ("ametrine" "pink-opal")
+                      ("ametrine" "pink-round")
+                      ("ametrine" "pink-spinel-cushion")
+                      ("ametrine" "purple-cabochon")
+                      ("ametrine" "purple-oval")
+                      ("ametrine" "purple-spinel-trillion"))
+                     (("ammolite" "pink-emerald-cut")
+                      ("ammolite" "pink-opal")
+                      ("ammolite" "pink-round")
+                      ("ammolite" "pink-spinel-cushion")
+                      ("ammolite" "purple-cabochon")
+                      ("ammolite" "purple-oval")
+                      ("ammolite" "purple-spinel-trillion"))
+                     (("apatite" "pink-emerald-cut")
+                      ("apatite" "pink-opal")
+                      ("apatite" "pink-round")
+                      ("apatite" "pink-spinel-cushion")
+                      ("apatite" "purple-cabochon")
+                      ("apatite" "purple-oval")
+                      ("apatite" "purple-spinel-trillion"))
+                     (("aplite" "pink-emerald-cut")
+                      ("aplite" "pink-opal")
+                      ("aplite" "pink-round")
+                      ("aplite" "pink-spinel-cushion")
+                      ("aplite" "purple-cabochon")
+                      ("aplite" "purple-oval")
+                      ("aplite" "purple-spinel-trillion"))
+                     (("aquamarine" "pink-emerald-cut")
+                      ("aquamarine" "pink-opal")
+                      ("aquamarine" "pink-round")
+                      ("aquamarine" "pink-spinel-cushion")
+                      ("aquamarine" "purple-cabochon")
+                      ("aquamarine" "purple-oval")
+                      ("aquamarine" "purple-spinel-trillion"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "purple")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 1) (row# . 1))))))
+          (spare
+           .
+           #hasheq((1-image . "citrine")
+                   (2-image . "citrine")
+                   (tilekey . "│"))))
+  #hasheq((column# . 1) (row# . 5)))
+(*** expected)
+'((0 "LEFT" 0 #hasheq((column# . 1) (row# . 5))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/63/Tests/1-in.json /course/cs4500f22/ta/github/5/63/Tests/1-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("│" "│" "│" "│" "│" "│" "│")
+                     ("│" "│" "│" "│" "│" "│" "│")
+                     ("│" "│" "│" "│" "│" "│" "│")
+                     ("│" "│" "│" "│" "│" "│" "│")
+                     ("│" "│" "│" "│" "│" "│" "│")
+                     ("│" "│" "│" "│" "│" "│" "│")
+                     ("┘" "└" "┘" "└" "┘" "└" "┘")))
+                   (treasures
+                    .
+                    ((("aventurine" "pink-emerald-cut")
+                      ("aventurine" "pink-opal")
+                      ("aventurine" "pink-round")
+                      ("aventurine" "pink-spinel-cushion")
+                      ("aventurine" "purple-cabochon")
+                      ("aventurine" "purple-oval")
+                      ("aventurine" "purple-spinel-trillion"))
+                     (("azurite" "pink-emerald-cut")
+                      ("azurite" "pink-opal")
+                      ("azurite" "pink-round")
+                      ("azurite" "pink-spinel-cushion")
+                      ("azurite" "purple-cabochon")
+                      ("azurite" "purple-oval")
+                      ("azurite" "purple-spinel-trillion"))
+                     (("beryl" "pink-emerald-cut")
+                      ("beryl" "pink-opal")
+                      ("beryl" "pink-round")
+                      ("beryl" "pink-spinel-cushion")
+                      ("beryl" "purple-cabochon")
+                      ("beryl" "purple-oval")
+                      ("beryl" "purple-spinel-trillion"))
+                     (("carnelian" "pink-emerald-cut")
+                      ("carnelian" "pink-opal")
+                      ("carnelian" "pink-round")
+                      ("carnelian" "pink-spinel-cushion")
+                      ("carnelian" "purple-cabochon")
+                      ("carnelian" "purple-oval")
+                      ("carnelian" "purple-spinel-trillion"))
+                     (("chrysolite" "pink-emerald-cut")
+                      ("chrysolite" "pink-opal")
+                      ("chrysolite" "pink-round")
+                      ("chrysolite" "pink-spinel-cushion")
+                      ("chrysolite" "purple-cabochon")
+                      ("chrysolite" "purple-oval")
+                      ("chrysolite" "purple-spinel-trillion"))
+                     (("citrine" "pink-emerald-cut")
+                      ("citrine" "pink-opal")
+                      ("citrine" "pink-round")
+                      ("citrine" "pink-spinel-cushion")
+                      ("citrine" "purple-cabochon")
+                      ("citrine" "purple-oval")
+                      ("citrine" "purple-spinel-trillion"))
+                     (("clinohumite" "pink-emerald-cut")
+                      ("clinohumite" "pink-opal")
+                      ("clinohumite" "pink-round")
+                      ("clinohumite" "pink-spinel-cushion")
+                      ("clinohumite" "purple-cabochon")
+                      ("clinohumite" "purple-oval")
+                      ("clinohumite" "purple-spinel-trillion"))))))
+          (last . (4 "RIGHT"))
+          (plmt
+           .
+           (#hasheq((color . "red")
+                    (current . #hasheq((column# . 5) (row# . 1)))
+                    (home . #hasheq((column# . 3) (row# . 3))))
+            #hasheq((color . "orange")
+                    (current . #hasheq((column# . 0) (row# . 1)))
+                    (home . #hasheq((column# . 1) (row# . 3))))
+            #hasheq((color . "yellow")
+                    (current . #hasheq((column# . 2) (row# . 2)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "green")
+                    (current . #hasheq((column# . 3) (row# . 6)))
+                    (home . #hasheq((column# . 5) (row# . 5))))
+            #hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 4)))
+                    (home . #hasheq((column# . 1) (row# . 5))))
+            #hasheq((color . "purple")
+                    (current . #hasheq((column# . 3) (row# . 2)))
+                    (home . #hasheq((column# . 3) (row# . 5))))))
+          (spare
+           .
+           #hasheq((1-image . "citrine")
+                   (2-image . "citrine")
+                   (tilekey . "└"))))
+  #hasheq((column# . 3) (row# . 3)))
+(*** expected)
+'((6 "LEFT" 0 #hasheq((column# . 4) (row# . 3))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/63/Tests/2-in.json /course/cs4500f22/ta/github/5/63/Tests/2-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")
+                     ("┌" "┌" "┌" "┌" "┌" "┌" "┌")))
+                   (treasures
+                    .
+                    ((("cordierite" "pink-emerald-cut")
+                      ("cordierite" "pink-opal")
+                      ("cordierite" "pink-round")
+                      ("cordierite" "pink-spinel-cushion")
+                      ("cordierite" "purple-cabochon")
+                      ("cordierite" "purple-oval")
+                      ("cordierite" "purple-spinel-trillion"))
+                     (("diamond" "pink-emerald-cut")
+                      ("diamond" "pink-opal")
+                      ("diamond" "pink-round")
+                      ("diamond" "pink-spinel-cushion")
+                      ("diamond" "purple-cabochon")
+                      ("diamond" "purple-oval")
+                      ("diamond" "purple-spinel-trillion"))
+                     (("dumortierite" "pink-emerald-cut")
+                      ("dumortierite" "pink-opal")
+                      ("dumortierite" "pink-round")
+                      ("dumortierite" "pink-spinel-cushion")
+                      ("dumortierite" "purple-cabochon")
+                      ("dumortierite" "purple-oval")
+                      ("dumortierite" "purple-spinel-trillion"))
+                     (("emerald" "pink-emerald-cut")
+                      ("emerald" "pink-opal")
+                      ("emerald" "pink-round")
+                      ("emerald" "pink-spinel-cushion")
+                      ("emerald" "purple-cabochon")
+                      ("emerald" "purple-oval")
+                      ("emerald" "purple-spinel-trillion"))
+                     (("garnet" "pink-emerald-cut")
+                      ("garnet" "pink-opal")
+                      ("garnet" "pink-round")
+                      ("garnet" "pink-spinel-cushion")
+                      ("garnet" "purple-cabochon")
+                      ("garnet" "purple-oval")
+                      ("garnet" "purple-spinel-trillion"))
+                     (("goldstone" "pink-emerald-cut")
+                      ("goldstone" "pink-opal")
+                      ("goldstone" "pink-round")
+                      ("goldstone" "pink-spinel-cushion")
+                      ("goldstone" "purple-cabochon")
+                      ("goldstone" "purple-oval")
+                      ("goldstone" "purple-spinel-trillion"))
+                     (("grandidierite" "pink-emerald-cut")
+                      ("grandidierite" "pink-opal")
+                      ("grandidierite" "pink-round")
+                      ("grandidierite" "pink-spinel-cushion")
+                      ("grandidierite" "purple-cabochon")
+                      ("grandidierite" "purple-oval")
+                      ("grandidierite" "purple-spinel-trillion"))))))
+          (last . (6 "LEFT"))
+          (plmt
+           .
+           (#hasheq((color . "00FF00")
+                    (current . #hasheq((column# . 2) (row# . 6)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "0000FF")
+                    (current . #hasheq((column# . 4) (row# . 2)))
+                    (home . #hasheq((column# . 3) (row# . 3))))
+            #hasheq((color . "FF0000")
+                    (current . #hasheq((column# . 2) (row# . 6)))
+                    (home . #hasheq((column# . 5) (row# . 5))))))
+          (spare
+           .
+           #hasheq((1-image . "citrine")
+                   (2-image . "citrine")
+                   (tilekey . "─"))))
+  #hasheq((column# . 5) (row# . 5)))
+(*** expected)
+'((2 "UP" 90 #hasheq((column# . 2) (row# . 6))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+()
+((passed 0) (total 3) (partial-score 0))
+

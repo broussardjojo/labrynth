@@ -1,0 +1,402 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/5/xchoice)
+(testing /course/cs4500f22/ta/github/5/13/Tests/0-in.json /course/cs4500f22/ta/github/5/13/Tests/0-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")))
+                   (treasures
+                    .
+                    ((("ruby" "alexandrite-pear-shape")
+                      ("ruby" "alexandrite")
+                      ("ruby" "almandine-garnet")
+                      ("ruby" "amethyst")
+                      ("ruby" "ametrine")
+                      ("ruby" "ammolite")
+                      ("ruby" "apatite"))
+                     (("ruby" "aplite")
+                      ("ruby" "apricot-square-radiant")
+                      ("ruby" "aquamarine")
+                      ("ruby" "australian-marquise")
+                      ("ruby" "aventurine")
+                      ("ruby" "azurite")
+                      ("ruby" "beryl"))
+                     (("ruby" "black-obsidian")
+                      ("ruby" "black-onyx")
+                      ("ruby" "black-spinel-cushion")
+                      ("ruby" "blue-ceylon-sapphire")
+                      ("ruby" "blue-cushion")
+                      ("ruby" "blue-pear-shape")
+                      ("ruby" "blue-spinel-heart"))
+                     (("ruby" "bulls-eye")
+                      ("ruby" "carnelian")
+                      ("ruby" "chrome-diopside")
+                      ("ruby" "chrysoberyl-cushion")
+                      ("ruby" "chrysolite")
+                      ("ruby" "citrine-checkerboard")
+                      ("ruby" "citrine"))
+                     (("ruby" "clinohumite")
+                      ("ruby" "color-change-oval")
+                      ("ruby" "cordierite")
+                      ("ruby" "diamond")
+                      ("ruby" "dumortierite")
+                      ("ruby" "emerald")
+                      ("ruby" "fancy-spinel-marquise"))
+                     (("ruby" "garnet")
+                      ("ruby" "golden-diamond-cut")
+                      ("ruby" "goldstone")
+                      ("ruby" "grandidierite")
+                      ("ruby" "gray-agate")
+                      ("ruby" "green-aventurine")
+                      ("ruby" "green-beryl-antique"))
+                     (("ruby" "green-beryl")
+                      ("ruby" "green-princess-cut")
+                      ("ruby" "grossular-garnet")
+                      ("ruby" "hackmanite")
+                      ("ruby" "heliotrope")
+                      ("ruby" "hematite")
+                      ("ruby" "iolite-emerald-cut"))))))
+          (last . (0 "DOWN"))
+          (plmt
+           .
+           (#hasheq((color . "red")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 3) (row# . 3))))))
+          (spare
+           .
+           #hasheq((1-image . "ruby") (2-image . "ruby") (tilekey . "┤"))))
+  #hasheq((column# . 3) (row# . 3)))
+(*** expected)
+'("PASS")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/13/Tests/2-in.json /course/cs4500f22/ta/github/5/13/Tests/2-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┴" "─" "┴" "─" "┴" "─" "┴")
+                     ("┤" "┐" "┤" "┐" "┤" "┐" "┤")
+                     ("┴" "─" "┴" "─" "┴" "─" "┴")
+                     ("┤" "┐" "┤" "┐" "┤" "┐" "┤")
+                     ("┴" "─" "┴" "─" "┴" "─" "┴")
+                     ("┤" "┐" "┤" "┐" "┤" "┐" "┤")
+                     ("┴" "─" "┴" "─" "┴" "─" "┴")))
+                   (treasures
+                    .
+                    ((("zoisite" "alexandrite-pear-shape")
+                      ("zoisite" "alexandrite")
+                      ("zoisite" "almandine-garnet")
+                      ("zoisite" "amethyst")
+                      ("zoisite" "ametrine")
+                      ("zoisite" "ammolite")
+                      ("zoisite" "apatite"))
+                     (("zoisite" "aplite")
+                      ("zoisite" "apricot-square-radiant")
+                      ("zoisite" "aquamarine")
+                      ("zoisite" "australian-marquise")
+                      ("zoisite" "aventurine")
+                      ("zoisite" "azurite")
+                      ("zoisite" "beryl"))
+                     (("zoisite" "black-obsidian")
+                      ("zoisite" "black-onyx")
+                      ("zoisite" "black-spinel-cushion")
+                      ("zoisite" "blue-ceylon-sapphire")
+                      ("zoisite" "blue-cushion")
+                      ("zoisite" "blue-pear-shape")
+                      ("zoisite" "blue-spinel-heart"))
+                     (("zoisite" "bulls-eye")
+                      ("zoisite" "carnelian")
+                      ("zoisite" "chrome-diopside")
+                      ("zoisite" "chrysoberyl-cushion")
+                      ("zoisite" "chrysolite")
+                      ("zoisite" "citrine-checkerboard")
+                      ("zoisite" "citrine"))
+                     (("zoisite" "clinohumite")
+                      ("zoisite" "color-change-oval")
+                      ("zoisite" "cordierite")
+                      ("zoisite" "diamond")
+                      ("zoisite" "dumortierite")
+                      ("zoisite" "emerald")
+                      ("zoisite" "fancy-spinel-marquise"))
+                     (("zoisite" "garnet")
+                      ("zoisite" "golden-diamond-cut")
+                      ("zoisite" "goldstone")
+                      ("zoisite" "grandidierite")
+                      ("zoisite" "gray-agate")
+                      ("zoisite" "green-aventurine")
+                      ("zoisite" "green-beryl-antique"))
+                     (("zoisite" "green-beryl")
+                      ("zoisite" "green-princess-cut")
+                      ("zoisite" "grossular-garnet")
+                      ("zoisite" "hackmanite")
+                      ("zoisite" "heliotrope")
+                      ("zoisite" "hematite")
+                      ("zoisite" "iolite-emerald-cut"))))))
+          (last . (2 "RIGHT"))
+          (plmt
+           .
+           (#hasheq((color . "green")
+                    (current . #hasheq((column# . 6) (row# . 6)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "pink")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 3) (row# . 3))))))
+          (spare
+           .
+           #hasheq((1-image . "zoisite")
+                   (2-image . "zoisite")
+                   (tilekey . "┤"))))
+  #hasheq((column# . 0) (row# . 1)))
+(*** expected)
+'((6 "DOWN" 0 #hasheq((column# . 0) (row# . 0))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/13/Tests/3-in.json /course/cs4500f22/ta/github/5/13/Tests/3-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┌" "─" "─" "┐" "─" "─" "─")
+                     ("├" "─" "┐" "├" "┐" "─" "─")
+                     ("│" "─" "│" "│" "│" "─" "─")
+                     ("├" "─" "┘" "│" "│" "─" "─")
+                     ("│" "─" "─" "│" "│" "─" "─")
+                     ("│" "┌" "└" "│" "┘" "─" "─")
+                     ("└" "┘" "└" "┘" "─" "─" "─")))
+                   (treasures
+                    .
+                    ((("zoisite" "alexandrite-pear-shape")
+                      ("zoisite" "alexandrite")
+                      ("zoisite" "almandine-garnet")
+                      ("zoisite" "amethyst")
+                      ("zoisite" "ametrine")
+                      ("zoisite" "ammolite")
+                      ("zoisite" "apatite"))
+                     (("zoisite" "aplite")
+                      ("zoisite" "apricot-square-radiant")
+                      ("zoisite" "aquamarine")
+                      ("zoisite" "australian-marquise")
+                      ("zoisite" "aventurine")
+                      ("zoisite" "azurite")
+                      ("zoisite" "beryl"))
+                     (("zoisite" "black-obsidian")
+                      ("zoisite" "black-onyx")
+                      ("zoisite" "black-spinel-cushion")
+                      ("zoisite" "blue-ceylon-sapphire")
+                      ("zoisite" "blue-cushion")
+                      ("zoisite" "blue-pear-shape")
+                      ("zoisite" "blue-spinel-heart"))
+                     (("zoisite" "bulls-eye")
+                      ("zoisite" "carnelian")
+                      ("zoisite" "chrome-diopside")
+                      ("zoisite" "chrysoberyl-cushion")
+                      ("zoisite" "chrysolite")
+                      ("zoisite" "citrine-checkerboard")
+                      ("zoisite" "citrine"))
+                     (("zoisite" "clinohumite")
+                      ("zoisite" "color-change-oval")
+                      ("zoisite" "cordierite")
+                      ("zoisite" "diamond")
+                      ("zoisite" "dumortierite")
+                      ("zoisite" "emerald")
+                      ("zoisite" "fancy-spinel-marquise"))
+                     (("zoisite" "garnet")
+                      ("zoisite" "golden-diamond-cut")
+                      ("zoisite" "goldstone")
+                      ("zoisite" "grandidierite")
+                      ("zoisite" "gray-agate")
+                      ("zoisite" "green-aventurine")
+                      ("zoisite" "green-beryl-antique"))
+                     (("zoisite" "green-beryl")
+                      ("zoisite" "green-princess-cut")
+                      ("zoisite" "grossular-garnet")
+                      ("zoisite" "hackmanite")
+                      ("zoisite" "heliotrope")
+                      ("zoisite" "hematite")
+                      ("zoisite" "iolite-emerald-cut"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "green")
+                    (current . #hasheq((column# . 4) (row# . 4)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "pink")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 3) (row# . 3))))))
+          (spare
+           .
+           #hasheq((1-image . "zoisite")
+                   (2-image . "zoisite")
+                   (tilekey . "─"))))
+  #hasheq((column# . 1) (row# . 3)))
+(*** expected)
+'((2 "RIGHT" 90 #hasheq((column# . 1) (row# . 3))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/13/Tests/4-in.json /course/cs4500f22/ta/github/5/13/Tests/4-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┘" "─" "─" "┐" "─" "─" "─")
+                     ("├" "─" "┐" "├" "┐" "─" "─")
+                     ("│" "─" "│" "│" "│" "─" "─")
+                     ("├" "─" "┘" "│" "│" "─" "─")
+                     ("│" "─" "─" "│" "│" "─" "─")
+                     ("│" "┌" "┐" "│" "┘" "─" "─")
+                     ("└" "┘" "└" "┘" "─" "─" "─")))
+                   (treasures
+                    .
+                    ((("zoisite" "alexandrite-pear-shape")
+                      ("zoisite" "alexandrite")
+                      ("zoisite" "almandine-garnet")
+                      ("zoisite" "amethyst")
+                      ("zoisite" "ametrine")
+                      ("zoisite" "ammolite")
+                      ("zoisite" "apatite"))
+                     (("zoisite" "aplite")
+                      ("zoisite" "apricot-square-radiant")
+                      ("zoisite" "aquamarine")
+                      ("zoisite" "australian-marquise")
+                      ("zoisite" "aventurine")
+                      ("zoisite" "azurite")
+                      ("zoisite" "beryl"))
+                     (("zoisite" "black-obsidian")
+                      ("zoisite" "black-onyx")
+                      ("zoisite" "black-spinel-cushion")
+                      ("zoisite" "blue-ceylon-sapphire")
+                      ("zoisite" "blue-cushion")
+                      ("zoisite" "blue-pear-shape")
+                      ("zoisite" "blue-spinel-heart"))
+                     (("zoisite" "bulls-eye")
+                      ("zoisite" "carnelian")
+                      ("zoisite" "chrome-diopside")
+                      ("zoisite" "chrysoberyl-cushion")
+                      ("zoisite" "chrysolite")
+                      ("zoisite" "citrine-checkerboard")
+                      ("zoisite" "citrine"))
+                     (("zoisite" "clinohumite")
+                      ("zoisite" "color-change-oval")
+                      ("zoisite" "cordierite")
+                      ("zoisite" "diamond")
+                      ("zoisite" "dumortierite")
+                      ("zoisite" "emerald")
+                      ("zoisite" "fancy-spinel-marquise"))
+                     (("zoisite" "garnet")
+                      ("zoisite" "golden-diamond-cut")
+                      ("zoisite" "goldstone")
+                      ("zoisite" "grandidierite")
+                      ("zoisite" "gray-agate")
+                      ("zoisite" "green-aventurine")
+                      ("zoisite" "green-beryl-antique"))
+                     (("zoisite" "green-beryl")
+                      ("zoisite" "green-princess-cut")
+                      ("zoisite" "grossular-garnet")
+                      ("zoisite" "hackmanite")
+                      ("zoisite" "heliotrope")
+                      ("zoisite" "hematite")
+                      ("zoisite" "iolite-emerald-cut"))))))
+          (last . (2 "RIGHT"))
+          (plmt
+           .
+           (#hasheq((color . "green")
+                    (current . #hasheq((column# . 6) (row# . 1)))
+                    (home . #hasheq((column# . 1) (row# . 1))))
+            #hasheq((color . "pink")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 3) (row# . 3))))))
+          (spare
+           .
+           #hasheq((1-image . "zoisite")
+                   (2-image . "zoisite")
+                   (tilekey . "┤"))))
+  #hasheq((column# . 4) (row# . 6)))
+(*** expected)
+'((4 "DOWN" 0 #hasheq((column# . 1) (row# . 0))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+()
+((passed 0) (total 4) (partial-score 0))
+

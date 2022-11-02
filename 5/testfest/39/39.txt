@@ -1,0 +1,392 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/5/xchoice)
+(testing /course/cs4500f22/ta/github/5/39/Tests/0-in.json /course/cs4500f22/ta/github/5/39/Tests/0-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")
+                     ("┘" "┘" "┘" "┘" "┘" "┘" "┘")))
+                   (treasures
+                    .
+                    ((("heliotrope" "almandine-garnet")
+                      ("fancy-spinel-marquise" "almandine-garnet")
+                      ("clinohumite" "chrysoberyl-cushion")
+                      ("heliotrope" "raw-beryl")
+                      ("cordierite" "black-spinel-cushion")
+                      ("zircon" "magnesite")
+                      ("unakite" "orange-radiant"))
+                     (("tourmaline" "purple-spinel-trillion")
+                      ("rhodonite" "ametrine")
+                      ("tanzanite-trillion" "citrine-checkerboard")
+                      ("mexican-opal" "red-diamond")
+                      ("red-spinel-square-emerald-cut" "diamond")
+                      ("purple-spinel-trillion" "raw-beryl")
+                      ("purple-cabochon" "carnelian"))
+                     (("blue-spinel-heart" "padparadscha-oval")
+                      ("yellow-beryl-oval" "sphalerite")
+                      ("cordierite" "green-beryl")
+                      ("blue-spinel-heart" "moonstone")
+                      ("red-diamond" "heliotrope")
+                      ("rock-quartz" "purple-square-cushion")
+                      ("clinohumite" "purple-cabochon"))
+                     (("tigers-eye" "stilbite")
+                      ("moss-agate" "alexandrite-pear-shape")
+                      ("yellow-baguette" "grossular-garnet")
+                      ("stilbite" "stilbite")
+                      ("zircon" "rose-quartz")
+                      ("blue-pear-shape" "purple-square-cushion")
+                      ("dumortierite" "magnesite"))
+                     (("purple-oval" "pink-opal")
+                      ("aventurine" "zircon")
+                      ("pink-round" "prehnite")
+                      ("kunzite-oval" "sunstone")
+                      ("ruby" "iolite-emerald-cut")
+                      ("purple-cabochon" "apatite")
+                      ("australian-marquise" "chrysolite"))
+                     (("almandine-garnet" "raw-beryl")
+                      ("red-spinel-square-emerald-cut" "purple-cabochon")
+                      ("alexandrite-pear-shape" "aventurine")
+                      ("rock-quartz" "orange-radiant")
+                      ("pink-round" "apatite")
+                      ("grossular-garnet" "grandidierite")
+                      ("labradorite" "grossular-garnet"))
+                     (("australian-marquise" "padparadscha-sapphire")
+                      ("color-change-oval" "padparadscha-sapphire")
+                      ("zoisite" "cordierite")
+                      ("stilbite" "lapis-lazuli")
+                      ("chrome-diopside" "yellow-heart")
+                      ("black-obsidian" "blue-cushion")
+                      ("yellow-baguette" "golden-diamond-cut"))))))
+          (last . (6 "DOWN"))
+          (plmt
+           .
+           (#hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 0) (row# . 0))))))
+          (spare
+           .
+           #hasheq((1-image . "emerald")
+                   (2-image . "diamond")
+                   (tilekey . "┘"))))
+  #hasheq((column# . 5) (row# . 5)))
+(*** expected)
+'("PASS")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/39/Tests/1-in.json /course/cs4500f22/ta/github/5/39/Tests/1-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("└" "├" "┌" "│" "┐" "─" "┬")
+                     ("─" "┘" "│" "┬" "┤" "┬" "┴")
+                     ("┼" "┴" "─" "└" "│" "│" "├")
+                     ("─" "│" "┼" "┤" "┌" "┤" "─")
+                     ("┐" "├" "─" "│" "┤" "┐" "│")
+                     ("└" "┴" "│" "┼" "┬" "┼" "─")
+                     ("┼" "─" "┌" "┬" "┘" "┤" "┌")))
+                   (treasures
+                    .
+                    ((("tourmaline" "color-change-oval")
+                      ("azurite" "fancy-spinel-marquise")
+                      ("mexican-opal" "heliotrope")
+                      ("black-obsidian" "white-square")
+                      ("star-cabochon" "blue-cushion")
+                      ("diamond" "lemon-quartz-briolette")
+                      ("moss-agate" "heliotrope"))
+                     (("orange-radiant" "white-square")
+                      ("raw-beryl" "rock-quartz")
+                      ("morganite-oval" "jasper")
+                      ("yellow-heart" "rock-quartz")
+                      ("sunstone" "raw-citrine")
+                      ("aplite" "dumortierite")
+                      ("ametrine" "citrine-checkerboard"))
+                     (("color-change-oval" "alexandrite")
+                      ("jasper" "white-square")
+                      ("apatite" "heliotrope")
+                      ("aquamarine" "blue-cushion")
+                      ("green-princess-cut" "rock-quartz")
+                      ("dumortierite" "zoisite")
+                      ("white-square" "blue-cushion"))
+                     (("citrine-checkerboard" "magnesite")
+                      ("almandine-garnet" "white-square")
+                      ("tanzanite-trillion" "blue-spinel-heart")
+                      ("emerald" "pink-spinel-cushion")
+                      ("green-aventurine" "ruby-diamond-profile")
+                      ("carnelian" "ammolite")
+                      ("prasiolite" "sunstone"))
+                     (("tourmaline" "raw-beryl")
+                      ("peridot" "garnet")
+                      ("garnet" "amethyst")
+                      ("emerald" "bulls-eye")
+                      ("lemon-quartz-briolette" "black-onyx")
+                      ("aventurine" "aventurine")
+                      ("tanzanite-trillion" "blue-cushion"))
+                     (("prehnite" "rose-quartz")
+                      ("stilbite" "mexican-opal")
+                      ("gray-agate" "black-obsidian")
+                      ("tigers-eye" "bulls-eye")
+                      ("stilbite" "prasiolite")
+                      ("black-onyx" "beryl")
+                      ("tourmaline" "super-seven"))
+                     (("unakite" "kunzite")
+                      ("amethyst" "magnesite")
+                      ("jaspilite" "morganite-oval")
+                      ("prasiolite" "apricot-square-radiant")
+                      ("goldstone" "clinohumite")
+                      ("black-spinel-cushion" "purple-square-cushion")
+                      ("prehnite" "almandine-garnet"))))))
+          (last . (0 "DOWN"))
+          (plmt
+           .
+           (#hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 0) (row# . 0))))))
+          (spare
+           .
+           #hasheq((1-image . "emerald")
+                   (2-image . "diamond")
+                   (tilekey . "┘"))))
+  #hasheq((column# . 5) (row# . 5)))
+(*** expected)
+'((0 "LEFT" 0 #hasheq((column# . 5) (row# . 5))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/39/Tests/3-in.json /course/cs4500f22/ta/github/5/39/Tests/3-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("└" "├" "┌" "│" "┐" "─" "┬")
+                     ("─" "┘" "│" "┬" "┤" "┬" "┴")
+                     ("┼" "┴" "─" "└" "│" "│" "├")
+                     ("─" "│" "┼" "┤" "┌" "┤" "─")
+                     ("┐" "├" "─" "│" "┤" "┐" "│")
+                     ("└" "┴" "│" "┼" "┬" "┼" "─")
+                     ("┼" "─" "┌" "┬" "┘" "┤" "┌")))
+                   (treasures
+                    .
+                    ((("tourmaline" "color-change-oval")
+                      ("azurite" "fancy-spinel-marquise")
+                      ("mexican-opal" "heliotrope")
+                      ("black-obsidian" "white-square")
+                      ("star-cabochon" "blue-cushion")
+                      ("diamond" "lemon-quartz-briolette")
+                      ("moss-agate" "heliotrope"))
+                     (("orange-radiant" "white-square")
+                      ("raw-beryl" "rock-quartz")
+                      ("morganite-oval" "jasper")
+                      ("yellow-heart" "rock-quartz")
+                      ("sunstone" "raw-citrine")
+                      ("aplite" "dumortierite")
+                      ("ametrine" "citrine-checkerboard"))
+                     (("color-change-oval" "alexandrite")
+                      ("jasper" "white-square")
+                      ("apatite" "heliotrope")
+                      ("aquamarine" "blue-cushion")
+                      ("green-princess-cut" "rock-quartz")
+                      ("dumortierite" "zoisite")
+                      ("white-square" "blue-cushion"))
+                     (("citrine-checkerboard" "magnesite")
+                      ("almandine-garnet" "white-square")
+                      ("tanzanite-trillion" "blue-spinel-heart")
+                      ("emerald" "pink-spinel-cushion")
+                      ("green-aventurine" "ruby-diamond-profile")
+                      ("carnelian" "ammolite")
+                      ("prasiolite" "sunstone"))
+                     (("tourmaline" "raw-beryl")
+                      ("peridot" "garnet")
+                      ("garnet" "amethyst")
+                      ("emerald" "bulls-eye")
+                      ("lemon-quartz-briolette" "black-onyx")
+                      ("aventurine" "aventurine")
+                      ("tanzanite-trillion" "blue-cushion"))
+                     (("prehnite" "rose-quartz")
+                      ("stilbite" "mexican-opal")
+                      ("gray-agate" "black-obsidian")
+                      ("tigers-eye" "bulls-eye")
+                      ("stilbite" "prasiolite")
+                      ("black-onyx" "beryl")
+                      ("tourmaline" "super-seven"))
+                     (("unakite" "kunzite")
+                      ("amethyst" "magnesite")
+                      ("jaspilite" "morganite-oval")
+                      ("prasiolite" "apricot-square-radiant")
+                      ("goldstone" "clinohumite")
+                      ("black-spinel-cushion" "purple-square-cushion")
+                      ("prehnite" "almandine-garnet"))))))
+          (last . (0 "DOWN"))
+          (plmt
+           .
+           (#hasheq((color . "blue")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 0) (row# . 0))))))
+          (spare
+           .
+           #hasheq((1-image . "emerald")
+                   (2-image . "diamond")
+                   (tilekey . "┘"))))
+  #hasheq((column# . 3) (row# . 3)))
+(*** expected)
+'((2 "LEFT" 0 #hasheq((column# . 4) (row# . 0))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/39/Tests/4-in.json /course/cs4500f22/ta/github/5/39/Tests/4-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("└" "├" "┌" "│" "┐" "─" "┬")
+                     ("─" "┘" "│" "┬" "┤" "┬" "┴")
+                     ("┼" "┴" "─" "└" "│" "│" "├")
+                     ("─" "│" "┼" "┤" "┌" "┤" "─")
+                     ("┐" "├" "─" "│" "┤" "┐" "│")
+                     ("└" "┴" "│" "┼" "┬" "┼" "─")
+                     ("┼" "─" "┌" "┬" "┘" "┤" "┌")))
+                   (treasures
+                    .
+                    ((("tourmaline" "color-change-oval")
+                      ("azurite" "fancy-spinel-marquise")
+                      ("mexican-opal" "heliotrope")
+                      ("black-obsidian" "white-square")
+                      ("star-cabochon" "blue-cushion")
+                      ("diamond" "lemon-quartz-briolette")
+                      ("moss-agate" "heliotrope"))
+                     (("orange-radiant" "white-square")
+                      ("raw-beryl" "rock-quartz")
+                      ("morganite-oval" "jasper")
+                      ("yellow-heart" "rock-quartz")
+                      ("sunstone" "raw-citrine")
+                      ("aplite" "dumortierite")
+                      ("ametrine" "citrine-checkerboard"))
+                     (("color-change-oval" "alexandrite")
+                      ("jasper" "white-square")
+                      ("apatite" "heliotrope")
+                      ("aquamarine" "blue-cushion")
+                      ("green-princess-cut" "rock-quartz")
+                      ("dumortierite" "zoisite")
+                      ("white-square" "blue-cushion"))
+                     (("citrine-checkerboard" "magnesite")
+                      ("almandine-garnet" "white-square")
+                      ("tanzanite-trillion" "blue-spinel-heart")
+                      ("emerald" "pink-spinel-cushion")
+                      ("green-aventurine" "ruby-diamond-profile")
+                      ("carnelian" "ammolite")
+                      ("prasiolite" "sunstone"))
+                     (("tourmaline" "raw-beryl")
+                      ("peridot" "garnet")
+                      ("garnet" "amethyst")
+                      ("emerald" "bulls-eye")
+                      ("lemon-quartz-briolette" "black-onyx")
+                      ("aventurine" "aventurine")
+                      ("tanzanite-trillion" "blue-cushion"))
+                     (("prehnite" "rose-quartz")
+                      ("stilbite" "mexican-opal")
+                      ("gray-agate" "black-obsidian")
+                      ("tigers-eye" "bulls-eye")
+                      ("stilbite" "prasiolite")
+                      ("black-onyx" "beryl")
+                      ("tourmaline" "super-seven"))
+                     (("unakite" "kunzite")
+                      ("amethyst" "magnesite")
+                      ("jaspilite" "morganite-oval")
+                      ("prasiolite" "apricot-square-radiant")
+                      ("goldstone" "clinohumite")
+                      ("black-spinel-cushion" "purple-square-cushion")
+                      ("prehnite" "almandine-garnet"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "FED123")
+                    (current . #hasheq((column# . 3) (row# . 3)))
+                    (home . #hasheq((column# . 0) (row# . 0))))))
+          (spare
+           .
+           #hasheq((1-image . "emerald")
+                   (2-image . "diamond")
+                   (tilekey . "┘"))))
+  #hasheq((column# . 3) (row# . 3)))
+(*** expected)
+'((2 "LEFT" 0 #hasheq((column# . 3) (row# . 2))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+()
+((passed 0) (total 4) (partial-score 0))
+

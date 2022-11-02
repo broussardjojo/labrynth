@@ -1,0 +1,306 @@
+(testing /course/cs4500f22/ta/github/mactaggartt-rodriguezdia/5/xchoice)
+(testing /course/cs4500f22/ta/github/5/50/Tests/0-in.json /course/cs4500f22/ta/github/5/50/Tests/0-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("└" "─" "─" "─" "┘" "─" "┼")
+                     ("├" "┬" "┬" "─" "├" "─" "┼")
+                     ("├" "─" "│" "─" "┼" "├" "┼")
+                     ("└" "┬" "├" "┬" "┼" "─" "┼")
+                     ("└" "┬" "─" "─" "┼" "─" "┼")
+                     ("└" "─" "─" "┐" "├" "├" "├")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")))
+                   (treasures
+                    .
+                    ((("tourmaline" "yellow-jasper")
+                      ("tourmaline" "black-onyx")
+                      ("tourmaline" "black-spinel-cushion")
+                      ("tourmaline" "blue-ceylon-sapphire")
+                      ("tourmaline" "blue-cushion")
+                      ("tourmaline" "blue-pear-shape")
+                      ("tourmaline" "blue-spinel-heart"))
+                     (("rock-quartz" "yellow-jasper")
+                      ("rock-quartz" "black-onyx")
+                      ("rock-quartz" "black-spinel-cushion")
+                      ("rock-quartz" "blue-ceylon-sapphire")
+                      ("rock-quartz" "blue-cushion")
+                      ("rock-quartz" "blue-pear-shape")
+                      ("rock-quartz" "blue-spinel-heart"))
+                     (("ruby-diamond-profile" "yellow-jasper")
+                      ("ruby-diamond-profile" "black-onyx")
+                      ("ruby-diamond-profile" "black-spinel-cushion")
+                      ("ruby-diamond-profile" "blue-ceylon-sapphire")
+                      ("ruby-diamond-profile" "blue-cushion")
+                      ("ruby-diamond-profile" "blue-pear-shape")
+                      ("ruby-diamond-profile" "blue-spinel-heart"))
+                     (("star-cabochon" "yellow-jasper")
+                      ("star-cabochon" "black-onyx")
+                      ("star-cabochon" "black-spinel-cushion")
+                      ("star-cabochon" "blue-ceylon-sapphire")
+                      ("star-cabochon" "blue-cushion")
+                      ("star-cabochon" "blue-pear-shape")
+                      ("star-cabochon" "blue-spinel-heart"))
+                     (("tanzanite-trillion" "yellow-jasper")
+                      ("tanzanite-trillion" "black-onyx")
+                      ("tanzanite-trillion" "black-spinel-cushion")
+                      ("tanzanite-trillion" "blue-ceylon-sapphire")
+                      ("tanzanite-trillion" "blue-cushion")
+                      ("tanzanite-trillion" "blue-pear-shape")
+                      ("tanzanite-trillion" "blue-spinel-heart"))
+                     (("white-square" "yellow-jasper")
+                      ("white-square" "black-onyx")
+                      ("white-square" "black-spinel-cushion")
+                      ("white-square" "blue-ceylon-sapphire")
+                      ("white-square" "blue-cushion")
+                      ("white-square" "blue-pear-shape")
+                      ("white-square" "blue-spinel-heart"))
+                     (("yellow-heart" "yellow-jasper")
+                      ("yellow-heart" "black-onyx")
+                      ("yellow-heart" "black-spinel-cushion")
+                      ("yellow-heart" "blue-ceylon-sapphire")
+                      ("yellow-heart" "blue-cushion")
+                      ("yellow-heart" "blue-pear-shape")
+                      ("yellow-heart" "blue-spinel-heart"))))))
+          (last . (1 "RIGHT"))
+          (plmt
+           .
+           (#hasheq((color . "blue")
+                    (current . #hasheq((column# . 0) (row# . 0)))
+                    (home . #hasheq((column# . 6) (row# . 6))))
+            #hasheq((color . "red")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 3) (row# . 3))))
+            #hasheq((color . "black")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 6) (row# . 6))))))
+          (spare
+           .
+           #hasheq((1-image . "ruby") (2-image . "ammolite") (tilekey . "┐"))))
+  #hasheq((column# . 3) (row# . 3)))
+(*** expected)
+'((0 "LEFT" 0 #hasheq((column# . 3) (row# . 3))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/50/Tests/2-in.json /course/cs4500f22/ta/github/5/50/Tests/2-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Riemann"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("└" "└" "└" "└" "└" "└" "└")
+                     ("│" "┐" "┐" "┐" "┐" "┐" "┐")
+                     ("├" "─" "│" "─" "┼" "├" "┼")
+                     ("└" "┬" "├" "┐" "┼" "─" "┼")
+                     ("└" "┬" "┐" "┐" "┼" "┐" "┼")
+                     ("└" "─" "┐" "┐" "├" "├" "├")
+                     ("┐" "┐" "┐" "┐" "┐" "┐" "┐")))
+                   (treasures
+                    .
+                    ((("tourmaline-laser-cut" "yellow-jasper")
+                      ("tourmaline-laser-cut" "black-onyx")
+                      ("tourmaline-laser-cut" "black-spinel-cushion")
+                      ("tourmaline-laser-cut" "blue-ceylon-sapphire")
+                      ("tourmaline-laser-cut" "blue-cushion")
+                      ("tourmaline-laser-cut" "blue-pear-shape")
+                      ("tourmaline-laser-cut" "blue-spinel-heart"))
+                     (("rock-quartz" "yellow-jasper")
+                      ("rock-quartz" "black-onyx")
+                      ("rock-quartz" "black-spinel-cushion")
+                      ("rock-quartz" "blue-ceylon-sapphire")
+                      ("rock-quartz" "blue-cushion")
+                      ("rock-quartz" "blue-pear-shape")
+                      ("rock-quartz" "blue-spinel-heart"))
+                     (("ruby-diamond-profile" "yellow-jasper")
+                      ("ruby-diamond-profile" "black-onyx")
+                      ("ruby-diamond-profile" "black-spinel-cushion")
+                      ("ruby-diamond-profile" "blue-ceylon-sapphire")
+                      ("ruby-diamond-profile" "blue-cushion")
+                      ("ruby-diamond-profile" "blue-pear-shape")
+                      ("ruby-diamond-profile" "blue-spinel-heart"))
+                     (("star-cabochon" "yellow-jasper")
+                      ("star-cabochon" "black-onyx")
+                      ("star-cabochon" "black-spinel-cushion")
+                      ("star-cabochon" "blue-ceylon-sapphire")
+                      ("star-cabochon" "blue-cushion")
+                      ("star-cabochon" "blue-pear-shape")
+                      ("star-cabochon" "blue-spinel-heart"))
+                     (("tanzanite-trillion" "yellow-jasper")
+                      ("tanzanite-trillion" "black-onyx")
+                      ("tanzanite-trillion" "black-spinel-cushion")
+                      ("tanzanite-trillion" "blue-ceylon-sapphire")
+                      ("tanzanite-trillion" "blue-cushion")
+                      ("tanzanite-trillion" "blue-pear-shape")
+                      ("tanzanite-trillion" "blue-spinel-heart"))
+                     (("yellow-heart" "yellow-jasper")
+                      ("yellow-heart" "black-onyx")
+                      ("yellow-heart" "black-spinel-cushion")
+                      ("yellow-heart" "blue-ceylon-sapphire")
+                      ("yellow-heart" "blue-cushion")
+                      ("yellow-heart" "blue-pear-shape")
+                      ("yellow-heart" "blue-spinel-heart"))
+                     (("white-square" "yellow-jasper")
+                      ("white-square" "black-onyx")
+                      ("white-square" "black-spinel-cushion")
+                      ("white-square" "blue-ceylon-sapphire")
+                      ("white-square" "blue-cushion")
+                      ("white-square" "blue-pear-shape")
+                      ("white-square" "blue-spinel-heart"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "green")
+                    (current . #hasheq((column# . 6) (row# . 0)))
+                    (home . #hasheq((column# . 6) (row# . 6))))
+            #hasheq((color . "red")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 3) (row# . 3))))
+            #hasheq((color . "black")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 6) (row# . 6))))))
+          (spare
+           .
+           #hasheq((1-image . "ruby") (2-image . "ammolite") (tilekey . "┼"))))
+  #hasheq((column# . 0) (row# . 3)))
+(*** expected)
+'((0 "RIGHT" 0 #hasheq((column# . 0) (row# . 3))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4500f22/ta/github/5/50/Tests/3-in.json /course/cs4500f22/ta/github/5/50/Tests/3-out.json)
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/strategySerializer.py", line 4, in <module>
+    from ..Players.playerSerializer import make_player_with_all_information
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/playerSerializer.py", line 4, in <module>
+    from Maze.Players.player import Player
+  File "/course/cs4500f22/ta/github/mactaggartt-rodriguezdia/Maze/Players/player.py", line 8, in <module>
+    from multipledispatch import dispatch
+ModuleNotFoundError: No module named 'multipledispatch'
+---------------------------------
+(*** score 0)
+(*** on)
+'("Euclid"
+  #hasheq((board
+           .
+           #hasheq((connectors
+                    .
+                    (("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")
+                     ("┼" "┼" "┼" "┼" "┼" "┼" "┼")))
+                   (treasures
+                    .
+                    ((("tourmaline" "yellow-jasper")
+                      ("tourmaline" "black-onyx")
+                      ("tourmaline" "black-spinel-cushion")
+                      ("tourmaline" "blue-ceylon-sapphire")
+                      ("tourmaline" "blue-cushion")
+                      ("tourmaline" "blue-pear-shape")
+                      ("tourmaline" "blue-spinel-heart"))
+                     (("rock-quartz" "yellow-jasper")
+                      ("rock-quartz" "black-onyx")
+                      ("rock-quartz" "black-spinel-cushion")
+                      ("rock-quartz" "blue-ceylon-sapphire")
+                      ("rock-quartz" "blue-cushion")
+                      ("rock-quartz" "blue-pear-shape")
+                      ("rock-quartz" "blue-spinel-heart"))
+                     (("ruby-diamond-profile" "yellow-jasper")
+                      ("ruby-diamond-profile" "black-onyx")
+                      ("ruby-diamond-profile" "black-spinel-cushion")
+                      ("ruby-diamond-profile" "blue-ceylon-sapphire")
+                      ("ruby-diamond-profile" "blue-cushion")
+                      ("ruby-diamond-profile" "blue-pear-shape")
+                      ("ruby-diamond-profile" "blue-spinel-heart"))
+                     (("star-cabochon" "yellow-jasper")
+                      ("star-cabochon" "black-onyx")
+                      ("star-cabochon" "black-spinel-cushion")
+                      ("star-cabochon" "blue-ceylon-sapphire")
+                      ("star-cabochon" "blue-cushion")
+                      ("star-cabochon" "blue-pear-shape")
+                      ("star-cabochon" "blue-spinel-heart"))
+                     (("tanzanite-trillion" "yellow-jasper")
+                      ("tanzanite-trillion" "black-onyx")
+                      ("tanzanite-trillion" "black-spinel-cushion")
+                      ("tanzanite-trillion" "blue-ceylon-sapphire")
+                      ("tanzanite-trillion" "blue-cushion")
+                      ("tanzanite-trillion" "blue-pear-shape")
+                      ("tanzanite-trillion" "blue-spinel-heart"))
+                     (("white-square" "yellow-jasper")
+                      ("white-square" "black-onyx")
+                      ("white-square" "black-spinel-cushion")
+                      ("white-square" "blue-ceylon-sapphire")
+                      ("white-square" "blue-cushion")
+                      ("white-square" "blue-pear-shape")
+                      ("white-square" "blue-spinel-heart"))
+                     (("yellow-heart" "yellow-jasper")
+                      ("yellow-heart" "black-onyx")
+                      ("yellow-heart" "black-spinel-cushion")
+                      ("yellow-heart" "blue-ceylon-sapphire")
+                      ("yellow-heart" "blue-cushion")
+                      ("yellow-heart" "blue-pear-shape")
+                      ("yellow-heart" "blue-spinel-heart"))))))
+          (last . null)
+          (plmt
+           .
+           (#hasheq((color . "red")
+                    (current . #hasheq((column# . 0) (row# . 0)))
+                    (home . #hasheq((column# . 6) (row# . 6))))
+            #hasheq((color . "FFFFFF")
+                    (current . #hasheq((column# . 1) (row# . 1)))
+                    (home . #hasheq((column# . 1) (row# . 4))))))
+          (spare
+           .
+           #hasheq((1-image . "star-cabochon")
+                   (2-image . "ammolite")
+                   (tilekey . "┘"))))
+  #hasheq((column# . 6) (row# . 6)))
+(*** expected)
+'((0 "LEFT" 0 #hasheq((column# . 6) (row# . 6))))
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+()
+((passed 0) (total 3) (partial-score 0))
+
