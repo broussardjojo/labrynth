@@ -149,7 +149,16 @@ class Referee:
         Entry method that runs a game of Labyrinth when given a game state. It sets up and then runs the game.
         :param game_state: the state for a game of Labyrinth
         :return: A List of winning Players representing either the winner or all players who tied for the win and
-        a List of cheating Players representing all Players who were kicked out for cheating.
+        a List of cheating Players representing all Players who were kicked out for cheating
+
+        NOTE: In this method we create a new Thread which allows us to continue running the functionality necessary for
+        run_game in the referee while also displaying a GUI if this referee has an Observer. If we did not create this
+        new thread, when the Observer goes to view the state of the game, the GUI program would stop all background
+        computation and the Observer would stop receiving any new States from the Referee, even if the game is in
+        progress. By creating a new Thread, we can support both functionalities: the Referee running a game, and the
+        Observer viewing States from that game. Also note, the mainloop() function from the tkinter GUI library cannot
+        be run outside of the main Thread, which is why we create a separate one for running the game and not for
+        displaying the GUI.
         """
         self.__reset_referee()
         if self.__has_observer:
