@@ -195,7 +195,7 @@ class Referee:
         :return: None
         """
         for player in game_state.get_players():
-            observable_state = ObservableState(game_state.get_board())
+            observable_state = ObservableState(deepcopy(game_state.get_board()))
             player.setup(observable_state, self.__generate_unique_goal(game_state))
 
     def __generate_unique_goal(self, game_state: State) -> Position:
