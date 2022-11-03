@@ -3,7 +3,7 @@ from typing import List
 
 from ..Players.player import Player
 from .referee import Referee
-from .refereeSerializer import make_state_from_json
+from .refereeSerializer import make_state_from_json, sort_winners
 
 
 def main() -> str:
@@ -19,14 +19,6 @@ def main() -> str:
     json_winners = json.dumps(ordered_winners)
     json_winners_no_spaces = json_winners.replace(' ', '')
     return json_winners_no_spaces
-
-
-def sort_winners(winners: List[Player]) -> List[str]:
-    names = []
-    for player in winners:
-        names.append(player.get_name())
-    names.sort()
-    return names
 
 
 # Entry point main method

@@ -1,6 +1,5 @@
 from threading import Thread
-from typing import List, Union, Optional
-import signal
+from typing import List, Union
 from copy import deepcopy
 from ..Players.player import Player
 from ..Common.direction import Direction
@@ -39,7 +38,11 @@ class Referee:
             self.__observer = Observer()
         self.__reset_referee()
 
-    def __reset_referee(self):
+    def __reset_referee(self) -> None:
+        """
+        Resets this Referee's fields to their initial states
+        :return: None
+        """
         self.__cheater_players = []
         self.__winning_players = []
         self.__num_rounds = 0
@@ -107,7 +110,9 @@ class Referee:
         self.__handle_cheater(active_player, game_state)
         raise TimeoutError("Error: Player took to long to make their move")
 
-    def __get_proposed_move(self, active_player: Player, game_state: State) -> Union[Move, Pass]:
+    # TODO: Replace whole method with APIPlayer central control for timeouts and pick new library
+    @staticmethod
+    def __get_proposed_move(active_player: Player, game_state: State) -> Union[Move, Pass]:
         """
         Gets the proposed move from the active player. If the active player takes too long to communicate their desired
         move, then the game times them out and that player is removed from the game and added to a list of cheating
@@ -115,7 +120,6 @@ class Referee:
         :param active_player: the player who is proposing a move
         :return: a desired Move from the active player
         """
-        # TODO: Replace whole method with APIPlayer central control for timeouts and pick new library
         observable_state = ObservableState(game_state.get_board(),
                                            game_state.get_all_previous_non_passes())
         # signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
@@ -289,7 +293,7 @@ class Referee:
             return False
         return state_copy.can_active_player_reach_given_tile(destination_tile)
 
-    def __perform_pass(self, active_player) -> None:
+    def __perform_pass(self, active_player: Player) -> None:
         """
         A helper method to perform a Pass move
         :param active_player: The currently active player who is passing their turn
@@ -298,6 +302,11 @@ class Referee:
         self.__passed_players.append(active_player)
 
     def __run_round(self, game_state: State) -> None:
+        """
+        Runs a round of a game. A round is considered complete when all players have taken a turn.
+        :param game_state: represents the current state of the game
+        :return: None
+        """
         round_over = False
         self.__passed_players = []
         while not round_over:
@@ -311,6 +320,11 @@ class Referee:
         self.__num_rounds += 1
 
     def __run_active_player_turn(self, game_state: State) -> None:
+        """
+        Runs a single player turn within a game given the current game state
+        :param game_state: represents the current state of the game
+        :return: None
+        """
         player_index = game_state.get_active_player_index()
         player = game_state.get_players()[player_index]
         try:
@@ -324,4 +338,10 @@ class Referee:
 
     @staticmethod
     def __did_active_player_win(game_state: State) -> bool:
+        """
+        Checks win conditions for the current active player. Namely, checks if the active player is home after reaching
+        their goal
+        :param game_state: represents the current state of the game
+        :return: True if the active player has reached their home after visiting their goal, otherwise False
+        """
         return game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal()

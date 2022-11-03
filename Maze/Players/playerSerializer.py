@@ -41,6 +41,11 @@ def make_list_of_players(player_dict_list: List[dict]) -> List[Player]:
 
 
 def get_serialized_players(players: List[Player]) -> List[dict]:
+    """
+    Gets a list of dictionaries of player information from a list of players
+    :param players: the list of players whose information is being turned into a dictionary
+    :return: a list of dictionary representing the information of players from the given list
+    """
     all_players = []
     for player in players:
         all_players.append(get_serialized_player(player))
@@ -48,6 +53,12 @@ def get_serialized_players(players: List[Player]) -> List[dict]:
 
 
 def get_serialized_player(player: Player) -> dict:
+    """
+    Gets the information of a given player and turns it into a dictionary of player information
+    :param player: the player whose information is being turned into a dictionary
+    :return: a dictionary of information about the given player, including their current position, home position, goal
+    position, and color
+    """
     player_dict = {
         "current": get_position_dict(player.get_current_position()),
         "home": get_position_dict(player.get_home_position()),
@@ -59,6 +70,14 @@ def get_serialized_player(player: Player) -> dict:
 
 def make_list_of_players_given_info(list_of_names_and_strategies: List[List[str]],
                                     list_of_player_info: List[dict]) -> List[Player]:
+    """
+    Makes a 2-D list of players given a list of player names and strategies and a list of dictionaries containing player
+    information
+    :param list_of_names_and_strategies: a 2-D list that represents Player names and Strategies
+    :param list_of_player_info: a list of dictionaries representing player information including their home position,
+    goal position, current position, and color
+    :return: a list of Players created by the given information
+    """
     players = []
     for i in range(len(list_of_names_and_strategies)):
         home_position = get_position_from_dict(list_of_player_info[i]["home"])
@@ -70,6 +89,7 @@ def make_list_of_players_given_info(list_of_names_and_strategies: List[List[str]
         player = Player(home_position, goal_position, current_position, strategy, color, name, 10)
         players.append(player)
     return players
+
 
 def make_strategy(strategy_name: str) -> Strategy:
     """

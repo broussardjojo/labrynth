@@ -27,6 +27,10 @@ def main() -> str:
 
 
 def make_state_from_json() -> State:
+    """
+    Makes a state from information provided by the given JSON input
+    :return: a State which represents a state of a game of Labyrinth
+    """
     json_obj_list = get_json_obj_list(sys.stdin.read().lstrip())
     tile_grid = make_tile_grid(json_obj_list[1]['board'])
     spare = make_individual_tile(json_obj_list[1]['spare'])
@@ -39,6 +43,11 @@ def make_state_from_json() -> State:
 
 
 def sort_winners(winners: List[Player]) -> List[str]:
+    """
+    Provides a list of names given a list of players, sorted in alphabetical order
+    :param winners: represents a list of winning players
+    :return: a list of the names from the given list of players sorted in alphabetical order
+    """
     names = []
     for player in winners:
         names.append(player.get_name())
