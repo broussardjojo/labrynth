@@ -1,25 +1,11 @@
 import json
 from ..Common.utils import get_json_obj_list
 from ..Common.boardSerializer import make_tile_grid, make_individual_tile
-from ..Players.playerSerializer import make_player_with_all_information
+from ..Players.playerSerializer import make_player_with_all_information, make_strategy
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.board import Board
-from .riemann import Riemann
-from .euclid import Euclid
-from .strategy import Strategy
 import sys
-
-
-def make_strategy(strategy_name: str) -> Strategy:
-    """
-    Create either a Riemann or Euclid strategy
-    :param strategy_name: either Riemann or Euclid
-    :return: Either a Riemann or Euclid Strategy
-    """
-    if strategy_name == "Riemann":
-        return Riemann()
-    return Euclid()
 
 
 def main() -> str:
@@ -34,7 +20,8 @@ def main() -> str:
     spare = make_individual_tile(json_obj_list[1]['spare'])
     board = Board(tile_grid, spare)
     goal_position = Position(json_obj_list[2]["row#"], json_obj_list[2]["column#"])
-    observable_state = ObservableState(board)
+    # do not ignore previous move
+    observable_state = ObservableState(board, [])
     active_player = make_player_with_all_information(dict(json_obj_list[1]['plmt'][0]),
                                                      selected_strategy, goal_position)
     proposed_move = active_player.take_turn(observable_state)

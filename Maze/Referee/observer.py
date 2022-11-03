@@ -29,7 +29,7 @@ class Observer:
         Creates an instance of an Observer
         """
         self.__list_of_states: List[State] = []
-        self.__current_state_index = -1
+        self.__current_state_index = 0
         self.__is_game_over = False
         self.__current_canvas: Canvas
         self.__window = Tk()
@@ -42,7 +42,7 @@ class Observer:
         """
         self.__list_of_states.append(deepcopy(next_state))
 
-    def game_is_over(self) -> None:
+    def set_game_is_over(self) -> None:
         """
         Declares that the game being observed is over
         :return: None

@@ -14,7 +14,7 @@ def basic_board():
 
 @pytest.fixture
 def observable_state(basic_board):
-    return ObservableState(basic_board)
+    return ObservableState(basic_board, [])
 
 
 @pytest.fixture

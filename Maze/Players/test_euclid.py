@@ -31,7 +31,7 @@ def basic_seeded_board():
 
 @pytest.fixture
 def observable_state(basic_seeded_board):
-    return ObservableState(basic_seeded_board)
+    return ObservableState(basic_seeded_board, [])
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def basic_seeded_board_two():
 
 @pytest.fixture
 def observable_state_two(basic_seeded_board_two):
-    return ObservableState(basic_seeded_board_two)
+    return ObservableState(basic_seeded_board_two, [])
 
 
 # ----- Test generate_move method -----

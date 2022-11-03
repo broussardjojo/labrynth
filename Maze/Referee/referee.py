@@ -1,5 +1,5 @@
 from threading import Thread
-from typing import List, Union
+from typing import List, Union, Optional
 import signal
 from copy import deepcopy
 from ..Players.player import Player
@@ -29,6 +29,7 @@ class Referee:
     - Player proposing invalid Board (either invalid size or invalid by some future determination i.e. "unfair" or bad
     for game play)
     """
+
     def __init__(self, has_observer: bool = False):
         """
         Creates an instance of a Referee given a game State
@@ -42,9 +43,8 @@ class Referee:
         self.__cheater_players = []
         self.__winning_players = []
         self.__num_rounds = 0
-        self.__all_player_goals = []
         self.__passed_players = []
-        self.__did_last_player_cheat = False
+        self.__did_active_player_cheat = False
 
     @staticmethod
     def get_proposed_board(list_of_players: List[Player]) -> Board:
@@ -94,7 +94,7 @@ class Referee:
         """
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
-        self.__did_last_player_cheat = True
+        self.__did_active_player_cheat = True
 
     def __handle_timeout(self, active_player: Player, game_state: State) -> None:
         """
@@ -116,7 +116,8 @@ class Referee:
         :return: a desired Move from the active player
         """
         # TODO: Replace whole method with APIPlayer central control for timeouts and pick new library
-        observable_state = ObservableState(game_state.get_board())
+        observable_state = ObservableState(game_state.get_board(),
+                                           game_state.get_all_previous_non_passes())
         # signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
         # signal.alarm(10)
         proposed_move = active_player.take_turn(observable_state)
@@ -136,7 +137,7 @@ class Referee:
         selected_board = self.get_proposed_board(players)
         game_state = State.from_board_and_players(selected_board, players)
         self.__setup(game_state)
-        return self.__run_game_helper(game_state)
+        return self.run_game(game_state)
 
     @dispatch(State)
     def run_game(self, game_state: State) -> (List[Player], List[Player]):
@@ -166,26 +167,9 @@ class Referee:
         a List of cheating Players representing all Players who were kicked out for cheating.
         """
         if self.__has_observer:
-            self.__observer.receive_new_state(game_state)
-        while True:
-            self.__did_last_player_cheat = False
-            active_player_index = game_state.get_active_player_index()
-            if active_player_index == len(game_state.get_players()) - 1:
-                self.__num_rounds += 1
-            active_player = game_state.get_players()[active_player_index]
-            try:
-                proposed_move = self.__get_proposed_move(active_player, game_state)
-            except TimeoutError:
-                if self.__game_not_over(game_state):
-                    continue
-                break
-            proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, active_player, game_state),
-                                               lambda: self.__perform_pass(active_player))
-            if self.__has_observer:
-                self.__observer.receive_new_state(game_state)
-            if self.__game_not_over(game_state):
-                continue
-            break
+            self.__observer.receive_new_state(deepcopy(game_state))
+        while self.__game_not_over(game_state):
+            self.__run_round(game_state)
         self.__inform_winning_players()
         return self.__winning_players, self.__cheater_players
 
@@ -194,11 +178,17 @@ class Referee:
         Method to setup the board and give each player their goal Tile
         :return: None
         """
+        all_unique_goals = []
         for player in game_state.get_players():
-            observable_state = ObservableState(deepcopy(game_state.get_board()))
-            player.setup(observable_state, self.__generate_unique_goal(game_state))
+            observable_state = ObservableState(deepcopy(game_state.get_board()),
+                                               game_state.get_all_previous_non_passes())
+            unique_goal = self.__generate_unique_goal(game_state, all_unique_goals)
+            all_unique_goals.append(unique_goal)
+            player.setup(observable_state, unique_goal)
 
-    def __generate_unique_goal(self, game_state: State) -> Position:
+    @staticmethod
+    def __generate_unique_goal(game_state: State,
+                               all_unique_goals: List[Position]) -> Position:
         """
         Method to generate a unique goal Position for a Player in the game
         :return: A Position representing the unique goal Position for a player to use
@@ -210,8 +200,7 @@ class Referee:
             for col in range(len(tile_grid[row])):
                 if game_state.get_board().check_stationary_position(row, col):
                     potential_position = Position(row, col)
-                    if potential_position not in self.__all_player_goals:
-                        self.__all_player_goals.append(potential_position)
+                    if potential_position not in all_unique_goals:
                         return potential_position
         raise ValueError("No Unique Goals Left")
 
@@ -224,21 +213,19 @@ class Referee:
         """
         if len(game_state.get_players()) == 0:
             if self.__has_observer:
-                self.__observer.game_is_over()
+                self.__observer.set_game_is_over()
             return False
         active_player = game_state.get_players()[game_state.get_active_player_index()]
-        if game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal():
+        if self.__did_active_player_win(game_state):
             self.__winning_players = [active_player]
             if self.__has_observer:
-                self.__observer.game_is_over()
+                self.__observer.set_game_is_over()
             return False
         if self.__num_rounds == 1000 or len(self.__passed_players) == len(game_state.get_players()):
             self.__winning_players = game_state.get_closest_players_to_victory()
             if self.__has_observer:
-                self.__observer.game_is_over()
+                self.__observer.set_game_is_over()
             return False
-        if not self.__did_last_player_cheat:
-            game_state.change_active_player_turn()
         return True
 
     def __inform_winning_players(self) -> None:
@@ -309,3 +296,32 @@ class Referee:
         :return: None
         """
         self.__passed_players.append(active_player)
+
+    def __run_round(self, game_state: State) -> None:
+        round_over = False
+        self.__passed_players = []
+        while not round_over:
+            self.__did_active_player_cheat = False
+            self.__run_active_player_turn(game_state)
+            if self.__did_active_player_win(game_state):
+                return
+            if not self.__did_active_player_cheat:
+                game_state.change_active_player_turn()
+            round_over = game_state.get_active_player_index() == 0
+        self.__num_rounds += 1
+
+    def __run_active_player_turn(self, game_state: State) -> None:
+        player_index = game_state.get_active_player_index()
+        player = game_state.get_players()[player_index]
+        try:
+            proposed_move = self.__get_proposed_move(player, game_state)
+        except TimeoutError:
+            return
+        proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, player, game_state),
+                                           lambda: self.__perform_pass(player))
+        if self.__has_observer:
+            self.__observer.receive_new_state(deepcopy(game_state))
+
+    @staticmethod
+    def __did_active_player_win(game_state: State) -> bool:
+        return game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal()

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Set, Union
+from typing import List, Set, Union, Tuple
 
 from .move import Move, Pass
 from ..Common.direction import Direction
@@ -43,7 +43,9 @@ class BaseStrategy(Strategy):
         board_copy = deepcopy(current_state.get_board())
         base_tile = board_copy.get_tile_by_position(current_position)
         target_tile = board_copy.get_tile_by_position(target_position)
-        return self.__generate_possible_move(board_copy, base_tile, target_tile, target_position)
+        return self.__generate_possible_move(board_copy, base_tile,
+                                             target_tile, target_position,
+                                             current_state.get_all_previous_non_passes())
 
     @abstractmethod
     def get_next_target_position(self, board: Board, original_target: Position) -> Position:
@@ -79,7 +81,8 @@ class BaseStrategy(Strategy):
         return self.__checked_positions
 
     def __check_possible_slides(self, board: Board, target_tile: Tile,
-                                base_tile: Tile, directions: List[Direction]) -> Union[Move, Pass]:
+                                base_tile: Tile, previous_moves: List[Tuple[int, Direction]],
+                                directions: List[Direction]) -> Union[Move, Pass]:
         """
         A method to check all possible moves in the order sliding the specified row or column in the provided directions
         :param board: A Board to perform temporary slides on
@@ -91,6 +94,10 @@ class BaseStrategy(Strategy):
         target_position = board.get_position_by_tile(target_tile)
         for index in range(0, len(board.get_tile_grid()), 2):
             for slide_direction in directions:
+                if previous_moves:
+                    previous_index, previous_direction = previous_moves[-1]
+                    if previous_index == index and previous_direction == get_opposite_direction(slide_direction):
+                        continue
                 for rotation in range(FULL_ROTATION):
                     board.get_next_tile().rotate(rotation)
                     adjusted_base_tile = self.__adjust_base_tile_on_edge(board, base_tile,
@@ -99,7 +106,7 @@ class BaseStrategy(Strategy):
                     reachable_positions = \
                         self.__get_reachable_positions_from_tile(board, board.reachable_tiles(adjusted_base_tile))
                     slid_target_tile = board.get_tile_by_position(target_position)
-                    if target_position in reachable_positions and slid_target_tile != base_tile:
+                    if target_position in reachable_positions and slid_target_tile != adjusted_base_tile:
                         self.__reset_checked_positions()
                         return Move(index, slide_direction, rotation * 90, target_position)
                     self.__undo_slide(index, slide_direction, board)
@@ -133,7 +140,8 @@ class BaseStrategy(Strategy):
         return base_tile
 
     def __generate_possible_move(self, board_copy: Board, base_tile: Tile, target_tile: Tile,
-                                 original_goal: Position) -> Union[Move, Pass]:
+                                 original_goal: Position,
+                                 previous_moves: List[Tuple[int, Direction]]) -> Union[Move, Pass]:
         """
         Checks if there is a possible move by sliding rows, then columns, loops through targets to move to in an order
         specified in implementations
@@ -143,14 +151,16 @@ class BaseStrategy(Strategy):
         :param original_goal: A Position representing the original goal Position to look for
         :return: A Move representing either a valid Move to a target or a Pass if no move is found
         """
-        possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
+        possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile, previous_moves,
                                                      [Direction.Left, Direction.Right])
         return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_vertical(board_copy,
                                                                                                  target_tile,
                                                                                                  base_tile,
-                                                                                                 original_goal))
+                                                                                                 original_goal,
+                                                                                                 previous_moves))
 
-    def __check_vertical(self, board_copy, target_tile, base_tile, original_goal):
+    def __check_vertical(self, board_copy, target_tile, base_tile, original_goal,
+                         previous_moves: List[Tuple[int, Direction]]) -> Union[Move, Pass]:
         """
         Checks if there is a possible move by sliding columns, loops through targets to move to in an order
         specified in implementations
@@ -160,14 +170,16 @@ class BaseStrategy(Strategy):
         :param original_goal: A Position representing the original goal Position to look for
         :return: A Move representing either a valid Move to a target or a Pass if no move is found
         """
-        possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile,
+        possible_move = self.__check_possible_slides(board_copy, target_tile, base_tile, previous_moves,
                                                      [Direction.Up, Direction.Down])
         return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_new_goal(board_copy,
                                                                                                  target_tile,
                                                                                                  base_tile,
-                                                                                                 original_goal))
+                                                                                                 original_goal,
+                                                                                                 previous_moves))
 
-    def __check_new_goal(self, board_copy, target_tile, base_tile, original_goal):
+    def __check_new_goal(self, board_copy: Board, target_tile: Tile, base_tile: Tile, original_goal: Position,
+                         previous_moves: List[Tuple[int, Direction]]) -> Union[Move, Pass]:
         """
         Checks if there is a possible move for the next target to move to in an order specified in implementations
         :param board_copy: A Board to perform temporary slides on
@@ -181,7 +193,7 @@ class BaseStrategy(Strategy):
             return self.__generate_possible_move(board_copy, base_tile,
                                                  board_copy.get_tile_by_position(
                                                      self.get_next_target_position(board_copy, original_goal)),
-                                                 original_goal)
+                                                 original_goal, previous_moves)
         self.__reset_checked_positions()
         return Pass()
 

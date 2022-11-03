@@ -1,5 +1,5 @@
 from random import choice
-from typing import List, Tuple, Set
+from typing import List, Tuple
 
 from .board import Board
 from ..Players.player import Player
@@ -20,8 +20,7 @@ class State(ObservableState):
 
     def __init__(self, board: Board, previous_moves: List[Tuple[int, Direction]], players: List[Player],
                  active_player_index: int):
-        super().__init__(board)
-        self.__previous_moves = previous_moves
+        super().__init__(board, previous_moves)
         self.__players = players
         self.__active_player_index = active_player_index
         self.__players_reached_goal = set()
@@ -200,7 +199,7 @@ class State(ObservableState):
         """
         super().get_board().slide_and_insert(index, direction)
         self.__adjust_all_players(index, direction)
-        self.__previous_moves.append((index, direction))
+        super().get_all_previous_non_passes().append((index, direction))
 
     def __adjust_all_players(self, slide_index: int, slide_direction: Direction) -> None:
         """
@@ -334,13 +333,6 @@ class State(ObservableState):
         :return: True if the active player for this State has ever reached their goal position, otherwise False
         """
         return self.__players[self.__active_player_index] in self.__players_reached_goal
-
-    def get_all_previous_non_passes(self) -> List[Tuple[int, Direction]]:
-        """
-        Returns a list of all the previous slides and inserts.
-        :return: a list of (int, Direction) representing all the previous slides and inserts
-        """
-        return self.__previous_moves
 
     def get_closest_players_to_victory(self) -> List[Player]:
         """

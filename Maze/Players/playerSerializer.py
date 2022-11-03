@@ -1,8 +1,11 @@
 from typing import List
+
+from .euclid import Euclid
+from .riemann import Riemann
 from ..Common.position import Position
 from .strategy import Strategy
-from ..Players.player import Player
-from ..Common.positionSerializer import get_position_dict
+from .player import Player
+from ..Common.positionSerializer import get_position_dict, get_position_from_dict
 
 
 def make_player_with_all_information(player_dict: dict, strategy: Strategy, goal: Position) -> Player:
@@ -52,3 +55,28 @@ def get_serialized_player(player: Player) -> dict:
         "color": player.get_color()
     }
     return player_dict
+
+
+def make_list_of_players_given_info(list_of_names_and_strategies: List[List[str]],
+                                    list_of_player_info: List[dict]) -> List[Player]:
+    players = []
+    for i in range(len(list_of_names_and_strategies)):
+        home_position = get_position_from_dict(list_of_player_info[i]["home"])
+        goal_position = get_position_from_dict(list_of_player_info[i]["goto"])
+        current_position = get_position_from_dict(list_of_player_info[i]["current"])
+        color = list_of_player_info[i]["color"]
+        strategy = make_strategy(list_of_names_and_strategies[i][1])
+        name = list_of_names_and_strategies[i][0]
+        player = Player(home_position, goal_position, current_position, strategy, color, name, 10)
+        players.append(player)
+    return players
+
+def make_strategy(strategy_name: str) -> Strategy:
+    """
+    Create either a Riemann or Euclid strategy
+    :param strategy_name: either Riemann or Euclid
+    :return: Either a Riemann or Euclid Strategy
+    """
+    if strategy_name == "Riemann":
+        return Riemann()
+    return Euclid()
