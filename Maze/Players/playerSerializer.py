@@ -1,7 +1,8 @@
 from typing import List
-from Maze.Common.position import Position
+from ..Common.position import Position
 from .strategy import Strategy
-from Maze.Players.player import Player
+from ..Players.player import Player
+from ..Common.positionSerializer import get_position_dict
 
 
 def make_player_with_all_information(player_dict: dict, strategy: Strategy, goal: Position) -> Player:
@@ -30,7 +31,24 @@ def make_list_of_players(player_dict_list: List[dict]) -> List[Player]:
     player_list = []
     for player_dict in player_dict_list:
         current_position = Position(player_dict["current"]["row#"], player_dict["current"]["column#"], )
-        home_position = Position(player_dict["home"]["row#"], player_dict["home"]["column#"],)
+        home_position = Position(player_dict["home"]["row#"], player_dict["home"]["column#"], )
         player_color = player_dict["color"]
         player_list.append(Player.from_current_home_color(current_position, home_position, player_color))
     return player_list
+
+
+def get_serialized_players(players: List[Player]) -> List[dict]:
+    all_players = []
+    for player in players:
+        all_players.append(get_serialized_player(player))
+    return all_players
+
+
+def get_serialized_player(player: Player) -> dict:
+    player_dict = {
+        "current": get_position_dict(player.get_current_position()),
+        "home": get_position_dict(player.get_home_position()),
+        "goto": get_position_dict(player.get_goal_position()),
+        "color": player.get_color()
+    }
+    return player_dict

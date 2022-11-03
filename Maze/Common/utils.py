@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List, Union
+
 from .direction import Direction
 from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross

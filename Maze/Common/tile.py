@@ -30,6 +30,13 @@ class Tile:
         """
         return [self.__gem1, self.__gem2]
 
+    def get_shape(self) -> Shape:
+        """
+        Returns the Shape found on this tile.
+        :return: the Shape found on this tile
+        """
+        return self.__shape
+
     def same_gems_on_tiles(self, gem1: Gem, gem2: Gem) -> bool:
         """
         Checks this Tile has the same gems as the given Gems.

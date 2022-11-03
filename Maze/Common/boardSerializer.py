@@ -7,6 +7,7 @@ from .board import Board
 from .tile import Tile
 from .utils import get_json_obj_list, shape_dict, coord_custom_compare
 from .positionSerializer import get_position_dict
+from .tileSerializer import get_connector_from_shape
 
 
 def get_output_list_from_reachable_tiles(reachable_list: Set[Tile], board: Board) -> List[dict]:
@@ -87,3 +88,31 @@ def main() -> List[dict]:
 # Entry point main method
 if __name__ == '__main__':
     print(main())
+
+
+def get_connectors_helper(board: Board) -> List[List[str]]:
+    list_of_connectors = []
+    for row in range(len(board.get_tile_grid())):
+        list_of_connectors.append([])
+        for col in range(len(board.get_tile_grid()[row])):
+            list_of_connectors[row].append(get_connector_from_shape(board.get_tile_grid()[row][col].get_shape()))
+    return list_of_connectors
+
+
+def get_treasures_helper(board: Board) -> List[List[List[str]]]:
+    list_of_gems = []
+    for row in range(len(board.get_tile_grid())):
+        list_of_gems.append([])
+        for col in range(len(board.get_tile_grid()[row])):
+            gem1, gem2 = board.get_tile_grid()[row][col].get_gems()
+            list_of_gems[row].append([str(gem1), str(gem2)])
+    return list_of_gems
+
+
+def get_serialized_board(board: Board) -> dict:
+    board_dict = {
+        "connectors": get_connectors_helper(board),
+        "treasures": get_treasures_helper(board)
+    }
+
+    return board_dict

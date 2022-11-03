@@ -115,6 +115,7 @@ class Referee:
         :param active_player: the player who is proposing a move
         :return: a desired Move from the active player
         """
+        # TODO: Replace whole method with APIPlayer central control for timeouts and pick new library
         observable_state = ObservableState(game_state.get_board())
         # signal.signal(signal.SIGALRM, lambda *_: self.__handle_timeout(active_player, game_state))
         # signal.alarm(10)
@@ -150,8 +151,9 @@ class Referee:
             thread = Thread(target=self.__run_game_helper, args=(game_state,))
             thread.start()
             self.__observer.display_gui()
+            thread.join()
+            return self.__winning_players, self.__cheater_players
         else:
-            # TODO: fix return values
             return self.__run_game_helper(game_state)
 
     def __run_game_helper(self, game_state: State) -> (List[Player], List[Player]):

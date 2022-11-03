@@ -288,16 +288,3 @@ def test_run_game_tie(referee, seeded_game_state_four, player_one, player_three,
     winning_players, cheating_players = referee.run_game(seeded_game_state_four)
     assert winning_players == [player_one, player_five]
     assert cheating_players == []
-
-if __name__ == "__main__":
-    referee1 = Referee(True)
-    path = Path(__file__).parent.parent / "Players/basicBoardTwo.json"
-    with path.open() as board_file:
-        board_data = board_file.read()
-        json_obj_list = get_json_obj_list(board_data)
-        board = Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
-    player1 = Player.from_goal_home_color_strategy(Position(3, 1), Position(5, 1), "pink", Riemann())
-    player2 = Player.from_goal_home_color_strategy(Position(5, 5), Position(3, 3), "red", Riemann())
-    player3 = Player.from_goal_home_color_strategy(Position(1, 1), Position(3, 1), "black", Euclid())
-    game_state = State.from_board_and_players(board, [player1, player2, player3])
-    referee1.run_game(game_state)
