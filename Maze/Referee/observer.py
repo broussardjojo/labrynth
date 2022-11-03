@@ -10,6 +10,7 @@ from ..Common.state import State
 from ..Common.tileSerializer import get_serialized_tile
 from ..Common.boardSerializer import get_serialized_board
 from ..Players.moveSerializer import get_serialized_last_action
+from ..Players.player import Player
 from ..Players.playerSerializer import get_serialized_players
 
 
@@ -60,6 +61,10 @@ class Observer:
             self.__draw_game_over_screen()
 
     def __save(self) -> None:
+        """
+        Saves the current State of the game as a JSON string into a created txt file in the location chosen by the user.
+        :return: None
+        """
         filename = filedialog.asksaveasfile(initialdir="/", title="Select a File",
                                             filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
         if filename:
@@ -67,7 +72,11 @@ class Observer:
             jsonified_state = json.dumps(serialized_state, ensure_ascii=False)
             filename.write(jsonified_state)
 
-    def __draw_game_over_screen(self):
+    def __draw_game_over_screen(self) -> None:
+        """
+        Draws a "game over" screen that lets the observer see that no more States will become available
+        :return: None
+        """
         canvas = Canvas(width=self.__window.winfo_width(), height=self.__window.winfo_height())
         canvas.create_text(self.__window.winfo_width() / 2, self.__window.winfo_height() / 2,
                            text="Game Over!", font=('Helvetica', '50', 'bold'), fill='black')
@@ -102,6 +111,14 @@ class Observer:
             self.__draw_spare_tile(current_board.get_next_tile(), len(current_tile_grid))
 
     def __draw_spare_tile(self, spare_tile: Tile, board_size: int) -> None:
+        """
+        Draws the given tile in the row below the given int, which represents the board size of the Board the given
+        spare tile belongs to
+        :param spare_tile: the spare tile being drawn
+        :param board_size: an int which represents the dimensions of the board size of the Board the given
+        spare tile belongs to
+        :return: None
+        """
         spare_tile_canvas = self.__draw_shape_from_tile(spare_tile)
         spare_tile_canvas.grid(row=board_size, column=0)
 
@@ -126,7 +143,7 @@ class Observer:
                                self.TILE_CANVAS_DIM)
         return canvas
 
-    def __add_home_at(self, row, col, drawn_tile) -> Canvas:
+    def __add_home_at(self, row: int, col: int, drawn_tile: Canvas) -> Canvas:
         """
         Draws a player home on the given drawn_tile Canvas if a player has a home at the given row, col position on the
         current state's board
@@ -141,7 +158,7 @@ class Observer:
                 return self.__add_home_to_canvas(drawn_tile, player)
         return drawn_tile
 
-    def __add_home_to_canvas(self, drawn_tile, player) -> Canvas:
+    def __add_home_to_canvas(self, drawn_tile: Canvas, player: Player) -> Canvas:
         """
         Draws the given player's home on the given canvas
         :param drawn_tile: a canvas representing a drawing of a tile on the current state's board
@@ -153,7 +170,7 @@ class Observer:
                                     fill=player_color, outline=player_color)
         return drawn_tile
 
-    def __add_avatars_at(self, row, col, drawn_tile) -> Canvas:
+    def __add_avatars_at(self, row: int, col: int, drawn_tile: Canvas) -> Canvas:
         """
         Draws a player's current position on the given drawn_tile Canvas if a player has a current position at the given
         row, col position on the current state's board
@@ -171,7 +188,7 @@ class Observer:
                 offset += 5
         return drawn_tile
 
-    def __add_avatar_to_canvas(self, drawn_tile, player, offset) -> Canvas:
+    def __add_avatar_to_canvas(self, drawn_tile: Canvas, player: Player, offset: int) -> Canvas:
         """
         Draws the given player's avatar on the given canvas
         :param drawn_tile: a canvas representing a drawing of a tile on the current state's board
@@ -196,12 +213,22 @@ class Observer:
                           text="Save", command=self.__save, state=("normal" if self.__list_of_states else "disabled"))
         save_btn.grid(row=1, column=button_column)
 
-    def display_gui(self):
+    def display_gui(self) -> None:
+        """
+        Displays the current state in a pop-up window
+        :return: None
+        """
         self.__draw_current_state()
         self.__window.mainloop()
 
     @staticmethod
-    def __get_serialized_state(current_state) -> dict:
+    def __get_serialized_state(current_state: State) -> dict:
+        """
+        Converts information from the given state into a dictionary
+        :param current_state: the State whose information is being turned into a dictionary
+        :return: a dictionary containing information on the given state including its board, the spare tile, the
+        players, and the last action
+        """
         state_dict = {'board': get_serialized_board(current_state.get_board()),
                       'spare': get_serialized_tile(current_state.get_board().get_next_tile()),
                       'plmt': get_serialized_players(current_state.get_players()),
