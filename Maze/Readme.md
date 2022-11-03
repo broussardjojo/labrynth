@@ -61,6 +61,9 @@ Contains unit tests for the utility functions
 ### tile.py
 Contains the source code for our Tile model
 
+### tileSerializer.py
+Contains the source code for our Tile serialization methods
+
 ### utils.py 
 Contains code for utility functions that do not belong in a model or may be
 used across multiple models
@@ -77,6 +80,9 @@ Contains our plan for the interaction protocol between the referee and players
 ### questions-about-the-game.md
 Contains our questions about the game for planning task in Milestone 1
 
+### remote.md
+Contains our plan for the remote proxy protocol, Milestone 7
+
 ### sprints.md
 Contains our plan for the first three sprints from Milestone 1
 
@@ -91,6 +97,9 @@ Folder contains our implementation code in the following files:
 
 ### __init__.py
 Python required file which labels the directory as a Python package, to help with relative imports
+
+### api_players.py
+Contains the source code for our APIPlayer wrapper which protects a referee from bad player implementations
 
 ### base_strategy.py
 Contains the source code for our Base Strategy model
@@ -107,6 +116,9 @@ Contains the source code for our Euclid strategy model
 ### move.py
 Contains the source code for our Move model and Pass model
 
+### moveSerializer.py
+Contains the source code for serializing a Move
+
 ### player.py
 Contains the source code for our Player model
 
@@ -118,6 +130,9 @@ Contains the source code for our Riemann strategy model
 
 ### strategy.py
 Contains the source code for our Strategy model
+
+### strategySerializer.py
+Contains the source code for running xstrategy
 
 ### test_euclid.py
 Contains unit tests for our Euclid strategy model
@@ -134,8 +149,17 @@ Folder contains our implementation code in the following files:
 ### __init__.py
 Python required file which labels the directory as a Python package, to help with relative imports
 
+### observer.py
+Contains the source code for the Observer class which creates a visual representation of the game
+
 ### referee.py
 Contains the source code for our Referee model
+
+### refereeSerializer.py
+Contains the code to run xgames
+
+### refereeWithObserverSerializer.py
+Contains the code to run xgames-with-observer
 
 ### test_referee.py
 Contains unit tests for our Referee model
@@ -207,23 +231,6 @@ Its implementations have the following public methods:
 
 A `Gem` has a name and an image_path
 
-A `Player` has a three `Position`, current, home, and goal, a `Strategy` and a color.
-
-It has the following public class methods:
-
-- from_current_home_color(current_position, home_position, color)
-- from_goal_home_color_strategy(goal_position, home_position, color, strategy)
-
-
-It has the following public methods:
-
-- get_current_position()
-- set_current_position(position)
-- get_goal_position()
-- get_home_position()
-- get_next_move(current_state)
-- get_color()
-
 A `Position` has a row and a column.
 
 It has the following public methods:
@@ -244,14 +251,15 @@ Its implementations have the following public methods:
 - possible_next_target_positions(board)
 - get_checked_positions()
 
-An `Observable State` has a `Board`
+An `Observable State` has a `Board` and a list of previous slide/inserts
 
 It has the following public method:
 
 - get_board()
+- get_all_previous_non_passes()
 
 
-A`State` extends `Observable State` and has a `Board` , a List of previous moves, a List of `Players` and an active 
+A`State` extends `Observable State` and has a `Board` , a List of previous slide/inserts, a List of `Players` and an active 
 player index
 
 It has the following public class methods:
@@ -321,7 +329,10 @@ It has the following public methods:
 
 A 'Referee' has a List of cheating `Player`, a List of winning `Player`, the number of completed rounds, a List with the 
 goal `Position` for each `Player`, a list with each `Player` who has passed during a round, and a boolean that
-represents if the last active player has cheated.
+represents if the active player has cheated.
+
+A `Referee` can be initialized either with or without an `Observer` based on a boolean flag that is
+passed in to the constructor, True if initializing with an `Observer`, False if initializing without
 
 It has the following public methods:
 
@@ -329,9 +340,19 @@ It has the following public methods:
 - run_game(players)
 - run_game(game_state)
 
+An 'Observer' has a List of `States`, the current state index,
+a flag representing if the game is over or not, and a `Tk` (from tkinter library) 
+where the game will be drawn
+
+It has the following public methods:
+
+- receive_new_state(next_state)
+- set_game_is_over()
+- display_gui()
+
 Here is a class diagram for our project:
 
-![class diagram](classDiagramM5.png)
+![class diagram](classDiagramM6.png)
 
 # Testing:
 

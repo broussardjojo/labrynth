@@ -31,7 +31,6 @@ class Observer:
         self.__list_of_states: List[State] = []
         self.__current_state_index = 0
         self.__is_game_over = False
-        self.__current_canvas: Canvas
         self.__window = Tk()
 
     def receive_new_state(self, next_state: State) -> None:
