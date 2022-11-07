@@ -2,6 +2,7 @@ from random import choice
 from typing import List, Tuple
 
 from .board import Board
+from .position_transition_map import PositionTransitionMap
 from ..Players.player import Player
 from .tile import Tile
 from .direction import Direction
@@ -73,7 +74,7 @@ class State(ObservableState):
         """
         if degrees % 90 == 0:
             rotations = int(degrees / 90)
-            super().get_board().get_next_tile().rotate(rotations)
+            self._board.get_next_tile().rotate(rotations)
         else:
             raise ValueError("Invalid degrees of rotations. Must be multiple of 90 degrees.")
 
@@ -88,9 +89,9 @@ class State(ObservableState):
         if self.__are_available_home_and_goal_tile():
             home_tile = self.__generate_players_tile(want_home=True)
             goal_tile = self.__generate_players_tile(want_home=False)
-            goal_position = super().get_board().get_position_by_tile(goal_tile)
+            goal_position = self._board.get_position_by_tile(goal_tile)
             new_player = Player.from_goal_home_color_strategy(goal_position,
-                                                              super().get_board().get_position_by_tile(home_tile),
+                                                              self._board.get_position_by_tile(home_tile),
                                                               self.__get_unique_color(), Riemann())
             self.get_players().append(new_player)
         else:
@@ -105,10 +106,10 @@ class State(ObservableState):
         :return: True if there is at least one available Tile of each type (home and goal) on this State's Board, False
         otherwise
         """
-        all_tiles = super().get_board().get_tile_grid()
+        all_tiles = self._board.get_tile_grid()
         for row in range(len(all_tiles)):
             for col in range(len(all_tiles[row])):
-                if super().get_board().check_stationary_position(row, col) \
+                if self._board.check_stationary_position(row, col) \
                         and self.__tile_is_available_as_goal(all_tiles[row][col]) \
                         and self.__tile_is_available_as_home(all_tiles[row][col]):
                     return True
@@ -122,7 +123,7 @@ class State(ObservableState):
         :return: A Tile which represents a potential home for a Player
         :raises: a ValueError if there are no Tiles left on this State's Board that are stationary
         """
-        stationary_tiles = super().get_board().get_all_stationary_tiles()
+        stationary_tiles = self._board.get_all_stationary_tiles()
         while stationary_tiles:
             potential_tile = choice(stationary_tiles)
             if want_home:
@@ -142,7 +143,7 @@ class State(ObservableState):
         :return: True if the Tile is available as a goal Tile, False otherwise
         """
         for player in self.__players:
-            if super().get_board().get_tile_by_position(player.get_goal_position()) == potential_tile:
+            if self._board.get_tile_by_position(player.get_goal_position()) == potential_tile:
                 return False
         return True
 
@@ -197,51 +198,24 @@ class State(ObservableState):
         side effect: mutates __board by changing the Board's __tile_grid and __next_tile. Potentially mutates the
         Players of this State if they get slid off this State's Board
         """
-        super().get_board().slide_and_insert(index, direction)
-        self.__adjust_all_players(index, direction)
-        super().get_all_previous_non_passes().append((index, direction))
+        position_transitions = self._board.slide_and_insert(index, direction)
+        self.__adjust_all_players(position_transitions)
+        self._previous_moves.append((index, direction))
 
-    def __adjust_all_players(self, slide_index: int, slide_direction: Direction) -> None:
+    def __adjust_all_players(self, transitions: PositionTransitionMap) -> None:
         """
         Move any players that have been slid during the previous slide move. Players that may have been slid off of the
         board in the previous move are placed onto the newly inserted Tile
+        :param transitions: a PositionTransitionMap representing the mapping of previous positions to new positions
         :return: None
         side effect: Potentially mutates the Players of this State if they get slid on this State's Board
         """
         for player in self.__players:
-            new_position = self.__adjust_player_position_in_bound(player, slide_index, slide_direction)
-            player.set_current_position(new_position)
-
-    def __adjust_player_position_in_bound(self, player: Player, slide_index: int,
-                                          slide_direction: Direction) -> Position:
-        """
-        Adjusts a player of this State's position on this State's Board after a slide. If a slide results in a player
-        having a Position not on the Board, adjusts the player's position to be on the Board.
-        :param player: a Player representing the player whose position is being adjusted
-        :param slide_index: an int representing the row or column being slide
-        :param slide_direction: a Direction representing the direction the row or column is being slid
-        :return: a Position representing the player's new position on the Board
-        """
-        player_row = player.get_current_position().get_row()
-        player_col = player.get_current_position().get_col()
-        max_valid_pos = len(super().get_board().get_tile_grid()) - 1
-        if slide_direction == Direction.Up:
-            if slide_index == player_col:
-                new_row = player_row - 1 if player_row > 0 else max_valid_pos
-                return Position(new_row, player_col)
-        elif slide_direction == Direction.Down:
-            if slide_index == player_col:
-                new_row = player_row + 1 if player_row < max_valid_pos else 0
-                return Position(new_row, player_col)
-        elif slide_direction == Direction.Left:
-            if slide_index == player_row:
-                new_col = player_col - 1 if player_col > 0 else max_valid_pos
-                return Position(player_row, new_col)
-        else:
-            if slide_index == player_row:
-                new_col = player_col + 1 if player_col < max_valid_pos else 0
-                return Position(player_row, new_col)
-        return Position(player_row, player_col)
+            old_position = player.get_current_position()
+            if old_position in transitions.updated_positions:
+                player.set_current_position(transitions.updated_positions[old_position])
+            elif old_position == transitions.removed_position:
+                player.set_current_position(transitions.inserted_position)
 
     def get_players(self) -> List[Player]:
         """
@@ -260,7 +234,7 @@ class State(ObservableState):
         if self.__players:
             active_player = self.__players[self.__active_player_index]
             current_tile_position = active_player.get_current_position()
-            target_tile_position = super().get_board().get_position_by_tile(target_tile)
+            target_tile_position = self._board.get_position_by_tile(target_tile)
             return self.__can_reach_position_from_given_position(current_tile_position, target_tile_position)
         raise ValueError("No players to check")
 
@@ -272,9 +246,9 @@ class State(ObservableState):
         :return: True if there is a path from the start Position to the end Position in the current condition of the
         Board
         """
-        current_tile = super().get_board().get_tile_by_position(start_position)
-        target_tile = super().get_board().get_tile_by_position(end_position)
-        all_reachable = super().get_board().reachable_tiles(current_tile)
+        current_tile = self._board.get_tile_by_position(start_position)
+        target_tile = self._board.get_tile_by_position(end_position)
+        all_reachable = self._board.reachable_tiles(current_tile)
         return target_tile in all_reachable
 
     def get_active_player_index(self) -> int:
@@ -354,7 +328,7 @@ class State(ObservableState):
         :return: A list of Players representing the winning Players
         """
         closest_players = []
-        board_size = len(super().get_board().get_tile_grid())
+        board_size = len(self._board.get_tile_grid())
         current_min_distance = get_euclidean_distance_between(Position(0, 0), Position(board_size, board_size))
         for player in possible_winners:
             if is_goal:

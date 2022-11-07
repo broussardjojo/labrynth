@@ -1,3 +1,6 @@
+from typing import Tuple
+
+
 class Position:
     """
     Represents a Position on a Board as a row and column, which represent row and column indices on a Board's tile grid,
@@ -26,6 +29,13 @@ class Position:
         """
         return self.__col
 
+    def get_position_tuple(self) -> Tuple[int, int]:
+        """
+        Gives the row and column indices for this Position
+        :return: an tuple of two ints representing the row and column indices for this Position
+        """
+        return self.__row, self.__col
+
     def __eq__(self, other):
         """
         Overrides equal in order to compare Position objects. A Position is equal to another if they have the same row
@@ -43,3 +53,6 @@ class Position:
         :return: this Position object as a row, col
         """
         return f"({self.__row}, {self.__col})"
+
+    def __hash__(self):
+        return hash(self.get_position_tuple())

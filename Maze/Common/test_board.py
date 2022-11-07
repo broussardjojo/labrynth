@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 from .board import Board
 from .direction import Direction
@@ -72,27 +74,71 @@ def test_slide_out_of_bounds3(basic_board):
 
 # verifies slide method modifies the next tile
 def test_removed_tile_after_slide_down(basic_board):
+    tile_grid_copy = deepcopy(basic_board.get_tile_grid())
+    spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[6][0]
     basic_board.slide_and_insert(0, Direction.Down)
     assert basic_board.get_next_tile() == tile_to_be_removed
+    tile_grid_after = basic_board.get_tile_grid()
+    for row, tiles in enumerate(tile_grid_copy):
+        for col, tile in enumerate(tiles):
+            if col == 0:
+                if row < 6:
+                    assert tile == tile_grid_after[row + 1][col]
+            else:
+                assert tile == tile_grid_after[row][col]
+    assert tile_grid_after[0][0] == spare_tile
 
 
 def test_removed_tile_after_slide_right(basic_board):
+    tile_grid_copy = deepcopy(basic_board.get_tile_grid())
+    spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[2][6]
     basic_board.slide_and_insert(2, Direction.Right)
     assert basic_board.get_next_tile() == tile_to_be_removed
+    tile_grid_after = basic_board.get_tile_grid()
+    for row, tiles in enumerate(tile_grid_copy):
+        for col, tile in enumerate(tiles):
+            if row == 2:
+                if col < 6:
+                    assert tile == tile_grid_after[row][col + 1]
+            else:
+                assert tile == tile_grid_after[row][col]
+    assert tile_grid_after[2][0] == spare_tile
 
 
 def test_removed_tile_after_slide_up(basic_board):
+    tile_grid_copy = deepcopy(basic_board.get_tile_grid())
+    spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[0][4]
     basic_board.slide_and_insert(4, Direction.Up)
     assert basic_board.get_next_tile() == tile_to_be_removed
+    tile_grid_after = basic_board.get_tile_grid()
+    for row, tiles in enumerate(tile_grid_copy):
+        for col, tile in enumerate(tiles):
+            if col == 4:
+                if row > 0:
+                    assert tile == tile_grid_after[row - 1][col]
+            else:
+                assert tile == tile_grid_after[row][col]
+    assert tile_grid_after[6][4] == spare_tile
 
 
 def test_removed_tile_after_slide_left(basic_board):
+    tile_grid_copy = deepcopy(basic_board.get_tile_grid())
+    spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[6][0]
     basic_board.slide_and_insert(6, Direction.Left)
     assert basic_board.get_next_tile() == tile_to_be_removed
+    tile_grid_after = basic_board.get_tile_grid()
+    for row, tiles in enumerate(tile_grid_copy):
+        for col, tile in enumerate(tiles):
+            if row == 6:
+                if col > 0:
+                    assert tile == tile_grid_after[row][col - 1]
+            else:
+                assert tile == tile_grid_after[row][col]
+    assert tile_grid_after[6][6] == spare_tile
 
 
 # verifies that the slide_and_insert method fills in the empty space in the correct spot with the next Tile

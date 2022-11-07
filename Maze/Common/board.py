@@ -1,4 +1,4 @@
-from typing import List, Set, Any
+from typing import List, Set, Any, Dict
 from .tile import Tile
 from .gem import Gem
 from .shapes import Shape, Line, Corner, TShaped, Cross
@@ -6,6 +6,7 @@ from .utils import generate_gem_list
 import random
 from .direction import Direction
 from .position import Position
+from .position_transition_map import PositionTransitionMap
 
 
 class Board:
@@ -117,28 +118,25 @@ class Board:
         """
         return Gem(gem_name_list[random.randint(0, len(gem_name_list) - 1)])
 
-    def slide_and_insert(self, index: int, direction: Direction) -> None:
+    def slide_and_insert(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
         Slides the row or column at the given index of this Board in the given Direction and inserts this Board's
         __next_tile at the end of that row or column.
         :param index: an int representing the row or column to slide
         :param direction: a Direction representing the direction to slide the row or column, can be one of Up, Down,
         Left, or Right
-        :return: None
+        :return: a PositionTransitionMap representing the mapping of previous positions to new positions
         :raises: ValueError if the given index is not eligible to slide
         side effect: mutates __tile_grid and mutates __next_tile
         """
-        if self.can_slide(index):
-            if direction == Direction.Up:
-                self.__slide_up(index)
-            elif direction == Direction.Down:
-                self.__slide_down(index)
-            elif direction == Direction.Right:
-                self.__slide_right(index)
-            elif direction == Direction.Left:
-                self.__slide_left(index)
-        else:
+        if not self.can_slide(index):
             raise ValueError("Invalid index")
+        if direction is Direction.Up or direction is Direction.Down:
+            position_transitions = self.__get_slide_column_transitions(index, direction)
+        else:
+            position_transitions = self.__get_slide_row_transitions(index, direction)
+        self.__perform_slide_and_insert(position_transitions)
+        return position_transitions
 
     def can_slide(self, index: int) -> bool:
         """
@@ -148,56 +146,59 @@ class Board:
         """
         return not (index < 0 or index >= self.__dimensions or index % 2 != 0)
 
-    def __slide_up(self, index: int) -> None:
+    def __get_slide_row_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
-        Slides the given column up.
-        :param index: represents a column on this Board
-        :return: None
-        side effect: mutates __tile_grid and __next_tile
+        Gets the PositionTransitionMap for a given slide index and Direction
+        :param index: an int representing the index of the row to slide
+        :param direction: a Direction which is one of Direction.Left or Direction.Right
+        :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        removed_tile = self.__tile_grid[0][index]
-        for row in range(1, self.__dimensions):
-            self.__tile_grid[row - 1][index] = self.__tile_grid[row][index]
-            self.__tile_grid[row][index] = self.__next_tile
-        self.__next_tile = removed_tile
+        col_offset = self.LEFT_OFFSET if direction is Direction.Left else self.RIGHT_OFFSET
+        last_col = self.__dimensions - 1
+        updated_positions = {
+            Position(index, col): Position(index, col + col_offset)
+            for col in range(self.__dimensions)
+            if 0 <= col + col_offset < self.__dimensions
+        }
+        removed_position = Position(index, 0) if direction is Direction.Left else Position(index, last_col)
+        inserted_position = Position(index, 0) if direction is Direction.Right else Position(index, last_col)
+        return PositionTransitionMap(updated_positions, removed_position, inserted_position)
 
-    def __slide_down(self, index: int) -> None:
+    def __get_slide_column_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
-        Slides the given column down.
-        :param index: represents a column on this Board
-        :return: None
-        side effect: mutates __tile_grid and __next_tile
+        Gets the PositionTransitionMap for a given slide index and Direction
+        :param index: an int representing the index of the column to slide
+        :param direction: a Direction which is one of Direction.Up or Direction.Down
+        :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        removed_tile = self.__tile_grid[self.__dimensions - 1][index]
-        for row in reversed(range(0, self.__dimensions - 1)):
-            self.__tile_grid[row + 1][index] = self.__tile_grid[row][index]
-            self.__tile_grid[row][index] = self.__next_tile
-        self.__next_tile = removed_tile
+        row_offset = self.UP_OFFSET if direction is Direction.Up else self.DOWN_OFFSET
+        last_row = self.__dimensions - 1
+        updated_positions = {
+            Position(row, index): Position(row + row_offset, index)
+            for row in range(self.__dimensions)
+            if 0 <= row + row_offset < self.__dimensions
+        }
+        removed_position = Position(0, index) if direction is Direction.Up else Position(last_row, index)
+        inserted_position = Position(0, index) if direction is Direction.Down else Position(last_row, index)
+        return PositionTransitionMap(updated_positions, removed_position, inserted_position)
 
-    def __slide_right(self, index: int) -> None:
+    def __perform_slide_and_insert(self, transitions: PositionTransitionMap) -> None:
         """
-        Slides the given row to the right.
-        :param index: represents a row on this Board
+        Slides the current grid based on the given PositionTransitionMap, sets the hole generated to the spare Tile
+        and assigns the removed Tile to be the next spare Tile
+        :param transitions: a PositionTransitionMap representing the movements of the slide action generated by the
+        __get_slide_column_transitions and __get_slide_row_transitions helper methods
         :return: None
-        side effect: mutates __tile_grid and __next_tile
         """
-        removed_tile = self.__tile_grid[index][self.__dimensions - 1]
-        for col in reversed(range(0, self.__dimensions - 1)):
-            self.__tile_grid[index][col + 1] = self.__tile_grid[index][col]
-            self.__tile_grid[index][col] = self.__next_tile
-        self.__next_tile = removed_tile
-
-    def __slide_left(self, index: int) -> None:
-        """
-        Slides the given row to the left.
-        :param index: represents a row on this Board
-        :return: None
-        side effect: mutates __tile_grid and __next_tile
-        """
-        removed_tile = self.__tile_grid[index][0]
-        for col in range(1, self.__dimensions):
-            self.__tile_grid[index][col - 1] = self.__tile_grid[index][col]
-            self.__tile_grid[index][col] = self.__next_tile
+        updates = transitions.updated_positions
+        rem_row, rem_col = transitions.removed_position.get_position_tuple()
+        removed_tile = self.__tile_grid[rem_row][rem_col]
+        ins_row, ins_col = transitions.inserted_position.get_position_tuple()
+        moved_tiles = [self.__tile_grid[row][col] for row, col in
+                       map(Position.get_position_tuple, updates.keys())]
+        for tile, new_pos in zip(moved_tiles, updates.values()):
+            self.__tile_grid[new_pos.get_row()][new_pos.get_col()] = tile
+        self.__tile_grid[ins_row][ins_col] = self.__next_tile
         self.__next_tile = removed_tile
 
     def reachable_tiles(self, base_tile: Tile) -> Set[Tile]:
@@ -209,7 +210,7 @@ class Board:
         all_reachable = self.__reachable_tiles_helper(base_tile, set())
         return all_reachable
 
-    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles) -> Set[Tile]:
+    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles: Set[Tile]) -> Set[Tile]:
         """
         Given a base Tile, gets a Set of reachable Tiles on this Board
         :param base_tile: the Tile representing the start Tile for the search

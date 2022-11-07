@@ -102,7 +102,7 @@ class BaseStrategy(Strategy):
                     board.get_next_tile().rotate(rotation)
                     adjusted_base_tile = self.__adjust_base_tile_on_edge(board, base_tile,
                                                                          index, slide_direction)
-                    board.slide_and_insert(index, slide_direction)
+                    transitions = board.slide_and_insert(index, slide_direction)
                     reachable_positions = \
                         self.__get_reachable_positions_from_tile(board, board.reachable_tiles(adjusted_base_tile))
                     slid_target_tile = board.get_tile_by_position(target_position)

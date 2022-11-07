@@ -8,7 +8,7 @@ from .move import Move, Pass
 from ..Common.direction import Direction
 from ..Common.boardSerializer import get_json_obj_list, make_tile_grid
 from ..Common.board import Board
-
+from ..Common.tileSerializer import get_connector_from_shape
 
 # ----- Examples ------
 # This board has the following shape:
@@ -20,6 +20,9 @@ from ..Common.board import Board
 #   ["┘","├","│","┬","┤","┼","│"],
 #   ["─","┴","└","┐","┘","┬","├"]
 # It's spare tile is a "┬" shape
+
+
+
 @pytest.fixture
 def basic_seeded_board():
     path = Path(__file__).parent / "basicBoard.json"
@@ -47,6 +50,18 @@ def target_position():
 @pytest.fixture
 def euclid_strategy():
     return Euclid()
+
+
+def board_to_unicode(board):
+    result = ""
+    for row, tiles in enumerate(board.get_tile_grid()):
+        if result:
+            result += "\n"
+        result += "".join([get_connector_from_shape(tile.get_shape()) for tile in tiles])
+        if row == 0:
+            result += " "
+            result += get_connector_from_shape(board.get_next_tile().get_shape())
+    return result
 
 
 # This board has the following shape:
