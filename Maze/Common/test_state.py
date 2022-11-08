@@ -144,19 +144,17 @@ def test_is_active_player_at_goal_removed_all_players(sample_seeded_game_state):
     assert str(error_message.value) == "No players to check"
 
 
-# ----- Test can_active_player_reach_given_tile Method -----
+# ----- Test can_active_player_reach_tile Method -----
 # verifies can_active_player_reach_given_tile returns True if the player can reach the given tile and False otherwise
 def test_player_can_reach_tile_above(sample_seeded_game_state):
     current_board = sample_seeded_game_state.get_board()
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
-    reachable_tile = current_board.get_tile_grid()[4][5]
-    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert reachable_tile in current_board.reachable_tiles(current_tile)
+    assert Position(4, 5) in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_given_tile(reachable_tile)
+    assert sample_seeded_game_state.can_active_player_reach_position(Position(4, 5))
 
 
 def test_player_can_reach_tile_below(sample_seeded_game_state):
@@ -165,11 +163,10 @@ def test_player_can_reach_tile_below(sample_seeded_game_state):
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
     reachable_tile = current_board.get_tile_grid()[6][5]
-    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert reachable_tile in current_board.reachable_tiles(current_tile)
+    assert Position(6, 5) in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_given_tile(reachable_tile)
+    assert sample_seeded_game_state.can_active_player_reach_position(Position(6, 5))
 
 
 def test_player_can_not_reach_tile_right(sample_seeded_game_state):
@@ -178,12 +175,11 @@ def test_player_can_not_reach_tile_right(sample_seeded_game_state):
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
     unreachable_tile = current_board.get_tile_grid()[5][6]
-    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     assert not unreachable_tile.has_path(Direction.Left)
     # validate that reachable tile is not reachable using previously tested reachable_tiles method
-    assert unreachable_tile not in current_board.reachable_tiles(current_tile)
+    assert Position(5, 6) not in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
-    assert not sample_seeded_game_state.can_active_player_reach_given_tile(unreachable_tile)
+    assert not sample_seeded_game_state.can_active_player_reach_position(Position(5, 6))
 
 
 def test_player_can_reach_tile_left(sample_seeded_game_state):
@@ -191,12 +187,10 @@ def test_player_can_reach_tile_left(sample_seeded_game_state):
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
-    reachable_tile = current_board.get_tile_grid()[5][4]
-    current_tile = sample_seeded_game_state.get_board().get_tile_by_position(current_tile_pos)
     # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert reachable_tile in current_board.reachable_tiles(current_tile)
+    assert Position(5, 4) in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_given_tile(reachable_tile)
+    assert sample_seeded_game_state.can_active_player_reach_position(Position(5, 4))
 
 
 # verifies can_active_player_reach_given_tile throws an exception when no players are in the game
@@ -204,7 +198,7 @@ def test_player_can_reach_tile_no_players(zero_player_game_state):
     with pytest.raises(ValueError) as error_message:
         current_board = zero_player_game_state.get_board()
         unreachable_tile = current_board.get_tile_grid()[2][2]
-        zero_player_game_state.can_active_player_reach_given_tile(unreachable_tile)
+        zero_player_game_state.can_active_player_reach_position(unreachable_tile)
     assert str(error_message.value) == "No players to check"
 
 
@@ -215,7 +209,7 @@ def test_player_can_reach_tile_removed_all_players(sample_seeded_game_state):
         sample_seeded_game_state.kick_out_active_player()
         sample_seeded_game_state.kick_out_active_player()
         sample_seeded_game_state.kick_out_active_player()
-        sample_seeded_game_state.can_active_player_reach_given_tile(unreachable_tile)
+        sample_seeded_game_state.can_active_player_reach_position(unreachable_tile)
     assert str(error_message.value) == "No players to check"
 
 

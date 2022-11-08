@@ -1,10 +1,10 @@
-from typing import List, Set, Any, Dict
+from typing import List, Set, Any
 from .tile import Tile
 from .gem import Gem
 from .shapes import Shape, Line, Corner, TShaped, Cross
 from .utils import generate_gem_list
 import random
-from .direction import Direction
+from .direction import Direction, RIGHT_OFFSET, LEFT_OFFSET, DOWN_OFFSET, UP_OFFSET
 from .position import Position
 from .position_transition_map import PositionTransitionMap
 
@@ -15,10 +15,6 @@ class Board:
     and an extra Tile. The grid is 0-indexed, row majored, and board[0][0] represents the Tile at the top-left.
     spot on this Board.
     """
-    UP_OFFSET = -1
-    DOWN_OFFSET = 1
-    LEFT_OFFSET = -1
-    RIGHT_OFFSET = 1
 
     def __init__(self, tile_grid: List[List[Tile]], next_tile: Tile):
         """
@@ -153,7 +149,7 @@ class Board:
         :param direction: a Direction which is one of Direction.Left or Direction.Right
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        col_offset = self.LEFT_OFFSET if direction is Direction.Left else self.RIGHT_OFFSET
+        col_offset = LEFT_OFFSET if direction is Direction.Left else RIGHT_OFFSET
         last_col = self.__dimensions - 1
         updated_positions = {
             Position(index, col): Position(index, col + col_offset)
@@ -171,7 +167,7 @@ class Board:
         :param direction: a Direction which is one of Direction.Up or Direction.Down
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        row_offset = self.UP_OFFSET if direction is Direction.Up else self.DOWN_OFFSET
+        row_offset = UP_OFFSET if direction is Direction.Up else DOWN_OFFSET
         last_row = self.__dimensions - 1
         updated_positions = {
             Position(row, index): Position(row + row_offset, index)
@@ -201,34 +197,31 @@ class Board:
         self.__tile_grid[ins_row][ins_col] = self.__next_tile
         self.__next_tile = removed_tile
 
-    def reachable_tiles(self, base_tile: Tile) -> Set[Tile]:
+    def reachable_tiles(self, base_position: Position) -> Set[Position]:
         """
-        Given a base Tile, gets a Set of reachable Tiles on this Board
-        :param base_tile: the Tile representing the start Tile for the search
-        :return: a Set of all reachable Tiles
+        Given a base Position, gets a Set of reachable Positions on this Board
+        :param base_position: the Position representing the start Position for the search
+        :return: a Set of all reachable Positions
         """
-        all_reachable = self.__reachable_tiles_helper(base_tile, set())
+        all_reachable = self.__reachable_tiles_helper(base_position)
         return all_reachable
 
-    def __reachable_tiles_helper(self, base_tile: Tile, acc_tiles: Set[Tile]) -> Set[Tile]:
+    def __reachable_tiles_helper(self, base_position: Position) -> Set[Position]:
         """
-        Given a base Tile, gets a Set of reachable Tiles on this Board
-        :param base_tile: the Tile representing the start Tile for the search
-        :param acc_tiles: accumulator representing the Set of all reachable Tiles
-        :return: a Set of all reachable Tiles including the base Tile
+        Given a base Position, gets a Set of reachable Positions on this Board
+        :param base_position: the Position representing the start Position for the search
+        :return: a Set of all reachable Positions including the base Position
         """
-        acc_tiles.add(base_tile)
-        for direction_offset in [self.RIGHT_OFFSET, self.LEFT_OFFSET]:
-            neighbor = self.__check_neighbor(base_tile, 0, direction_offset)
-            if neighbor not in acc_tiles:
-                self.__reachable_tiles_helper(neighbor, acc_tiles)
-        for direction_offset in [self.UP_OFFSET, self.DOWN_OFFSET]:
-            neighbor = self.__check_neighbor(base_tile, direction_offset, 0)
-            if neighbor not in acc_tiles:
-                self.__reachable_tiles_helper(neighbor, acc_tiles)
-        return acc_tiles
+        stack = [base_position]
+        acc_positions: Set[Position] = {base_position}
+        while stack:
+            curr_position = stack.pop()
+            for neighbor in self.__check_neighbors(curr_position, acc_positions):
+                stack.append(neighbor)
+                acc_positions.add(neighbor)
+        return acc_positions
 
-    def __connected_tile(self, base_tile: Tile, neighbor_tile: Tile, base_path: Direction) -> Tile:
+    def __connected_tile(self, base_tile: Tile, neighbor_tile: Tile, base_path: Direction) -> bool:
         """
         Checks if the two given Tiles are connected by the given Direction on the base Tile
         :param base_tile: The source Tile to check the connection of
@@ -237,10 +230,8 @@ class Board:
         :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
         it will return the given base Tile
         """
-        neighbor_path = self.__get_opposite_path(base_path)
-        if base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path):
-            return neighbor_tile
-        return base_tile
+        neighbor_path = base_path.get_opposite_direction()
+        return base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path)
 
     @staticmethod
     def __get_opposite_path(base_path):
@@ -257,30 +248,26 @@ class Board:
             return Direction.Left
         return Direction.Right
 
-    def __check_neighbor(self, base_tile: Tile, row_offset: int, col_offset: int) -> Tile:
+    def __check_neighbors(self, base_position: Position, acc_positions: Set[Position]) -> List[Position]:
         """
-        Checks if the given Tile has a connected neighbor at the given offsets
-        :param base_tile: A Tile representing the source tile to search from
-        :param row_offset: An int representing the offset in the x direction between the base and neighbor tile
-        :param col_offset: An int representing the offset in the y direction between the base and neighbor tile
-        :return: A Tile, if the function finds a connected neighbor, it will return the neighbor. If it does not,
-        it will return the given base Tile
+        Gets all the given Position's connected neighbors (adjacent tiles which are connected to it via paths)
+        :param base_position: A Position representing the source Position to search from
+        :return: A List of Positions representing, all connected neighbors to the given base Position
         """
-        base_position = self.get_position_by_tile(base_tile)
+        connected_neighbors: List[Position] = []
         base_row = base_position.get_row()
         base_col = base_position.get_col()
-        if self.__valid_tile_location(base_row + row_offset, base_col + col_offset):
-            neighbor_tile = self.__tile_grid[base_row + row_offset][base_col + col_offset]
-            if col_offset == self.RIGHT_OFFSET:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Right)
-            elif col_offset == self.LEFT_OFFSET:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Left)
-            elif row_offset == self.UP_OFFSET:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Up)
-            elif row_offset == self.DOWN_OFFSET:
-                return self.__connected_tile(base_tile, neighbor_tile, Direction.Down)
-        else:
-            return base_tile
+        base_tile = self.__tile_grid[base_row][base_col]
+        for direction in Direction:
+            row_offset, col_offset = direction.get_offset_tuple()
+            neighbor_row = base_row + row_offset
+            neighbor_col = base_col + col_offset
+            neighbor_pos = Position(neighbor_row, neighbor_col)
+            if neighbor_pos not in acc_positions and self.__valid_tile_location(neighbor_row, neighbor_col):
+                neighbor_tile = self.__tile_grid[neighbor_row][neighbor_col]
+                if self.__connected_tile(base_tile, neighbor_tile, direction):
+                    connected_neighbors.append(neighbor_pos)
+        return connected_neighbors
 
     def get_position_by_tile(self, base_tile: Tile) -> Position:
         """

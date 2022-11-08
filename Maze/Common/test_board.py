@@ -3,6 +3,7 @@ from copy import deepcopy
 import pytest
 from .board import Board
 from .direction import Direction
+from .gem import Gem
 from .position import Position
 from .tile import Tile
 from .shapes import Corner, Cross
@@ -26,7 +27,7 @@ def basic_corner():
 
 @pytest.fixture
 def corner_tile(basic_corner):
-    return Tile(basic_corner, 'amethyst', 'amethyst')
+    return Tile(basic_corner, Gem('amethyst'), Gem('amethyst'))
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def basic_cross():
 
 @pytest.fixture
 def cross_tile(basic_cross):
-    return Tile(basic_cross, 'emerald', 'ammolite')
+    return Tile(basic_cross, Gem('emerald'), Gem('ammolite'))
 
 
 # Test for the Board Constructor
@@ -168,17 +169,13 @@ def test_slide_generates_gap_left(basic_board):
 
 # ----- Test reachable_tiles method ------
 def test_reachable_tiles_seeded_board(seeded_small_board):
-    base_tile = seeded_small_board.get_tile_grid()[1][1]
-    up_neighbor = seeded_small_board.get_tile_grid()[0][1]
-    reachable_tiles = seeded_small_board.reachable_tiles(base_tile)
-    assert up_neighbor in reachable_tiles
+    reachable_tiles = seeded_small_board.reachable_tiles(Position(1, 1))
+    assert Position(0, 1) in reachable_tiles
 
 
 def test_reachable_tiles_not_reachable_seeded_board(seeded_small_board):
-    base_tile = seeded_small_board.get_tile_grid()[1][1]
-    right_neighbor = seeded_small_board.get_tile_grid()[1][2]
-    reachable_tiles = seeded_small_board.reachable_tiles(base_tile)
-    assert right_neighbor not in reachable_tiles
+    reachable_tiles = seeded_small_board.reachable_tiles(Position(1, 1))
+    assert Position(1, 2) not in reachable_tiles
 
 
 # ----- Test check_stationary_position method ------

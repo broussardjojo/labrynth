@@ -143,21 +143,20 @@ class State(ObservableState):
         """
         return self.__players
 
-    def can_active_player_reach_given_tile(self, target_tile: Tile) -> bool:
+    def can_active_player_reach_position(self, target_position: Position) -> bool:
         """
         Determines if the active player can reach a given Tile
-        :param target_tile: A Tile representing the potential destination to check against
+        :param target_position: A Tile representing the potential destination to check against
         :return: True if the active player can reach the target, False otherwise
         :raises: ValueError if there are no players in this State
         """
         if self.__players:
             active_player = self.__players[self.__active_player_index]
             current_tile_position = active_player.get_current_position()
-            target_tile_position = self._board.get_position_by_tile(target_tile)
-            return self.__can_reach_position_from_given_position(current_tile_position, target_tile_position)
+            return self.__can_reach_position_from_position(current_tile_position, target_position)
         raise ValueError("No players to check")
 
-    def __can_reach_position_from_given_position(self, start_position, end_position) -> bool:
+    def __can_reach_position_from_position(self, start_position, end_position) -> bool:
         """
         Method to check if a given position can be reached from another given position on this State's Board
         :param start_position: Position to begin from
@@ -165,10 +164,8 @@ class State(ObservableState):
         :return: True if there is a path from the start Position to the end Position in the current condition of the
         Board
         """
-        current_tile = self._board.get_tile_by_position(start_position)
-        target_tile = self._board.get_tile_by_position(end_position)
-        all_reachable = self._board.reachable_tiles(current_tile)
-        return target_tile in all_reachable
+        all_reachable = self._board.reachable_tiles(end_position)
+        return start_position in all_reachable
 
     def get_active_player_index(self) -> int:
         """

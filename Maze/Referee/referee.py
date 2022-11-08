@@ -300,7 +300,7 @@ class Referee:
             destination_tile = board_copy.get_tile_by_position(proposed_move.get_destination_position())
         except ValueError:
             return False
-        return state_copy.can_active_player_reach_given_tile(destination_tile)
+        return state_copy.can_active_player_reach_position(destination_tile)
 
     def __perform_pass(self, active_player: Player) -> None:
         """

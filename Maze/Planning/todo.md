@@ -13,8 +13,10 @@
     - > If you tried to go to specific (unique) tiles instead of specific coordinates, please change your code to match the now clarified specification.
   - Rationale 2: `Board.get_position_from_tile` is a performance bottleneck, checking 49
     tiles for equality. We already track players' current location, so this can be avoided.
-  - [ ] Eliminate need for `Board.get_position_from_tile`. While doing this we can add an intermediate data structure which will allow us to more easily abstract `Board.slide*` and more easily implement player position tracking.
-  - [ ] Change signature of `Board.reachable_tiles` to take in Position
+  - Approach: Eliminate all uses of `Board.get_position_from_tile`.
+  - [x] Find a way to improve `Player` position tracking.
+  - [x] Change signature of `Board.reachable_tiles` to take in Position
+  - [x] Refactor all code related to `Board.reachable_tiles`
   - [ ] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
 
 &nbsp;
@@ -74,6 +76,9 @@
 - [ ] Remove `multipledispatch`
 - [ ] Make `get_opposite_direction` from utils an actual method on a Direction
 - [ ] The file checking in `Gem` can be cached
+- [ ] Break down make_tile_grid into pieces allowing callers to supply connectors without treasures so that tests can use it too (will make testing with custom boards faster) 
+- [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are
+in the same file as their main data structure's serialization code)
 
 
 ### Completed
