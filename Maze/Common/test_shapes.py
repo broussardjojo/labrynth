@@ -84,18 +84,15 @@ def test_invalid_t_shape_constructor():
 
 # ----- Testing Rotate -----
 def test_rotate_cross(cross, cross2):
-    cross.rotate(1)
-    assert cross == cross2
+    assert cross.rotate(1) == cross2
 
 
 def test_rotate_corner(basic_corner, rotated_corner):
-    basic_corner.rotate(1)
-    assert basic_corner == rotated_corner
+    assert basic_corner.rotate(1) == rotated_corner
 
 
 def test_rotate_corner_twice(basic_corner, double_rotated_corner):
-    basic_corner.rotate(2)
-    assert basic_corner == double_rotated_corner
+    assert basic_corner.rotate(2) == double_rotated_corner
 
 
 # ----- Testing has_path -----

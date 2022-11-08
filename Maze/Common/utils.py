@@ -51,6 +51,11 @@ shape_dict = {
     '┼': Cross()
 }
 
+inverse_shape_dict = {
+    shape: connector
+    for connector, shape in shape_dict.items()
+}
+
 
 def get_opposite_direction(input_direction: Direction) -> Direction:
     """

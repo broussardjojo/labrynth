@@ -7,6 +7,19 @@ from .gem import Gem
 from .position import Position
 from .tile import Tile
 from .shapes import Corner, Cross
+from .tileSerializer import get_connector_from_shape
+
+
+def board_to_unicode(board):
+    result = ""
+    for row, tiles in enumerate(board.get_tile_grid()):
+        if result:
+            result += "\n"
+        result += "".join([get_connector_from_shape(tile.get_shape()) for tile in tiles])
+        if row == 0:
+            result += " "
+            result += get_connector_from_shape(board.get_next_tile().get_shape())
+    return result
 
 
 # ------ Example Boards ------

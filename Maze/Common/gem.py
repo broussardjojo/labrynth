@@ -48,12 +48,12 @@ class Gem:
         """
         return self.__gem_filepath
 
-    def __str__(self):
+    def __repr__(self):
         """
         Provides the name of this Gem as a string.
         :return: this Gem's name
         """
-        return self.__gem_name
+        return f"Gem({self.__gem_name})"
 
     def __hash__(self):
         """

@@ -82,9 +82,8 @@ class Tile:
         :return: None
         side effect: mutates the Shape of this Tile
         """
-
         positive_rotations = self.__get_positive_rotations(rotations)
-        self.__shape.rotate(positive_rotations)
+        self.__shape = self.__shape.rotate(positive_rotations)
 
     def __get_positive_rotations(self, rotations: int) -> int:
         """

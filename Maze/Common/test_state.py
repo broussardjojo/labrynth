@@ -6,6 +6,7 @@ from .shapes import Line
 from .gem import Gem
 from .direction import Direction
 from .position import Position
+from .utils import shape_dict
 from ..Players.euclid import Euclid
 from ..Players.player import Player
 from ..Players.riemann import Riemann
@@ -13,17 +14,27 @@ from ..Players.riemann import Riemann
 
 @pytest.fixture
 def seeded_board():
-    return Board.from_random_board(seed=10)
+    connector_rows = [
+        "││┼└┼└│",
+        "┬┬┼┬└└┼",
+        "│└┬┬┼│┬",
+        "└│┬│└┬│",
+        "│└┼┬└┼└",
+        "┼┬││└┼└",
+        "└┬┼┼┬┼┼",
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
 
 
 @pytest.fixture
 def seeded_spare_tile():
-    return Tile(Line(0), Gem('emerald'), Gem('rhodonite'))
+    return Tile(Line(0), Gem('emerald'), Gem('emerald'))
 
 
 @pytest.fixture
 def rotated_seeded_spare_tile():
-    return Tile(Line(1), Gem('emerald'), Gem('rhodonite'))
+    return Tile(Line(1), Gem('emerald'), Gem('emerald'))
 
 
 @pytest.fixture

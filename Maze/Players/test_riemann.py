@@ -23,7 +23,7 @@ from ..Common.board import Board
 @pytest.fixture
 def basic_seeded_board():
     path = Path(__file__).parent / "basicBoard.json"
-    with path.open() as board_file:
+    with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
         return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
@@ -61,7 +61,7 @@ def riemann_strategy():
 @pytest.fixture
 def basic_seeded_board_two():
     path = Path(__file__).parent / "basicBoardTwo.json"
-    with path.open() as board_file:
+    with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
         return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)

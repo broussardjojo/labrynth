@@ -354,4 +354,3 @@ class Board:
                             return False
                 return self.__next_tile == other.__next_tile
         return False
-

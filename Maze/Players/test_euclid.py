@@ -26,7 +26,7 @@ from ..Common.tileSerializer import get_connector_from_shape
 @pytest.fixture
 def basic_seeded_board():
     path = Path(__file__).parent / "basicBoard.json"
-    with path.open() as board_file:
+    with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
         return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
@@ -52,18 +52,6 @@ def euclid_strategy():
     return Euclid()
 
 
-def board_to_unicode(board):
-    result = ""
-    for row, tiles in enumerate(board.get_tile_grid()):
-        if result:
-            result += "\n"
-        result += "".join([get_connector_from_shape(tile.get_shape()) for tile in tiles])
-        if row == 0:
-            result += " "
-            result += get_connector_from_shape(board.get_next_tile().get_shape())
-    return result
-
-
 # This board has the following shape:
 #   ["┬","┐","─","─","┐","└","┌"],
 #   ["└","│","─","┘","┬","├","┴"],
@@ -76,7 +64,7 @@ def board_to_unicode(board):
 @pytest.fixture
 def basic_seeded_board_two():
     path = Path(__file__).parent / "basicBoardTwo.json"
-    with path.open() as board_file:
+    with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
         return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
