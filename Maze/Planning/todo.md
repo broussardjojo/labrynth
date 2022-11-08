@@ -80,4 +80,5 @@
 
 - [x] `State` should not allow adding players (MEDIUM)
   - Rationale: All players should be registered before gameplay begins
-  - Commit: 
+  - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/3698168acf8fd1f130aabbf1a0c08ce386814371
+  - Commit Message: **remove ability to add players to state**
