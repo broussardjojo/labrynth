@@ -6,6 +6,12 @@
   - The file 6/requirements.txt locks package versions which aren't compatible with
     Python 3.6. The console error is `Could not find a version that satisfies the requirement importlib-metadata==5.0.0 (from -r requirements.txt (line 2))`
 
+- [ ] Fix deserializers and guard against type errors
+  - Using the JSON object list directly is bypassing type hints and causing bugs test failures like this one: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/blob/8e6f41ed2867bc7de71b5603d05e245d7878fe51/4/testfest/test-results.txt#L14 
+  - [ ] Create JSON data definitions as Python types
+  - [ ] Type hint all functions, and avoid the `Any` type
+
+
 ### Priority: High
 
 - [ ] The strategy should attempt to reach a `Position`, not a `Tile`
@@ -58,8 +64,6 @@ code in `State` and `Board`
 ### Priority: Medium
 
 - [ ] Install a JSON library which can parse data as it arrives, instead of requiring it all at once.
-
-- [ ] All non-test code should be 100% typed, and avoid the `Any` type
 
 - [ ] `Move` combinators should be rewritten to make the "first-non-pass" preference of the two strategies more clear.
   - Rationale: The dynamic dispatches surrounding `Move` and `Pass` force the reader to jump through multiple call points to understand fairly simple code.
