@@ -15,8 +15,12 @@
     tiles for equality. We already track players' current location, so this can be avoided.
   - Approach: Eliminate all uses of `Board.get_position_from_tile`.
   - [x] Find a way to improve `Player` position tracking.
-  - [x] Change signature of `Board.reachable_tiles` to take in Position
-  - [x] Refactor all code related to `Board.reachable_tiles`
+    - Commit: 8c6fc3db26f91ade8e67785e06c3827edae50fab
+    - Commit Message: update board to use new position transition map
+  - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related
+code in `State` and `Board`
+    - Commit: 723ea1544a6e6bd0fdbd357ed759b67bd9561e34
+    - Commit Message:  update board.reachable_tiles and all code related to it
   - [ ] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
 
 &nbsp;
