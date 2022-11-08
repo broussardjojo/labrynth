@@ -47,12 +47,16 @@ class Position:
             return self.__row == other.__row and self.__col == other.__col
         return False
 
-    def __str__(self):
+    def __repr__(self):
         """
-        Overrides string in order to print Position objects.
+        Formats Position objects in a human readable form.
         :return: this Position object as a row, col
         """
-        return f"({self.__row}, {self.__col})"
+        return f"Position({self.__row}, {self.__col})"
 
     def __hash__(self):
+        """
+        Overrides hash method for a Position using tuple to avoid collisions
+        :return: an int representing the hash value for this position
+        """
         return hash(self.get_position_tuple())

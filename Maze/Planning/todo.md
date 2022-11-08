@@ -22,9 +22,10 @@
 - [ ] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current position, home position, and color
   - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the game
   - [ ] Create `APIPlayer`
-  - [ ] Use `asyncio` to simulate the player living across the network
+  - [ ] Use `asyncio` to simulate the player living across the network, add acknowledgments from the player (no more void methods in player interactions)
   - [ ] Write a remote proxy wrapper for the `APIPlayer` which handles timeout errors and safety errors
   - [ ] Update referee to wrap all `APIPlayer` instances in its constructor, and replace thread logic
+  - [ ] While fixing this also inform losing players
 
 - [ ] Use the observer pattern for `Observer`
   - [ ] Define the observer interface
@@ -60,7 +61,7 @@
   - [ ] Create a utility function to find the first non-empty `Maybe` in a stream (Generator)
   - [ ] Refactor dynamic dispatch in `Referee` to improve readability
 
-- [ ] `State` should not allow adding players
+- [x] `State` should not allow adding players
   - Rationale: All players should be registered before gameplay begins
 
 - [ ] `Observer` should 
@@ -73,3 +74,10 @@
 - [ ] Remove `multipledispatch`
 - [ ] Make `get_opposite_direction` from utils an actual method on a Direction
 - [ ] The file checking in `Gem` can be cached
+
+
+### Completed
+
+- [x] `State` should not allow adding players (MEDIUM)
+  - Rationale: All players should be registered before gameplay begins
+  - Commit: 
