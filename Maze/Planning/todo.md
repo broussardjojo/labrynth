@@ -15,24 +15,6 @@
 
 ### Priority: High
 
-- [ ] The strategy should attempt to reach a `Position`, not a `Tile`
-    - Rationale: Course website update on October 26th during milestone 5:
-        - > If you tried to go to specific (unique) tiles instead of specific coordinates, please change your code to
-          match the now clarified specification.
-    - Rationale 2: `Board.get_position_from_tile` is a performance bottleneck, checking 49
-      tiles for equality. We already track players' current location, so this can be avoided.
-    - Approach: Eliminate all uses of `Board.get_position_from_tile`.
-    - [x] Find a way to improve `Player` position tracking.
-        - Commit: 8c6fc3db26f91ade8e67785e06c3827edae50fab
-        - Commit Message: update board to use new position transition map
-    - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related
-      code in `State` and `Board`
-        - Commit: 723ea1544a6e6bd0fdbd357ed759b67bd9561e34
-        - Commit Message:  update board.reachable_tiles and all code related to it
-    - [ ] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
-
-&nbsp;
-
 - [ ] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current
   position, home position, and color
     - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
@@ -110,5 +92,23 @@
 - [x] `Shape` should not be mutable (MEDIUM)
     - Rationale: The serializer needs to use `Shape` values as dict keys, and its behavior gets confusing when mutation
       is allowed
-    - Commit: 8afe3f26b7db1cc45b618bc63200e116b7b10fce
+    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/8afe3f26b7db1cc45b618bc63200e116b7b10fce
     - Commit Message: **Make Shape immutable**
+
+- [x] The strategy should attempt to reach a `Position`, not a `Tile` (HIGH)
+    - Rationale: Course website update on October 26th during milestone 5:
+        - > If you tried to go to specific (unique) tiles instead of specific coordinates, please change your code to
+          match the now clarified specification.
+    - Rationale 2: `Board.get_position_from_tile` is a performance bottleneck, checking 49
+      tiles for equality. We already track players' current location, so this can be avoided.
+    - Approach: Eliminate all uses of `Board.get_position_from_tile`.
+    - [x] Find a way to improve `Player` position tracking.
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/8c6fc3db26f91ade8e67785e06c3827edae50fab
+        - Commit Message: **update board to use new position transition map**
+    - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related
+      code in `State` and `Board`
+        - Commit: 723ea1544a6e6bd0fdbd357ed759b67bd9561e34
+        - Commit Message: **update board.reachable_tiles and all code related to it**
+    - [x] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
+      - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/80adfaff73ca02efb5e943abfc3d2b3cd43edf43
+      - Commit Message: **Update strategy to fully remove position-tile conversions**
