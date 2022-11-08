@@ -1,4 +1,4 @@
-from typing import List, Set, Any
+from typing import List, Set, Any, Optional, Callable, Tuple
 from .tile import Tile
 from .gem import Gem
 from .shapes import Shape, Line, Corner, TShaped, Cross
@@ -26,6 +26,35 @@ class Board:
         self.__tile_grid = tile_grid
         self.__next_tile = next_tile
         self.__dimensions = len(tile_grid)
+
+    @classmethod
+    def from_list_of_shapes(cls, shape_grid: List[List[Shape]], next_tile_shape: Shape,
+                            treasure_provider: Optional[Callable[[int, int], Tuple[Gem, Gem]]] = None):
+        """
+        A constructor for a Board, taking in a 2-D List of TileShapes used to create a tile_grid, and one tile shape
+        for the next_tile. If
+        :param shape_grid: a 2-D list of tile shapes that represents the grid of tiles on a Board
+        :param next_tile_shape: a TileShape representing the shape of the next tile
+        :param treasure_provider: an optional (row, col) -> (Gem, Gem) function to select treasures. If not provided,
+        every tile will get ("emerald", "emerald"); the next tile is represented by -1, -1
+        :return: an instance of a Board
+        """
+        real_treasure_provider = (
+            treasure_provider
+            if treasure_provider is not None
+            else lambda _row, _col: (Gem("emerald"), Gem("emerald"))
+        )
+        tile_grid: List[List[Tile]] = []
+        for row, shapes in enumerate(shape_grid):
+            tile_row: List[Tile] = []
+            for col, shape in enumerate(shapes):
+                gem1, gem2 = real_treasure_provider(row, col)
+                tile = Tile(shape, gem1, gem2)
+                tile_row.append(tile)
+            tile_grid.append(tile_row)
+        next_gem1, next_gem2 = real_treasure_provider(-1, -1)
+        next_tile = Tile(next_tile_shape, next_gem1, next_gem2)
+        return cls(tile_grid, next_tile)
 
     @classmethod
     def from_list_of_tiles(cls, tile_grid: List[List[Tile]], **kwargs):
@@ -65,12 +94,13 @@ class Board:
         :return: None
         side effect: fills in the __tile_grid field with unique Tiles
         """
-        board = []
+        board: List[List[Tile]] = []
         for row in range(dimension):
-            board.append([])
+            tile_row: List[Tile] = []
             for column in range(dimension):
                 unique_tile = cls.__generate_unique_tile(gem_name_list, board)
-                board[row].append(unique_tile)
+                tile_row.append(unique_tile)
+            board.append(tile_row)
         return board
 
     @classmethod
@@ -113,6 +143,20 @@ class Board:
         :return: a Gem, which is one of the Gems provided in the given list of gem names
         """
         return Gem(gem_name_list[random.randint(0, len(gem_name_list) - 1)])
+
+    def get_width(self) -> int:
+        """
+        Returns the width of this board.
+        :return: An int specifying the number of tiles in each row of the board.
+        """
+        return self.__dimensions
+
+    def get_height(self) -> int:
+        """
+        Returns the height of this board.
+        :return: An int specifying the number of rows in the board.
+        """
+        return self.__dimensions
 
     def slide_and_insert(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
@@ -268,19 +312,6 @@ class Board:
                 if self.__connected_tile(base_tile, neighbor_tile, direction):
                     connected_neighbors.append(neighbor_pos)
         return connected_neighbors
-
-    def get_position_by_tile(self, base_tile: Tile) -> Position:
-        """
-        Gets the index of the given Tile
-        :param base_tile: A Tile representing the target tile to search for in the board
-        :return: A Position representing the row and column indices of the base_tile
-        :raises: ValueError if the supplied Tile is not on the board
-        """
-        for row in range(len(self.__tile_grid)):
-            for col in range(len(self.__tile_grid[row])):
-                if self.__tile_grid[row][col] == base_tile:
-                    return Position(row, col)
-        raise ValueError("Tile not on board")
 
     def get_tile_by_position(self, position: Position) -> Tile:
         """

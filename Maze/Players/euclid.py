@@ -16,7 +16,7 @@ class Euclid(BaseStrategy):
         :param board: a Board representing the board to check positions on
         :return: True if there are any unchecked positions, otherwise false
         """
-        return not len(super().get_checked_positions()) == len(board.get_tile_grid()) ** 2
+        return not len(super().get_checked_positions()) == board.get_height() ** 2
 
     def get_next_target_position(self, board: Board, original_target: Position) -> Position:
         """
@@ -32,8 +32,8 @@ class Euclid(BaseStrategy):
         first_unchecked_position = self.__get_first_unchecked(board)
         min_distance = get_euclidean_distance_between(first_unchecked_position, original_target)
         min_position = first_unchecked_position
-        for row in range(len(board.get_tile_grid())):
-            for col in range(len(board.get_tile_grid()[row])):
+        for row in range(board.get_height()):
+            for col in range(board.get_width()):
                 potential_position = Position(row, col)
                 euclidean_distance = get_euclidean_distance_between(potential_position, original_target)
                 if euclidean_distance < min_distance and potential_position not in super().get_checked_positions():
@@ -48,8 +48,8 @@ class Euclid(BaseStrategy):
         :return: a Position representing the first unchecked Position in lexicographical ordering
         :raises: ValueError if there are no positions left to check
         """
-        for row in range(len(board.get_tile_grid())):
-            for col in range(len(board.get_tile_grid()[row])):
+        for row in range(board.get_height()):
+            for col in range(board.get_width()):
                 if Position(row, col) not in super().get_checked_positions():
                     return Position(row, col)
         raise ValueError("Error: No Positions left to check")

@@ -107,6 +107,8 @@
     - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/3698168acf8fd1f130aabbf1a0c08ce386814371
     - Commit Message: **remove ability to add players to state**
 
-- [x] `Shape` should not be mutable
+- [x] `Shape` should not be mutable (MEDIUM)
     - Rationale: The serializer needs to use `Shape` values as dict keys, and its behavior gets confusing when mutation
       is allowed
+    - Commit: 8afe3f26b7db1cc45b618bc63200e116b7b10fce
+    - Commit Message: **Make Shape immutable**

@@ -15,7 +15,7 @@ class Riemann(BaseStrategy):
         :param board: a Board representing the board to check positions on
         :return: True if there are any unchecked positions, otherwise false
         """
-        return not len(super().get_checked_positions()) == len(board.get_tile_grid()) ** 2
+        return not len(super().get_checked_positions()) == board.get_height() ** 2
 
     def get_next_target_position(self, board: Board, original_target: Position) -> Position:
         """
@@ -27,8 +27,8 @@ class Riemann(BaseStrategy):
         """
         if len(super().get_checked_positions()) == 0:
             return original_target
-        for row in range(len(board.get_tile_grid())):
-            for col in range(len(board.get_tile_grid()[row])):
+        for row in range(board.get_height()):
+            for col in range(board.get_width()):
                 potential_position = Position(row, col)
                 if potential_position not in super().get_checked_positions():
                     return potential_position

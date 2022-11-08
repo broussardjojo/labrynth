@@ -250,35 +250,6 @@ def test_get_all_stationary_tiles_four(basic_board):
     assert stationary_tile not in basic_board.get_all_stationary_tiles()
 
 
-# ----- Test get_position_by_tile method ------
-# verifies that the method returns the correct position for a Tile
-def test_valid_position_by_tile_one(basic_board):
-    test_tile = basic_board.get_tile_grid()[5][3]
-    target_position = Position(5, 3)
-    assert basic_board.get_position_by_tile(test_tile) == target_position
-
-
-def test_valid_position_by_tile_two(basic_board):
-    test_tile = basic_board.get_tile_grid()[0][0]
-    target_position = Position(0, 0)
-    assert basic_board.get_position_by_tile(test_tile) == target_position
-
-
-# verifies that the method raises a Value error for a Tile not on the Board
-def test_invalid_position_by_tile_one(seeded_small_board, corner_tile):
-    test_tile = corner_tile
-    with pytest.raises(ValueError) as error_message:
-        seeded_small_board.get_position_by_tile(test_tile)
-    assert str(error_message.value) == "Tile not on board"
-
-
-def test_invalid_position_by_tile_two(seeded_small_board, cross_tile):
-    test_tile = cross_tile
-    with pytest.raises(ValueError) as error_message:
-        seeded_small_board.get_position_by_tile(test_tile)
-    assert str(error_message.value) == "Tile not on board"
-
-
 # ----- Test get_tile_by_position method ------
 # verifies that the method returns the correct Tile for a Position
 def test_valid_tile_by_position_one(seeded_small_board):

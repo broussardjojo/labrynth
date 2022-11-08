@@ -92,18 +92,18 @@ if __name__ == '__main__':
 
 def get_connectors_helper(board: Board) -> List[List[str]]:
     list_of_connectors = []
-    for row in range(len(board.get_tile_grid())):
+    for row in range(board.get_height()):
         list_of_connectors.append([])
-        for col in range(len(board.get_tile_grid()[row])):
+        for col in range(board.get_width()):
             list_of_connectors[row].append(get_connector_from_shape(board.get_tile_grid()[row][col].get_shape()))
     return list_of_connectors
 
 
 def get_treasures_helper(board: Board) -> List[List[List[str]]]:
     list_of_gems = []
-    for row in range(len(board.get_tile_grid())):
+    for row in range(board.get_height()):
         list_of_gems.append([])
-        for col in range(len(board.get_tile_grid()[row])):
+        for col in range(board.get_width()):
             gem1, gem2 = board.get_tile_grid()[row][col].get_gems()
             list_of_gems[row].append([str(gem1), str(gem2)])
     return list_of_gems

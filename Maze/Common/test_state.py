@@ -238,37 +238,33 @@ def test_slide_does_not_move_stationary_players(sample_seeded_game_state):
 
 def test_slide_bumps_player_on_edge(sample_seeded_game_state):
     player_one = sample_seeded_game_state.get_players()[0]
-    edge_tile = sample_seeded_game_state.get_board().get_tile_grid()[6][0]
     next_tile = sample_seeded_game_state.get_board().get_next_tile()
-    edge_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
+    edge_tile_pos = Position(6, 0)
     player_one.set_current_position(edge_tile_pos)
     assert player_one.get_current_position() == edge_tile_pos
     sample_seeded_game_state.slide_and_insert(0, Direction.Down)
-    next_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(next_tile)
-    assert player_one.get_current_position() == next_tile_pos
+    assert sample_seeded_game_state.get_board().get_tile_grid()[0][0] == next_tile
+    assert player_one.get_current_position() == Position(0, 0)
 
 
 def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
     player_one = sample_seeded_game_state.get_players()[0]
     player_two = sample_seeded_game_state.get_players()[1]
     player_three = sample_seeded_game_state.get_players()[2]
-    edge_tile = sample_seeded_game_state.get_board().get_tile_grid()[2][6]
-    unbumped_tile = sample_seeded_game_state.get_board().get_tile_grid()[1][5]
     next_tile = sample_seeded_game_state.get_board().get_next_tile()
-    edge_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
-    edge_tile_pos_two = sample_seeded_game_state.get_board().get_position_by_tile(edge_tile)
-    unbumped_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(unbumped_tile)
+    edge_tile_pos = Position(2, 6)
+    unbumped_tile_pos = Position(1, 5)
     player_one.set_current_position(edge_tile_pos)
     player_two.set_current_position(unbumped_tile_pos)
-    player_three.set_current_position(edge_tile_pos_two)
+    player_three.set_current_position(edge_tile_pos)
     assert player_one.get_current_position() == edge_tile_pos
     assert player_two.get_current_position() == unbumped_tile_pos
     assert player_three.get_current_position() == edge_tile_pos
     sample_seeded_game_state.slide_and_insert(2, Direction.Right)
-    next_tile_pos = sample_seeded_game_state.get_board().get_position_by_tile(next_tile)
-    assert player_one.get_current_position() == next_tile_pos
+    assert sample_seeded_game_state.get_board().get_tile_grid()[2][0] == next_tile
+    assert player_one.get_current_position() == Position(2, 0)
     assert player_two.get_current_position() == unbumped_tile_pos
-    assert player_three.get_current_position() == next_tile_pos
+    assert player_three.get_current_position() == Position(2, 0)
 
 
 # ----- Tests for change_active_player_turn ------
