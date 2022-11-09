@@ -1,11 +1,56 @@
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import Generic, List, TypeVar, Union
+from typing_extensions import Literal, NoReturn
 
 from .direction import Direction
 from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross
 from .position import Position
+
+
+# Represents any type
+T = TypeVar("T")
+
+
+class Nothing:
+    """
+    Represents the case where a Maybe[T] is absent.
+    """
+    is_present: Literal[False]
+
+    def __init__(self):
+        self.is_present = False
+
+    def get_or_throw(self, message: str) -> NoReturn:
+        """
+        Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
+        :param message: A string to use as the error message
+        :raises: ValueError when this is called on a Nothing
+        """
+        raise ValueError(message)
+
+
+class Just(Generic[T]):
+    """
+    Represents the case where a Maybe[T] is absent.
+    """
+    is_present: Literal[True]
+    value: T
+
+    def __init__(self, value: T):
+        self.is_present = True
+        self.value = value
+
+    def get_or_throw(self, message: str) -> T:
+        """
+        Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
+        :param message: A string to use as the error message
+        """
+        return self.value
+
+
+Maybe = Union[Just[T], Nothing]
 
 
 def remove_gem_extension(filename: Path) -> str:

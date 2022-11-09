@@ -39,17 +39,17 @@ def rotated_seeded_spare_tile():
 
 @pytest.fixture
 def player_one():
-    return Player.from_goal_home_color_strategy(Position(3, 1), Position(5, 1), "pink", Riemann())
+    return Player.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
 
 
 @pytest.fixture
 def player_two():
-    return Player.from_goal_home_color_strategy(Position(5, 5), Position(3, 3), "red", Riemann())
+    return Player.from_home_goal_color(Position(3, 3), Position(5, 5), "red")
 
 
 @pytest.fixture
 def player_three():
-    return Player.from_goal_home_color_strategy(Position(1, 1), Position(3, 1), "black", Euclid())
+    return Player.from_home_goal_color(Position(3, 1), Position(1, 1), "black")
 
 
 @pytest.fixture

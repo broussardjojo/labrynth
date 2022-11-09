@@ -99,7 +99,7 @@ class State(ObservableState):
         side effect: adds active player to Set of __players_reached_goal if they are at their goal
         """
         if self.__players:
-            active_player = self.__players[self.__active_player_index]
+            active_player = self.get_active_player()
             if active_player.get_current_position() == active_player.get_goal_position():
                 self.__players_reached_goal.add(active_player)
                 return True
@@ -151,7 +151,7 @@ class State(ObservableState):
         :raises: ValueError if there are no players in this State
         """
         if self.__players:
-            active_player = self.__players[self.__active_player_index]
+            active_player = self.get_active_player()
             current_tile_position = active_player.get_current_position()
             return self.__can_reach_position_from_position(current_tile_position, target_position)
         raise ValueError("No players to check")
@@ -181,7 +181,7 @@ class State(ObservableState):
         :raises: ValueError if there are no players in this State
         """
         if self.__players:
-            active_player = self.__players[self.__active_player_index]
+            active_player = self.get_active_player()
             return active_player.get_current_position() == active_player.get_home_position()
         raise ValueError("No players to check")
 
@@ -215,14 +215,14 @@ class State(ObservableState):
         :return: None
         Side Effect: Mutates the currently active Player
         """
-        self.__players[self.__active_player_index].set_current_position(position_to_move_to)
+        self.get_active_player().set_current_position(position_to_move_to)
 
     def active_player_has_reached_goal(self) -> bool:
         """
         Checks if the active player has ever reached their goal position
         :return: True if the active player for this State has ever reached their goal position, otherwise False
         """
-        return self.__players[self.__active_player_index] in self.__players_reached_goal
+        return self.get_active_player() in self.__players_reached_goal
 
     def get_closest_players_to_victory(self) -> List[Player]:
         """
@@ -259,3 +259,13 @@ class State(ObservableState):
             elif player_distance == current_min_distance:
                 closest_players.append(player)
         return closest_players
+
+    def get_active_player_position(self) -> Position:
+        """
+        A method to get the current position of the active player
+        :return: a Position representing the current location of the active player
+        """
+        return self.get_active_player().get_current_position()
+
+    def get_active_player(self):
+        return self.__players[self.__active_player_index]

@@ -57,27 +57,27 @@ def basic_seeded_board_two():
 
 @pytest.fixture
 def player_one():
-    return Player.from_goal_home_color_strategy(Position(3, 1), Position(5, 1), "pink", Riemann())
+    return Player.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
 
 
 @pytest.fixture
 def player_two():
-    return Player.from_goal_home_color_strategy(Position(5, 5), Position(3, 3), "red", Riemann())
+    return Player.from_home_goal_color(Position(3, 3), Position(5, 5), "red")
 
 
 @pytest.fixture
 def player_three():
-    return Player.from_goal_home_color_strategy(Position(1, 1), Position(3, 1), "black", Euclid())
+    return Player.from_home_goal_color(Position(3, 1), Position(1, 1), "black")
 
 
 @pytest.fixture
 def player_four():
-    return Player.from_goal_home_color_strategy(Position(5, 3), Position(1, 1), "blue", Euclid())
+    return Player.from_home_goal_color(Position(1, 1), Position(5, 3), "blue")
 
 
 @pytest.fixture
 def player_five():
-    return Player.from_goal_home_color_strategy(Position(1, 3), Position(3, 3), "yellow", Riemann())
+    return Player.from_home_goal_color(Position(3, 3), Position(1, 3), "yellow")
 
 
 @pytest.fixture
@@ -126,7 +126,7 @@ def forever_strategy():
 
 @pytest.fixture
 def player_forever(forever_strategy):
-    return Player.from_goal_home_color_strategy(Position(1, 5), Position(3, 1), "green", forever_strategy)
+    return Player.from_home_goal_color(Position(3, 1), Position(1, 5), "green")
 
 
 @pytest.fixture
@@ -153,7 +153,7 @@ def bad_rotation_strategy():
 
 @pytest.fixture
 def player_bad_rotation(bad_rotation_strategy):
-    return Player.from_goal_home_color_strategy(Position(5, 3), Position(3, 5), "orange", bad_rotation_strategy)
+    return Player.from_home_goal_color(Position(3, 5), Position(5, 3), "orange")
 
 
 @pytest.fixture
@@ -175,7 +175,7 @@ def bad_slide_index_strategy():
 
 @pytest.fixture
 def player_bad_slide_index(bad_slide_index_strategy):
-    return Player.from_goal_home_color_strategy(Position(5, 3), Position(3, 5), "yellow", bad_slide_index_strategy)
+    return Player.from_home_goal_color(Position(3, 5), Position(5, 3), "yellow")
 
 
 @pytest.fixture
@@ -197,7 +197,7 @@ def bad_move_to_strategy():
 
 @pytest.fixture
 def player_bad_move_to(bad_move_to_strategy):
-    return Player.from_goal_home_color_strategy(Position(1, 3), Position(6, 5), "red", bad_move_to_strategy)
+    return Player.from_home_goal_color(Position(6, 5), Position(1, 3), "red")
 
 
 @pytest.fixture
