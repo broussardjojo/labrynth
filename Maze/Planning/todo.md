@@ -19,7 +19,9 @@
   position, home position, and color
     - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
       game
-    - [ ] Create `APIPlayer`
+    - [x] Create `APIPlayer`
+      - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+      - Commit Message: **Separate Player from APIPlayer**
     - [ ] Use `asyncio` to simulate the player living across the network, add acknowledgments from the player (no more
       void methods in player interactions)
     - [ ] Write a remote proxy wrapper for the `APIPlayer` which handles timeout errors and safety errors

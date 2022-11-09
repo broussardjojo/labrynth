@@ -29,12 +29,12 @@ def basic_euclid():
 
 @pytest.fixture
 def basic_player(basic_riemann):
-    return Player.from_goal_home_color_strategy(Position(1, 1), Position(3, 3), "purple", basic_riemann)
+    return Player.from_home_goal_color(Position(3, 3), Position(1, 1), "purple")
 
 
 @pytest.fixture
 def basic_player_two(basic_euclid):
-    return Player.from_goal_home_color_strategy(Position(5, 5), Position(1, 3), "pink", basic_euclid)
+    return Player.from_home_goal_color(Position(1, 3), Position(5, 5), "pink")
 
 
 # ------ Test the setup method which takes in two parameters (initialization) ------
