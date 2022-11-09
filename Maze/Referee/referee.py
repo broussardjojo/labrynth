@@ -7,7 +7,8 @@ from ..Common.board import Board
 from ..Common.direction import Direction
 from ..Common.position import Position
 from ..Common.state import State
-from ..Common.utils import get_opposite_direction, ALL_NAMED_COLORS, gather_protected
+from ..Common.thread_utils import gather_protected
+from ..Common.utils import get_opposite_direction, ALL_NAMED_COLORS, Maybe
 from ..Players.api_player import APIPlayer
 from ..Players.move import Move, Pass
 from ..Players.player import Player
@@ -91,7 +92,7 @@ class Referee:
         """
         self.__reset_referee()
         self.__current_players = players
-        self.__setup_all(game_state)
+        self.__setup(game_state)
         return self.__run_game_helper(game_state)
 
     def __run_game_helper(self, game_state: State) -> (List[APIPlayer], List[APIPlayer]):
@@ -164,6 +165,16 @@ class Referee:
         self.__cheater_players.append(active_player.name())
         self.__did_active_player_cheat = True
 
+    def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]]) -> None:
+        """
+        Kicks out all players who failed to acknowledge a broadcast, based on the given response list
+        :param responses: A list of Maybe[Any] objects; each element represents the response of the corresponding
+        APIPlayer in __current_players
+        :return: None
+        :raises: ValueError if len(responses) doesn't equal the number of current players
+        """
+        pass
+
     def __handle_timeout(self, active_player: APIPlayer, game_state: State) -> None:
         """
         Raises an error given that the active player takes to long to make their move and handles the active player as
@@ -193,7 +204,7 @@ class Referee:
     def __setup_one(client: APIPlayer, game_state: Optional[State], player: Player) -> Any:
         return client.setup(game_state, player.get_goal_position())
 
-    def __setup_all(self, game_state: State) -> None:
+    def __setup(self, game_state: State) -> None:
         """
         Method to give each player their goal Tile, players who fail to acknowledge in DEFAULT_TIMEOUT_SECONDS
          will be deemed to be cheating
@@ -204,10 +215,7 @@ class Referee:
             future = self.__executor.submit(lambda: client.setup(game_state, player.get_goal_position()))
             future_list.append(future)
         responses = gather_protected(future_list)
-        for player, response in zip(self.__current_players, responses):
-            if not response.is_present:
-                # TODO: parallel ds
-                self.__handle_cheater(player, game_state)
+        self.__handle_broadcast_acknowledgements(responses)
 
     def __generate_players(self, board: Board, count: int) -> List[Player]:
         """
