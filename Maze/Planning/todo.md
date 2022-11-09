@@ -22,8 +22,10 @@
     - [x] Create `APIPlayer`
       - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
       - Commit Message: **Separate Player from APIPlayer**
-    - [ ] Use `asyncio` to simulate the player living across the network, add acknowledgments from the player (no more
-      void methods in player interactions)
+    - [x] add acknowledgments from the player (no more void methods in player interactions)
+      - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+      - Commit Message: **Separate Player from APIPlayer**
+    - [ ] Use threading to simulate an untrusted/remote player
     - [ ] Write a remote proxy wrapper for the `APIPlayer` which handles timeout errors and safety errors
     - [ ] Update referee to wrap all `APIPlayer` instances in its constructor, and replace thread logic
     - [ ] While fixing this also inform losing players
@@ -32,6 +34,8 @@
     - [ ] Define the observer interface
     - [ ] Update the current observer to be a `GUIObserver`, implementing `Observer`
     - [ ] Test referee interactions with an observer, using a different implementation
+
+- [ ] Boards are not NxN and are instead MxN
 
 &nbsp;
 

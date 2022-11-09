@@ -193,10 +193,10 @@ class Referee:
     def __setup_one(client: APIPlayer, game_state: Optional[State], player: Player) -> Any:
         return client.setup(game_state, player.get_goal_position())
 
-
     def __setup_all(self, game_state: State) -> None:
         """
-        Method to setup the board and give each player their goal Tile
+        Method to give each player their goal Tile, players who fail to acknowledge in DEFAULT_TIMEOUT_SECONDS
+         will be deemed to be cheating
         :return: None
         """
         future_list: List[Future[Any]] = []

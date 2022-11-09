@@ -1,8 +1,6 @@
 import os
-from concurrent import futures
-from concurrent.futures import Future
 from pathlib import Path
-from typing import Generic, List, TypeVar, Union
+from typing import Generic, List, TypeVar, Union, Any
 from typing_extensions import Literal, NoReturn
 
 from .direction import Direction
@@ -32,10 +30,25 @@ class Nothing:
         """
         raise ValueError(message)
 
+    def __eq__(self, other: Any) -> bool:
+        """
+        Overrides the equals method for a Nothing
+        :param other: The other object to compare against
+        :return: True if other is a Nothing, otherwise False
+        """
+        return isinstance(other, Nothing)
+
+    def __repr__(self) -> str:
+        """
+        Override for the repr method on a Nothing
+        :return: A string representing this Nothing
+        """
+        return "Nothing()"
+
 
 class Just(Generic[T]):
     """
-    Represents the case where a Maybe[T] is absent.
+    Represents the case where a Maybe[T] is present.
     """
     is_present: Literal[True]
     value: T
@@ -51,28 +64,24 @@ class Just(Generic[T]):
         """
         return self.value
 
+    def __eq__(self, other: Any) -> bool:
+        """
+        Overrides the equals method for a Just
+        :param other: The other object to compare against
+        :return: True if other is a Just with the same value, otherwise False
+        """
+        if isinstance(other, Just):
+            return self.value == other.value
+        return False
+
+    def __repr__(self) -> str:
+        """
+        Override for the repr method on a Just
+        :return: A string representing this Just
+        """
+        return f"Just({self.value})"
 
 Maybe = Union[Just[T], Nothing]
-
-
-DEFAULT_TIMEOUT = 10
-
-
-def gather_protected(future_list: List[Future[T]], timeout_seconds=DEFAULT_TIMEOUT) -> List[Maybe[T]]:
-    results = [Nothing() for _ in future_list]
-    future_to_result_index = {future: idx for idx, future in enumerate(future_list)}
-    try:
-        for future in futures.as_completed(future_list, timeout=timeout_seconds):
-            index = future_to_result_index[future]
-            try:
-                results[index] = Just(future.result())
-            except Exception:
-                # The execution of the protected method raised an Exception
-                pass
-    except TimeoutError:
-        # The timeout of the `as_completed()` call was hit; we've received every result we can
-        pass
-    return results
 
 
 def remove_gem_extension(filename: Path) -> str:
