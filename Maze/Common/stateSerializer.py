@@ -47,7 +47,7 @@ def main() -> str:
     board = Board(tile_grid, spare)
     players = make_list_of_players(json_obj_list[0]['plmt'])
     previous_move = make_previous_move(json_obj_list[0]['last'])
-    state = State.from_current_state(board, players, previous_move)
+    state = State.from_current_state(board, players, [previous_move])
     board = state.get_board()
     slide_index = json_obj_list[1]
     slide_direction = get_direction_from_direction_str(json_obj_list[2])

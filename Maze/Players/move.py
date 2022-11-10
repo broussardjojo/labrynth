@@ -37,8 +37,7 @@ class Pass:
         """
         return if_pass_perform_action()
 
-    @staticmethod
-    def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
+    def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
         """
         Method on a Pass which will perform a given void action, when supplied with two void methods a Pass object
         calls the second one.
@@ -48,7 +47,7 @@ class Pass:
         :param perform_pass_action: A function object representing the action to perform from this pass
         :return: None
         """
-        perform_pass_action()
+        perform_pass_action(self)
 
     @staticmethod
     def format_output() -> str:
@@ -118,8 +117,7 @@ class Move:
         """
         return self
 
-    @staticmethod
-    def perform_move_or_pass(perform_move_action: Callable[[], None], perform_pass_action: Callable[[], None]) -> None:
+    def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
         """
         Method on a Move which will perform a given void action, when supplied with two void methods a Move object
         calls the first one.
@@ -129,7 +127,7 @@ class Move:
         :param perform_pass_action: An unused argument describing the action to perform if this were a Pass object
         :return: None
         """
-        perform_move_action()
+        perform_move_action(self)
 
     def format_output(self) -> List[Union[int, Direction, dict]]:
         """

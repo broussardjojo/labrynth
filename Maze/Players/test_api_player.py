@@ -1,6 +1,6 @@
 import pytest
 
-from .api_player import APIPlayer
+from .api_player import LocalPlayer
 from ..Common.observableState import ObservableState
 from ..Common.board import Board
 from ..Common.position import Position
@@ -30,12 +30,12 @@ def basic_euclid():
 
 @pytest.fixture
 def basic_player(basic_riemann):
-    return APIPlayer("player1", basic_riemann)
+    return LocalPlayer("player1", basic_riemann)
 
 
 @pytest.fixture
 def basic_player_two(basic_euclid):
-    return APIPlayer("player2", basic_euclid)
+    return LocalPlayer("player2", basic_euclid)
 
 # --------- Test propose_board0 ------------
 def test_propose_board_one(basic_player):

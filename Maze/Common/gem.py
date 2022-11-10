@@ -26,6 +26,7 @@ class Gem:
         """
         if isinstance(other, Gem):
             return self.__gem_name == other.__gem_name
+        return False
 
     @staticmethod
     def __generate_gem_filepath(gem_name: str) -> Path:

@@ -23,7 +23,7 @@ from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.utils import get_json_obj_list, shape_dict
 from ..Common.state import State
-from ..Players.api_player import APIPlayer
+from ..Players.api_player import LocalPlayer
 
 
 # ----- Examples ------
@@ -195,8 +195,8 @@ class AlwaysRaiseStrategy(Strategy):
 def api_player_with_mock(player_name: str,
                          player_strategy: Strategy,
                          mocked_method_name: str,
-                         implementation: Optional[Callable[..., Any]] = None) -> Tuple[APIPlayer, MagicMock]:
-    api_player = APIPlayer(player_name, player_strategy)
+                         implementation: Optional[Callable[..., Any]] = None) -> Tuple[LocalPlayer, MagicMock]:
+    api_player = LocalPlayer(player_name, player_strategy)
     impl = implementation if implementation else getattr(api_player, mocked_method_name)
     mock = MagicMock(wraps=impl)
     setattr(api_player, mocked_method_name, mock)

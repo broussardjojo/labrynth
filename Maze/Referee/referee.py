@@ -140,7 +140,7 @@ class Referee:
         Perform a validated move by rotating, sliding and inserting, and moving. Also resets the list of passed APIPlayers
         because this player is not passing.
         :param proposed_move: The Move to make
-        :param active_player: The active APIPlayer who is making this Move
+        :param game_state: The game state from which to make the move
         :return: None
         """
         game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
@@ -260,6 +260,7 @@ class Referee:
             for col in range(board.get_width()):
                 if board.check_stationary_position(row, col):
                     return Position(row, col)
+        raise ValueError("Board did not have any stationary positions")
 
     def __inform_winning_players(self, game_state: State) -> None:
         """
@@ -270,7 +271,7 @@ class Referee:
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
             did_win = player in winning_players
-            future = self.__executor.submit(client.won, did_win)
+            future = self.__executor.submit(client.win, did_win)
             future_list.append(future)
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
         # clients that fail to acknowledge will be moved from current players to cheater players by this method
@@ -371,8 +372,8 @@ class Referee:
             self.__handle_cheater(client, game_state)
             return False
         proposed_move = response.get_or_throw()
-        proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, client, game_state),
-                                           lambda: self.__perform_pass())
+        proposed_move.perform_move_or_pass(lambda move: self.__perform_move(move, client, game_state),
+                                           lambda _: self.__perform_pass())
         # TODO: Fix dynamic dispatch so we can validate moves here and remove use of isinstance
         return isinstance(proposed_move, Move) and not self.__did_active_player_cheat
 

@@ -24,28 +24,15 @@ class State(ObservableState):
         self.__players_reached_goal = set()
 
     @classmethod
-    def from_random_state(cls, board: Board):
-        """
-        A constructor for a State, taking in a Board and creating an empty game state with no players
-        :param board: a Board representing the game board to use in this state
-        :return: an instance of a State
-        """
-        previous_moves = []
-        players = []
-        active_player_index = 0
-        return cls(board, previous_moves, players, active_player_index)
-
-    @classmethod
-    def from_current_state(cls, board: Board, players: List[Player], previous_move: Tuple[int, Direction]):
+    def from_current_state(cls, board: Board, players: List[Player], previous_moves: List[Tuple[int, Direction]]):
         """
         A constructor for a State, taking in a Board and creating an empty game state with no players
         :param board: a Board representing the game board to use in this state
         :param players: a List of Players representing the current players in the game
-        :param previous_move: a Tuple containing an int representing the previous slide index and a Direction
+        :param previous_moves: a Tuple containing an int representing the previous slide index and a Direction
         representing the previous slide Direction
         :return: an instance of a State
         """
-        previous_moves = [previous_move]
         active_player_index = 0
         return cls(board, previous_moves, players, active_player_index)
 
@@ -57,9 +44,8 @@ class State(ObservableState):
         :param list_of_players:  a List of Players representing the current players in the game
         :return: an instance of a State
         """
-        previous_moves = []
         active_player_index = 0
-        return cls(selected_board, previous_moves, list_of_players, active_player_index)
+        return cls(selected_board, [], list_of_players, active_player_index)
 
     def rotate_spare_tile(self, degrees: int) -> None:
         """

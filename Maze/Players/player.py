@@ -49,7 +49,7 @@ class Player:
     def from_current_home_color(cls, current_position: Position, home_position: Position, color: str):
         """
         Constructor to create a Player given a current position, home position, and color
-        NOTE: makes an arbitrary decision to assigns the Player's goal to its current Position
+        TODO: makes an arbitrary decision to assigns the Player's goal to its current Position
         :param current_position: a Position representing the current Position of this Player
         :param home_position: a Position representing the home Position of this Player
         :param color: a string representing the color of this Player's avatar

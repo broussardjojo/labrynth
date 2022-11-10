@@ -2,7 +2,7 @@ import concurrent.futures
 import time
 from concurrent.futures import ThreadPoolExecutor
 from ..Referee.player_proxy import PlayerProxy
-from ..Players.api_player import APIPlayer
+from ..Players.api_player import LocalPlayer
 from ..Players.riemann import Riemann
 from .thread_utils import gather_protected
 import pytest
@@ -21,7 +21,7 @@ def executor():
 
 @pytest.fixture
 def sample_api_player():
-    return APIPlayer("Joe", Riemann())
+    return LocalPlayer("Joe", Riemann())
 
 
 def delayed_identity(delay_seconds, arg):
@@ -94,12 +94,12 @@ def test_gather_three_one_timeout_one_exception(sleep1, sleep2, sleep3, expected
 
 # def test_win_success(sample_api_player):
 #     player_proxy = PlayerProxy(sample_api_player)
-#     assert player_proxy.won(True).is_present
+#     assert player_proxy.win(True).is_present
 #     player_proxy.end()
 #
 #
 # def test_win_timeout(sample_api_player, monkeypatch):
-#     monkeypatch.setattr(sample_api_player, "won", lambda *args: time.sleep(100))
+#     monkeypatch.setattr(sample_api_player, "win", lambda *args: time.sleep(100))
 #     player_proxy = PlayerProxy(sample_api_player, timeout=0.5)
-#     assert player_proxy.won(True) == Nothing()
+#     assert player_proxy.win(True) == Nothing()
 #     player_proxy.end()

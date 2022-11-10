@@ -1,4 +1,7 @@
-from typing import Optional, Any, Union
+from abc import ABC, abstractmethod
+from typing import Optional, Any, Union, cast
+
+from typing_extensions import Literal
 
 from .move import Pass, Move
 from .strategy import Strategy
@@ -10,11 +13,66 @@ from ..Common.utils import Just, Maybe, Nothing
 Acknowledgement = Any
 ACK_OBJECT = object()
 
+BadMethodName = Union[Literal["setup"], Literal["take_turn"], Literal["win"]]
 
-class APIPlayer:
+
+class APIPlayer(ABC):
     """
     A class that represents a client of the referee. It implements the logical interactions spec at
     https://course.ccs.neu.edu/cs4500f22/local_protocol.html.
+    """
+
+    @abstractmethod
+    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+        """
+        Informs this player of its goal position, and optionally the initial state of the game
+        :param state: The initial state of the game, or None if this is not the first setup call
+        :param goal_position: The player's goal position
+        :return: an acknowledgment that the message has been received
+        """
+        pass
+
+    @abstractmethod
+    def propose_board0(self, rows: int, columns: int) -> Board:
+        """
+        A method for a player to propose a Board
+        :param rows: an int representing the minimum number of rows to make the Board from
+        :param columns: an int representing the minimum number of columns to make the Board from
+        :return: A Board representing the Board this player proposes
+        """
+        pass
+
+    @abstractmethod
+    def name(self) -> str:
+        """
+        Returns the name of this player
+        :return: A string representing this player's name
+        """
+        pass
+
+    @abstractmethod
+    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+        """
+        Gets the next move for this player based on its Strategy
+        TODO: change type of state
+        :param current_state: a State representing the current state of the game
+        :return: A Move or Pass representing the player's selection action on its turn
+        """
+
+    @abstractmethod
+    def win(self, did_win: bool) -> Acknowledgement:
+        """
+        Informs this player of the given outcome of the game
+        :param did_win: A boolean which is True if the player won (outright or tied), and False otherwise
+        :return: an acknowledgment that the message has been received
+        """
+        pass
+
+
+class LocalPlayer(APIPlayer):
+    """
+    A class that represents a client of the referee. It implements the logical interactions spec at
+    https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally.
     """
 
     __name: str
@@ -43,8 +101,7 @@ class APIPlayer:
         self.__goal_position = Just(goal_position)
         return ACK_OBJECT
 
-    @staticmethod
-    def propose_board0(rows: int, columns: int) -> Board:
+    def propose_board0(self, rows: int, columns: int) -> Board:
         """
         A method for a player to propose a Board, the player will propose a random Board
         NOTE: We are working under the assumption that a board is still square and will thus create a square board
@@ -66,7 +123,6 @@ class APIPlayer:
     def take_turn(self, current_state: State) -> Union[Move, Pass]:
         """
         Gets the next move for this player based on its Strategy
-        TODO: change type of state
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """
@@ -74,10 +130,10 @@ class APIPlayer:
         current_position = current_state.get_active_player_position()
         return self.__strategy.generate_move(current_state, current_position, goal_pos)
 
-    def won(self, did_win: bool) -> Acknowledgement:
+    def win(self, did_win: bool) -> Acknowledgement:
         """
         Stores the given outcome of the game
-        :param did_win: A boolean
+        :param did_win: A boolean which is True if the player won (outright or tied), and False otherwise
         :return: an acknowledgment that the message has been received
         """
         self.__won = Just(did_win)
@@ -89,3 +145,30 @@ class APIPlayer:
         :return: a string representing this APIPlayer
         """
         return f"APIPlayer({self.__name}, {self.__strategy})"
+
+
+class BadLocalPlayer(LocalPlayer):
+    """
+    A class that represents a client of the referee. It implements the logical interactions spec at
+    https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally, and runs correctly until one
+    'bad method' is called, at which point it raises an exception by attempting '1 // 0'
+    """
+
+    def __init__(self, name: str, strategy: Strategy, bad_method_name: BadMethodName):
+        super().__init__(name, strategy)
+        self.__bad_method_name = bad_method_name
+
+    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+        if self.__bad_method_name == "setup":
+            return 1 // 0
+        return super().setup(state, goal_position)
+
+    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+        if self.__bad_method_name == "take_turn":
+            return cast(Pass, 1 // 0)
+        return super().take_turn(current_state)
+
+    def win(self, did_win: bool) -> Acknowledgement:
+        if self.__bad_method_name == "win":
+            return 1 // 0
+        return super().win(did_win)
