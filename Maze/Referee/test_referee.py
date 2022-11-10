@@ -1,5 +1,7 @@
+import queue
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Tuple, Optional, Callable, Any
 from unittest.mock import MagicMock
@@ -7,6 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from ..Common.test_thread_utils import delayed_identity
+from .observer import Observer
 from ..Players.euclid import Euclid
 from ..Players.move import Move, Pass
 from ..Players.player import Player
@@ -18,7 +21,7 @@ from ..Common.boardSerializer import make_tile_grid
 from ..Common.direction import Direction
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
-from ..Common.utils import get_json_obj_list
+from ..Common.utils import get_json_obj_list, shape_dict
 from ..Common.state import State
 from ..Players.api_player import APIPlayer
 
@@ -61,6 +64,21 @@ def basic_seeded_board_two():
 
 
 @pytest.fixture
+def board_slow_riemann_win():
+    connector_rows = [
+        "───────",
+        "└──────",
+        "───────",
+        "───────",
+        "───────",
+        "───────",
+        "───────",
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["┬"])
+
+
+@pytest.fixture
 def player_one():
     return Player.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
 
@@ -86,6 +104,11 @@ def player_five():
 
 
 @pytest.fixture
+def player_six():
+    return Player.from_home_goal_color(Position(1, 5), Position(1, 1), "green")
+
+
+@pytest.fixture
 def referee_no_observer():
     return Referee(timeout_seconds=0.5)
 
@@ -108,6 +131,16 @@ def seeded_game_state_three(basic_seeded_board_two, player_one, player_two, play
 @pytest.fixture
 def seeded_game_state_four(basic_seeded_board_two, player_one, player_three, player_five):
     return State.from_board_and_players(basic_seeded_board_two, [player_one, player_three, player_five])
+
+@pytest.fixture
+def state_slow_riemann_win(board_slow_riemann_win, player_one, player_two, player_six):
+    player_one.set_current_position(Position(0, 3))
+    player_two.set_current_position(Position(0, 4))
+    player_six.set_current_position(Position(0, 5))
+    return State(board_slow_riemann_win,
+                 [(0, Direction.Left)],
+                 [player_one, player_two, player_six],
+                 active_player_index=0)
 
 
 class ForeverStrategy(Strategy):
@@ -269,20 +302,46 @@ def test_run_game_one_timeout_setup(referee_no_observer, seeded_game_state_three
         assert mock.call_count == 1
 
 
-def test_run_game_all_valid_players(referee_no_observer, seeded_game_state_three):
+def test_run_game_all_valid_players(referee_no_observer, state_slow_riemann_win):
     api_players, mocks = [], []
-    strategies = [Riemann(), AlwaysRaiseStrategy(), Euclid()]
     for i in range(3):
-        api_player, mock = api_player_with_mock(f"player{i}", strategies[i], "take_turn")
+        api_player, mock = api_player_with_mock(f"player{i}", Riemann(), "take_turn")
         api_players.append(api_player)
         mocks.append(mock)
 
-    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
-    assert winning_players == [api_players[0]]
-    assert cheating_players == [api_players[1]]
-    assert mocks[0].call_count == 2
-    assert mocks[1].call_count == 1
-    assert mocks[2].call_count == 1
+    ###### uncomment to use oberserver ######
+    # with ThreadPoolExecutor() as executor:
+    #     event_queue = queue.Queue()
+    #     observer_proxy = MagicMock()
+    #     observer_proxy.receive_new_state = lambda st: event_queue.put((0, st))
+    #     observer_proxy.set_game_is_over = lambda st: event_queue.put((1, None))
+    #     referee_no_observer.add_observer(observer_proxy)
+    #     outcome_future = executor.submit(
+    #         lambda: referee_no_observer.run_game_from_state(api_players, state_slow_riemann_win)
+    #     )
+    #     real_observer = Observer()
+    #     while True:
+    #         try:
+    #             typ, arg = event_queue.get(timeout=1 / 60)
+    #             if typ == 0: real_observer.receive_new_state(arg)
+    #             else: real_observer.set_game_is_over()
+    #         except queue.Empty:
+    #             pass
+    #         real_observer.display_gui()
+    #     winning_players, cheating_players = outcome_future.result()
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, state_slow_riemann_win)
+
+    # tee gets inserted on turn 0 into (row 0, col 6) then moves left once per turn
+    # col(tee) = (6 - turn_counter) % 8
+    # if col(tee) is 7 that means it's on the spare tile
+    # player_six is api_players[2], they get to their goal if col(tee) is 0, and turn % 3 == 2
+    # player_six gets to their goal on turn index 14 (last of round 5),
+    #   and then their home on turn index 17 (last of round 6)
+    assert winning_players == [api_players[2]]
+    assert cheating_players == []
+    assert mocks[0].call_count == 6
+    assert mocks[1].call_count == 6
+    assert mocks[2].call_count == 6
 
 
 

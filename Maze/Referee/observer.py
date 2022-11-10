@@ -32,6 +32,7 @@ class Observer:
         self.__list_of_states: List[State] = []
         self.__current_state_index = 0
         self.__is_game_over = False
+        self.__button_column = -1
         self.__window = Tk()
 
     def receive_new_state(self, next_state: State) -> None:
@@ -91,7 +92,9 @@ class Observer:
         button_column = 0
         if self.__list_of_states:
             button_column = len(self.__list_of_states[0].get_board().get_tile_grid())
-        self.__add_buttons(button_column)
+        if button_column != self.__button_column:
+            self.__button_column = button_column
+            self.__add_buttons(button_column)
 
     def __draw_basic_board(self) -> None:
         """
@@ -213,13 +216,13 @@ class Observer:
                           text="Save", command=self.__save, state=("normal" if self.__list_of_states else "disabled"))
         save_btn.grid(row=1, column=button_column)
 
-    def display_gui(self) -> None:
+    def display_gui(self) -> bool:
         """
         Displays the current state in a pop-up window
         :return: None
         """
         self.__draw_current_state()
-        self.__window.mainloop()
+        self.__window.update()
 
     @staticmethod
     def __get_serialized_state(current_state: State) -> dict:

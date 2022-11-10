@@ -53,11 +53,20 @@ class Referee:
         self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
 
+    def add_observer(self, observer: Observer) -> None:
+        """
+        Subscribes an observer to game progress updates from this referee.
+        :param observer: An Observer, which will now receive updates
+        :return: None
+        """
+        self.__observers.append(observer)
+
     def __reset_referee(self) -> None:
         """
         Resets this Referee's fields to their initial states
         :return: None
         """
+        self.__observers = []
         self.__cheater_players = []
         self.__winning_players = []
         self.__current_players = []
@@ -376,9 +385,25 @@ class Referee:
         return game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal()
 
     def send_state_updates_to_observers(self, game_state: State) -> None:
-        # observer.receive_new_state(deepcopy(game_state))
-        pass
+        """
+        Updates all subscribed observers when a game of Labyrinth has a new state.
+        Note: misbehaving observers are not kicked out of the list
+        :return: None
+        """
+        future_list = [
+            self.__executor.submit(observer.receive_new_state, deepcopy(game_state))
+            for observer in self.__observers
+        ]
+        gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
 
     def send_game_over_to_observers(self) -> None:
-        # observer.set_game_is_over()
-        pass
+        """
+        Updates all subscribed observers when a game of Labyrinth finishes.
+        Note: misbehaving observers are not kicked out of the list
+        :return: None
+        """
+        future_list = [
+            self.__executor.submit(observer.set_game_is_over)
+            for observer in self.__observers
+        ]
+        gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
