@@ -3,8 +3,7 @@
 ### Priority: Very High
 
 - [ ] Fix Makefile
-    - The file 6/requirements.txt locks package versions which aren't compatible with
-      Python 3.6. The console error
+    - The file 6/requirements.txt locks package versions which aren't compatible with Python 3.6. The console error
       is `Could not find a version that satisfies the requirement importlib-metadata==5.0.0 (from -r requirements.txt (line 2))`
 
 - [ ] Fix deserializers and guard against type errors
@@ -14,20 +13,6 @@
     - [ ] Type hint all functions, and avoid the `Any` type
 
 ### Priority: High
-
-- [x] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current
-  position, home position, and color
-    - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
-      game
-    - [x] Create `APIPlayer`
-      - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
-      - Commit Message: **Separate Player from APIPlayer**
-    - [x] add acknowledgments from the player (no more void methods in player interactions)
-      - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
-      - Commit Message: **Separate Player from APIPlayer**
-    - [x] Use threading to simulate an untrusted/remote player
-    - [x] Write a utility function for the `APIPlayer` calls which handles timeout errors and safety errors
-    - [x] While fixing this also inform losing players
 
 - [ ] Use the observer pattern for `Observer`
     - [ ] Define the observer interface
@@ -84,8 +69,8 @@
 - [ ] The file checking in `Gem` can be cached
 - [ ] Break down make_tile_grid into pieces allowing callers to supply connectors without treasures so that tests can
   use it too (will make testing with custom boards faster)
-- [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are
-  in the same file as their main data structure's serialization code)
+- [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
+  the same file as their main data structure's serialization code)
 
 ### Completed
 
@@ -102,18 +87,37 @@
 
 - [x] The strategy should attempt to reach a `Position`, not a `Tile` (HIGH)
     - Rationale: Course website update on October 26th during milestone 5:
-        - > If you tried to go to specific (unique) tiles instead of specific coordinates, please change your code to
-          match the now clarified specification.
-    - Rationale 2: `Board.get_position_from_tile` is a performance bottleneck, checking 49
-      tiles for equality. We already track players' current location, so this can be avoided.
+        - > If you tried to go to specific (unique) tiles instead of specific coordinates, please change your code to match the now clarified specification.
+    - Rationale 2: `Board.get_position_from_tile` is a performance bottleneck, checking 49 tiles for equality. We
+      already track players' current location, so this can be avoided.
     - Approach: Eliminate all uses of `Board.get_position_from_tile`.
     - [x] Find a way to improve `Player` position tracking.
         - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/8c6fc3db26f91ade8e67785e06c3827edae50fab
         - Commit Message: **update board to use new position transition map**
-    - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related
-      code in `State` and `Board`
+    - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related code in `State`
+      and `Board`
         - Commit: 723ea1544a6e6bd0fdbd357ed759b67bd9561e34
         - Commit Message: **update board.reachable_tiles and all code related to it**
     - [x] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
-      - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/80adfaff73ca02efb5e943abfc3d2b3cd43edf43
-      - Commit Message: **Update strategy to fully remove position-tile conversions**
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/80adfaff73ca02efb5e943abfc3d2b3cd43edf43
+        - Commit Message: **Update strategy to fully remove position-tile conversions**
+        
+- [x] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current
+  position, home position, and color (HIGH)
+    - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
+      game
+    - [x] Create `APIPlayer`
+        - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+        - Commit Message: **Separate Player from APIPlayer**
+    - [x] add acknowledgments from the player (no more void methods in player interactions)
+        - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+        - Commit Message: **Separate Player from APIPlayer**
+    - [x] Use threading to simulate an untrusted/remote player
+        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit Message: **implement timeout and safety handling for APIPlayers**
+    - [x] Write a utility function for the `APIPlayer` calls which handles timeout errors and safety errors
+        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit Message: **implement timeout and safety handling for APIPlayers**
+    - [x] While fixing this also inform losing players
+        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit Message: **implement timeout and safety handling for APIPlayers**
