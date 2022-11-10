@@ -91,7 +91,7 @@ class Observer:
         self.__draw_basic_board()
         button_column = 0
         if self.__list_of_states:
-            button_column = len(self.__list_of_states[0].get_board().get_tile_grid())
+            button_column = self.__list_of_states[0].get_board().get_width()
         if button_column != self.__button_column:
             self.__button_column = button_column
             self.__add_buttons(button_column)
@@ -105,13 +105,13 @@ class Observer:
             current_state = self.__list_of_states[self.__current_state_index]
             current_board = current_state.get_board()
             current_tile_grid = current_board.get_tile_grid()
-            for row in range(len(current_tile_grid)):
-                for col in range(len(current_tile_grid[row])):
-                    drawn_tile = self.__draw_shape_from_tile(current_tile_grid[row][col])
+            for row, tiles in enumerate(current_tile_grid):
+                for col, tile in enumerate(tiles):
+                    drawn_tile = self.__draw_shape_from_tile(tile)
                     homes_added = self.__add_home_at(row, col, drawn_tile)
                     homes_and_avatars_added = self.__add_avatars_at(row, col, homes_added)
                     homes_and_avatars_added.grid(row=row, column=col)
-            self.__draw_spare_tile(current_board.get_next_tile(), len(current_tile_grid))
+            self.__draw_spare_tile(current_board.get_next_tile(), current_board.get_height())
 
     def __draw_spare_tile(self, spare_tile: Tile, board_size: int) -> None:
         """

@@ -30,7 +30,17 @@ def basic_board():
 
 @pytest.fixture
 def seeded_small_board():
-    return Board.from_random_board(3, seed=10)
+    return Board.from_random_board(3, 3, seed=10)
+
+
+@pytest.fixture
+def seeded_wide_board():
+    return Board.from_random_board(3, 10, seed=10)
+
+
+@pytest.fixture
+def seeded_narrow_board():
+    return Board.from_random_board(10, 3, seed=10)
 
 
 @pytest.fixture
@@ -218,38 +228,6 @@ def test_check_stationary_position_six(basic_board):
     assert not basic_board.check_stationary_position(9, 1)
 
 
-# ----- Test get_all_stationary_tiles method ------
-# verifies that the method returns the correct number of stationary tiles
-def test_get_all_stationary_tiles_length(basic_board):
-    assert len(basic_board.get_all_stationary_tiles()) == 9
-
-
-def test_get_all_stationary_tiles_length_small_board(seeded_small_board):
-    assert len(seeded_small_board.get_all_stationary_tiles()) == 1
-
-
-# verifies that the method returns the correct stationary tiles
-def test_get_all_stationary_tiles_one(basic_board):
-    stationary_tile = basic_board.get_tile_grid()[1][1]
-    assert stationary_tile in basic_board.get_all_stationary_tiles()
-
-
-def test_get_all_stationary_tiles_two(basic_board):
-    stationary_tile = basic_board.get_tile_grid()[3][5]
-    assert stationary_tile in basic_board.get_all_stationary_tiles()
-
-
-# verifies that the non-stationary tiles are not in the list of stationary tiles
-def test_get_all_stationary_tiles_three(basic_board):
-    stationary_tile = basic_board.get_tile_grid()[2][0]
-    assert stationary_tile not in basic_board.get_all_stationary_tiles()
-
-
-def test_get_all_stationary_tiles_four(basic_board):
-    stationary_tile = basic_board.get_tile_grid()[1][4]
-    assert stationary_tile not in basic_board.get_all_stationary_tiles()
-
-
 # ----- Test get_tile_by_position method ------
 # verifies that the method returns the correct Tile for a Position
 def test_valid_tile_by_position_one(seeded_small_board):
@@ -279,26 +257,57 @@ def test_invalid_tile_by_position_negative(basic_board):
     assert str(error_message.value) == "Position not on board"
 
 
-# ----- Test can_slide method ------
-def test_can_slide_on_board(basic_board):
-    assert basic_board.can_slide(2)
+# ----- Test can_slide_horizontal method ------
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2, 4, 6)],
+    *[(col, False) for col in (1, 3, 5)],
+    *[(col, False) for col in (-2, -1, 7, 8)]
+])
+def test_can_slide_horizontal_on_board(basic_board, slide_index, expected):
+    assert basic_board.can_slide_horizontally(slide_index) == expected
 
 
-def test_can_slide_on_board_two(basic_board):
-    assert basic_board.can_slide(4)
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2)],
+    *[(col, False) for col in (1,)],
+    *[(col, False) for col in (-2, -1, 3, 4)],
+])
+def test_can_slide_horizontal_on_wide_board(seeded_wide_board, slide_index, expected):
+    assert seeded_wide_board.can_slide_horizontally(slide_index) == expected
 
 
-def test_can_slide_not_on_board(basic_board):
-    assert not basic_board.can_slide(-1)
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2, 4, 6, 8)],
+    *[(col, False) for col in (1, 3, 5, 7, 9)],
+    *[(col, False) for col in (-2, -1, 10, 11)],
+])
+def test_can_slide_horizontal_on_narrow_board(seeded_narrow_board, slide_index, expected):
+    assert seeded_narrow_board.can_slide_horizontally(slide_index) == expected
 
 
-def test_can_slide_not_on_board_two(basic_board):
-    assert not basic_board.can_slide(7)
+# ----- Test can_slide_vertically method ------
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2, 4, 6)],
+    *[(col, False) for col in (1, 3, 5)],
+    *[(col, False) for col in (-2, -1, 7, 8)]
+])
+def test_can_slide_on_board(basic_board, slide_index, expected):
+    assert basic_board.can_slide_vertically(slide_index) == expected
 
 
-def test_can_slide_on_board_stationary(basic_board):
-    assert not basic_board.can_slide(1)
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2, 4, 6, 8)],
+    *[(col, False) for col in (1, 3, 5, 7, 9)],
+    *[(col, False) for col in (-2, -1, 10, 11)],
+])
+def test_can_slide_on_wide_board(seeded_wide_board, slide_index, expected):
+    assert seeded_wide_board.can_slide_vertically(slide_index) == expected
 
 
-def test_can_slide_on_board_stationary_two(basic_board):
-    assert not basic_board.can_slide(3)
+@pytest.mark.parametrize("slide_index, expected", [
+    *[(col, True) for col in (0, 2)],
+    *[(col, False) for col in (1,)],
+    *[(col, False) for col in (-2, -1, 3, 4)],
+])
+def test_can_slide_on_narrow_board(seeded_narrow_board, slide_index, expected):
+    assert seeded_narrow_board.can_slide_vertically(slide_index) == expected

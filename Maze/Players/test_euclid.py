@@ -6,9 +6,9 @@ from ..Common.position import Position
 from .euclid import Euclid
 from .move import Move, Pass
 from ..Common.direction import Direction
-from ..Common.boardSerializer import get_json_obj_list, make_tile_grid
+from ..Common.boardSerializer import make_tile_grid
+from ..Common.utils import get_json_obj_list
 from ..Common.board import Board
-from ..Common.tileSerializer import get_connector_from_shape
 
 # ----- Examples ------
 # This board has the following shape:

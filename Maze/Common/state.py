@@ -1,15 +1,12 @@
-from random import choice
 from typing import List, Tuple
 
 from .board import Board
 from .position_transition_map import PositionTransitionMap
 from ..Players.player import Player
-from .tile import Tile
 from .direction import Direction
 from .utils import ALL_NAMED_COLORS, get_euclidean_distance_between
 
 from .position import Position
-from ..Players.riemann import Riemann
 from .observableState import ObservableState
 
 
@@ -244,8 +241,9 @@ class State(ObservableState):
         :return: A list of Players representing the winning Players
         """
         closest_players = []
-        board_size = len(self._board.get_tile_grid())
-        current_min_distance = get_euclidean_distance_between(Position(0, 0), Position(board_size, board_size))
+        current_min_distance = get_euclidean_distance_between(Position(0, 0),
+                                                              Position(self._board.get_height(),
+                                                                       self._board.get_width()))
         for player in possible_winners:
             if is_goal:
                 player_distance = get_euclidean_distance_between(player.get_current_position(),

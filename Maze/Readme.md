@@ -208,7 +208,6 @@ It has the following public methods:
 - get_position_by_tile(Tile)
 - get_tile_by_position(Position)
 - check_stationary_position(row, col)
-- get_all_stationary_tiles()
 - get_tile_grid()
 - get_next_tile()
 - can_slide(index)

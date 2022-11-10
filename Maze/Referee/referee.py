@@ -312,7 +312,9 @@ class Referee:
             last_index, last_direction = previous_moves[-1]
             if last_index == slide_index and last_direction == get_opposite_direction(slide_direction):
                 return False
-        return game_state.get_board().can_slide(slide_index)
+        if slide_direction is Direction.Up or slide_direction is Direction.Down:
+            return game_state.get_board().can_slide_vertically(slide_index)
+        return game_state.get_board().can_slide_horizontally(slide_index)
 
     @staticmethod
     def __check_player_move(proposed_move: Move, game_state: State) -> bool:

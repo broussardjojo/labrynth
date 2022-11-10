@@ -16,6 +16,11 @@ class Board:
     spot on this Board.
     """
 
+    __tile_grid: List[List[Tile]]
+    __next_tile: Tile
+    __height: int
+    __width: int
+
     def __init__(self, tile_grid: List[List[Tile]], next_tile: Tile):
         """
         Base constructor for a Board that assigns the Board a 2-D List of Tiles to represent the tile grid and a Tile
@@ -23,9 +28,15 @@ class Board:
         :param tile_grid: a 2-D List of Tiles that represents the grid of tiles on a Board
         :param next_tile: a Tile that represents the next Tile to be inserted on a Board
         """
+        if len(tile_grid) < 2 or len(tile_grid[0]) < 2:
+            raise ValueError("Error: Board must be at least of size 2x2")
         self.__tile_grid = tile_grid
         self.__next_tile = next_tile
-        self.__dimensions = len(tile_grid)
+        self.__height = len(tile_grid)
+        self.__width = len(tile_grid[0])
+        for tile_row in tile_grid[1:]:
+            if len(tile_row) != self.__width:
+                raise ValueError("Error: Board must be rectangular")
 
     @classmethod
     def from_list_of_shapes(cls, shape_grid: List[List[Shape]], next_tile_shape: Shape,
@@ -70,22 +81,23 @@ class Board:
         return cls(tile_grid, next_tile)
 
     @classmethod
-    def from_random_board(cls, dimensions: int = 7, **kwargs):
+    def from_random_board(cls, height: int = 7, width: int = 7, **kwargs):
         """
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
         It creates a tile_grid and generates the next_tile.
-        :param dimensions: an integer representing the length and width of the board
+        :param width:
+        :param height: an integer representing the length and width of the board
         :return: an instance of a Board
         """
         if 'seed' in kwargs:
             random.seed(kwargs['seed'])
         gem_name_list = generate_gem_list()
-        board = cls.__initialize_board(gem_name_list, dimensions)
+        board = cls.__initialize_board(gem_name_list, height, width)
         next_tile = cls.__generate_unique_tile(gem_name_list, board)
         return cls(board, next_tile)
 
     @classmethod
-    def __initialize_board(cls, gem_name_list: List[str], dimension: int) -> List[List[Tile]]:
+    def __initialize_board(cls, gem_name_list: List[str], height: int, width: int) -> List[List[Tile]]:
         """
         Creates a grid of N by N unique Tiles based on the dimensions given in the Board constructor. Tiles are
         designated to be unique if they don't share the same two gems as any other tile in the grid.
@@ -95,9 +107,9 @@ class Board:
         side effect: fills in the __tile_grid field with unique Tiles
         """
         board: List[List[Tile]] = []
-        for row in range(dimension):
+        for row in range(height):
             tile_row: List[Tile] = []
-            for column in range(dimension):
+            for column in range(width):
                 unique_tile = cls.__generate_unique_tile(gem_name_list, board)
                 tile_row.append(unique_tile)
             board.append(tile_row)
@@ -149,14 +161,14 @@ class Board:
         Returns the width of this board.
         :return: An int specifying the number of tiles in each row of the board.
         """
-        return self.__dimensions
+        return self.__width
 
     def get_height(self) -> int:
         """
         Returns the height of this board.
         :return: An int specifying the number of rows in the board.
         """
-        return self.__dimensions
+        return self.__height
 
     def slide_and_insert(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
@@ -169,22 +181,42 @@ class Board:
         :raises: ValueError if the given index is not eligible to slide
         side effect: mutates __tile_grid and mutates __next_tile
         """
-        if not self.can_slide(index):
-            raise ValueError("Invalid index")
         if direction is Direction.Up or direction is Direction.Down:
+            if not self.can_slide_vertically(index):
+                raise ValueError("Invalid index")
             position_transitions = self.__get_slide_column_transitions(index, direction)
         else:
+            if not self.can_slide_horizontally(index):
+                raise ValueError("Invalid index")
             position_transitions = self.__get_slide_row_transitions(index, direction)
         self.__perform_slide_and_insert(position_transitions)
         return position_transitions
 
-    def can_slide(self, index: int) -> bool:
+    def can_slide_horizontally(self, index: int) -> bool:
         """
-        Checks if the given index is on this Board.
-        :param index: an int representing a row or column on this Board
-        :return: True if the index can slide, otherwise False
+        Checks if the given row index is on this Board and is slideable.
+        :param index: an int representing a row on this Board
+        :return: True if the row index can slide, otherwise False
         """
-        return not (index < 0 or index >= self.__dimensions or index % 2 != 0)
+        return not (index < 0 or index >= self.__height or index % 2 != 0)
+
+    def can_slide_vertically(self, index: int) -> bool:
+        """
+        Checks if the given column index is on this Board and is slideable.
+        :param index: an int representing a column on this Board
+        :return: True if the column index can slide, otherwise False
+        """
+        return not (index < 0 or index >= self.__width or index % 2 != 0)
+
+    def check_stationary_position(self, row: int, col: int) -> bool:
+        """
+        Checks if the given row and column are in a position on this Board that does not slide.
+        :param row: the row index on this Board
+        :param col: the column index on this Board
+        :return: True if the row, column pair are at a stationary point in this Board, otherwise False
+        """
+        return self.__valid_tile_location(row, col) and not (self.can_slide_vertically(row)
+                                                             or self.can_slide_vertically(col))
 
     def __get_slide_row_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
@@ -194,11 +226,11 @@ class Board:
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
         col_offset = LEFT_OFFSET if direction is Direction.Left else RIGHT_OFFSET
-        last_col = self.__dimensions - 1
+        last_col = self.__width - 1
         updated_positions = {
             Position(index, col): Position(index, col + col_offset)
-            for col in range(self.__dimensions)
-            if 0 <= col + col_offset < self.__dimensions
+            for col in range(self.__width)
+            if 0 <= col + col_offset < self.__width
         }
         removed_position = Position(index, 0) if direction is Direction.Left else Position(index, last_col)
         inserted_position = Position(index, 0) if direction is Direction.Right else Position(index, last_col)
@@ -212,11 +244,11 @@ class Board:
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
         row_offset = UP_OFFSET if direction is Direction.Up else DOWN_OFFSET
-        last_row = self.__dimensions - 1
+        last_row = self.__height - 1
         updated_positions = {
             Position(row, index): Position(row + row_offset, index)
-            for row in range(self.__dimensions)
-            if 0 <= row + row_offset < self.__dimensions
+            for row in range(self.__height)
+            if 0 <= row + row_offset < self.__height
         }
         removed_position = Position(0, index) if direction is Direction.Up else Position(last_row, index)
         inserted_position = Position(0, index) if direction is Direction.Down else Position(last_row, index)
@@ -333,29 +365,7 @@ class Board:
         :param col: An int representing the column of the potential Tile
         :return: True if the supplied indices are within the board, False otherwise
         """
-        return (0 <= row < self.__dimensions) and (0 <= col < self.__dimensions)
-
-    def check_stationary_position(self, row: int, col: int) -> bool:
-        """
-        Checks if the given row and column are in a position on this Board that does not slide.
-        :param row: the row index on this Board
-        :param col: the column index on this Board
-        :return: True if the row, column pair are at a stationary point in this Board, otherwise False
-        """
-        return row % 2 == 1 and col % 2 == 1 and self.__valid_tile_location(row, col)
-
-    def get_all_stationary_tiles(self) -> List[Tile]:
-        """
-        Generates a list of all the stationary Tiles on this Board.
-        :return: a List of Tiles that do not move
-        """
-        all_tiles = self.__tile_grid
-        stationary_tiles = []
-        for row in range(len(all_tiles)):
-            for col in range(len(all_tiles[row])):
-                if self.check_stationary_position(row, col):
-                    stationary_tiles.append(all_tiles[row][col])
-        return stationary_tiles
+        return (0 <= row < self.__height) and (0 <= col < self.__width)
 
     def get_tile_grid(self) -> List[List[Tile]]:
         """
@@ -378,9 +388,9 @@ class Board:
         :return: True if this Board is the same as the given object, otherwise False
         """
         if isinstance(other, Board):
-            if self.__dimensions == other.__dimensions:
-                for row in range(self.__dimensions):
-                    for col in range(self.__dimensions):
+            if self.__height == other.__height and self.__width == other.__width:
+                for row in range(self.__height):
+                    for col in range(self.__width):
                         if self.__tile_grid[row][col] != other.__tile_grid[row][col]:
                             return False
                 return self.__next_tile == other.__next_tile
