@@ -102,7 +102,8 @@ class Board:
         Creates a grid of N by N unique Tiles based on the dimensions given in the Board constructor. Tiles are
         designated to be unique if they don't share the same two gems as any other tile in the grid.
         :param gem_name_list: List of strings representing all possible gem names
-        :param dimension: integer representing the length and width of the board
+        :param height: integer representing the height of the board
+        :param width: integer representing the width of the board
         :return: None
         side effect: fills in the __tile_grid field with unique Tiles
         """
@@ -308,21 +309,6 @@ class Board:
         """
         neighbor_path = base_path.get_opposite_direction()
         return base_tile.has_path(base_path) and neighbor_tile.has_path(neighbor_path)
-
-    @staticmethod
-    def __get_opposite_path(base_path):
-        """
-        Gives the opposite Direction to that of the given Direction.
-        :param base_path: the Direction who's opposite is being given
-        :return: a Direction, representing the opposite Direction to that of the given Direction
-        """
-        if base_path == Direction.Up:
-            return Direction.Down
-        if base_path == Direction.Down:
-            return Direction.Up
-        if base_path == Direction.Right:
-            return Direction.Left
-        return Direction.Right
 
     def __check_neighbors(self, base_position: Position, acc_positions: Set[Position]) -> List[Position]:
         """

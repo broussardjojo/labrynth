@@ -8,7 +8,7 @@ from ..Common.direction import Direction
 from ..Common.position import Position
 from ..Common.state import State
 from ..Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
-from ..Common.utils import get_opposite_direction, ALL_NAMED_COLORS, Maybe
+from ..Common.utils import ALL_NAMED_COLORS, Maybe
 from ..Players.api_player import APIPlayer
 from ..Players.move import Move
 from ..Players.player import Player
@@ -310,7 +310,7 @@ class Referee:
         previous_moves = game_state.get_all_previous_non_passes()
         if previous_moves:
             last_index, last_direction = previous_moves[-1]
-            if last_index == slide_index and last_direction == get_opposite_direction(slide_direction):
+            if last_index == slide_index and last_direction == slide_direction.get_opposite_direction():
                 return False
         if slide_direction is Direction.Up or slide_direction is Direction.Down:
             return game_state.get_board().can_slide_vertically(slide_index)

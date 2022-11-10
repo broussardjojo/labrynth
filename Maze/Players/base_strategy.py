@@ -9,7 +9,6 @@ from ..Common.position_transition_map import PositionTransitionMap
 from ..Common.tile import Tile
 from .strategy import Strategy
 from ..Common.board import Board
-from ..Common.utils import get_opposite_direction
 from abc import abstractmethod
 
 FULL_ROTATION = 4
@@ -95,7 +94,7 @@ class BaseStrategy(Strategy):
             for slide_direction in directions:
                 if previous_moves:
                     previous_index, previous_direction = previous_moves[-1]
-                    if previous_index == index and previous_direction == get_opposite_direction(slide_direction):
+                    if previous_index == index and previous_direction == slide_direction.get_opposite_direction():
                         continue
                 for rotation in range(FULL_ROTATION):
                     board.get_next_tile().rotate(rotation)
@@ -192,5 +191,4 @@ class BaseStrategy(Strategy):
         :param board: A Board to perform temporary slides on
         :return: None
         """
-        opposite_direction = get_opposite_direction(prev_direction)
-        board.slide_and_insert(prev_index, opposite_direction)
+        board.slide_and_insert(prev_index, prev_direction.get_opposite_direction())

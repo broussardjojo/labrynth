@@ -46,6 +46,7 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 
 - [ ] Install a JSON library which can parse data as it arrives, instead of requiring it all at once.
 
+We intend to complete this TODO between submission of Milestone 7 and beginning work on Milestone 8
 - [ ] `Move` combinators should be rewritten to make the "first-non-pass" preference of the two strategies more clear.
     - Rationale: The dynamic dispatches surrounding `Move` and `Pass` force the reader to jump through multiple call
       points to understand fairly simple code.
@@ -57,7 +58,6 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 ### Priority: Low
 
 - [ ] On classes we've written, `__hash__` can just use a tuple instead of doing math with multiple results
-- [ ] Get linter IDE support working
 - [ ] Make `get_opposite_direction` from utils an actual method on a Direction
 - [ ] The file checking in `Gem` can be cached
 - [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
@@ -124,3 +124,6 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 - [x] Remove `multipledispatch` (LOW)
     - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/554442ed04d7c6d4cced154f3b983db588bb357a
     - Commit Message: **Begin using APIPlayer in Referee**
+
+- [x] Get linter IDE support working
+    - No commit for this, completed on ignored file

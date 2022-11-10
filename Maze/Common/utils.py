@@ -139,22 +139,6 @@ inverse_shape_dict = {
 }
 
 
-def get_opposite_direction(input_direction: Direction) -> Direction:
-    """
-    Get the opposite direction of the given direction
-    :param input_direction: A Direction representing the direction to flip
-    :return: A Direction representing the flipped input Direction
-    """
-    if input_direction == Direction.Up:
-        return Direction.Down
-    if input_direction == Direction.Down:
-        return Direction.Up
-    if input_direction == Direction.Right:
-        return Direction.Left
-    if input_direction == Direction.Left:
-        return Direction.Right
-
-
 ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
 
 
