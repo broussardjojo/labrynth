@@ -58,7 +58,6 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 ### Priority: Low
 
 - [ ] On classes we've written, `__hash__` can just use a tuple instead of doing math with multiple results
-- [ ] Make `get_opposite_direction` from utils an actual method on a Direction
 - [ ] The file checking in `Gem` can be cached
 - [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
   the same file as their main data structure's serialization code)
@@ -125,5 +124,9 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
     - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/554442ed04d7c6d4cced154f3b983db588bb357a
     - Commit Message: **Begin using APIPlayer in Referee**
 
-- [x] Get linter IDE support working
+- [x] Get linter IDE support working (LOW)
     - No commit for this, completed on ignored file
+    
+- [x] Make `get_opposite_direction` from utils an actual method on a Direction (LOW)
+    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/9b0faae9b36dc840169f1b9ef3b217e17a3ff336 
+    - Commit Message: **eliminate duplicate implementations of get_opposite_direction**
