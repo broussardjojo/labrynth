@@ -53,7 +53,6 @@ class Referee:
         self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
 
-
     def __reset_referee(self) -> None:
         """
         Resets this Referee's fields to their initial states
@@ -199,8 +198,7 @@ class Referee:
         """
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
-            future = self.__executor.submit(lambda: client.setup(deepcopy(game_state),
-                                                                 player.get_goal_position()))
+            future = self.__executor.submit(client.setup, deepcopy(game_state), player.get_goal_position())
             future_list.append(future)
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
         self.__handle_broadcast_acknowledgements(responses, game_state)
@@ -263,7 +261,7 @@ class Referee:
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
             did_win = player in winning_players
-            future = self.__executor.submit(lambda: client.won(did_win))
+            future = self.__executor.submit(client.won, did_win)
             future_list.append(future)
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
         # clients that fail to acknowledge will be moved from current players to cheater players by this method

@@ -7,9 +7,6 @@ from ..Common.position import Position
 from ..Common.state import State
 from ..Common.utils import Just, Maybe, Nothing
 
-
-# TODO: implement class
-
 Acknowledgement = Any
 ACK_OBJECT = object()
 
@@ -85,3 +82,10 @@ class APIPlayer:
         """
         self.__won = Just(did_win)
         return ACK_OBJECT
+
+    def __repr__(self) -> str:
+        """
+        Overrides the repr method on an APIPlayer
+        :return: a string representing this APIPlayer
+        """
+        return f"APIPlayer({self.__name}, {self.__strategy})"
