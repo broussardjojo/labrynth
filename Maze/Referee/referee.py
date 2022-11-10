@@ -1,21 +1,21 @@
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
-from typing import List, Union, Tuple, Set, Any, Optional
+from typing import List, Tuple, Set, Any, ClassVar
 
 from .observer import Observer
 from ..Common.board import Board
 from ..Common.direction import Direction
 from ..Common.position import Position
 from ..Common.state import State
-from ..Common.thread_utils import gather_protected
+from ..Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
 from ..Common.utils import get_opposite_direction, ALL_NAMED_COLORS, Maybe
 from ..Players.api_player import APIPlayer
-from ..Players.move import Move, Pass
+from ..Players.move import Move
 from ..Players.player import Player
 
-# A pair of lists of strings; the first list represents the names of all winners,
-# the second represents the names of all ejected players
-GameOutcome = Tuple[List[str], List[str]]
+# A pair of lists of APIPlayers; the first list represents all winners,
+# the second represents all ejected players
+GameOutcome = Tuple[List[APIPlayer], List[APIPlayer]]
 
 
 class Referee:
@@ -34,21 +34,25 @@ class Referee:
     for game play)
     """
 
-    __cheater_players: List[str]
-    __winning_players: List[str]
+    __cheater_players: List[APIPlayer]
+    __winning_players: List[APIPlayer]
     __current_players: List[APIPlayer]
     __num_rounds: int
+    __timeout_seconds: float
 
     __observers: List[Observer]
     __executor: Executor
+    MAX_ROUNDS: ClassVar[int] = 1000
 
-    def __init__(self):
+    def __init__(self, timeout_seconds: float = DEFAULT_TIMEOUT):
         """
         Creates an instance of a Referee given a game State
         """
         self.__observers = []
         self.__executor = ThreadPoolExecutor()
+        self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
+
 
     def __reset_referee(self) -> None:
         """
@@ -58,7 +62,6 @@ class Referee:
         self.__cheater_players = []
         self.__winning_players = []
         self.__current_players = []
-        self.__num_rounds = 0
 
     def run_game(self, clients: List[APIPlayer]) -> GameOutcome:
         """
@@ -91,11 +94,11 @@ class Referee:
         displaying the GUI.
         """
         self.__reset_referee()
-        self.__current_players = players
+        self.__current_players = players.copy()
         self.__setup(game_state)
         return self.__run_game_helper(game_state)
 
-    def __run_game_helper(self, game_state: State) -> (List[APIPlayer], List[APIPlayer]):
+    def __run_game_helper(self, game_state: State) -> GameOutcome:
         """
         Method to run a game of Labyrinth, this method will run until the game is over, for each player in the list
         it will request a move, validate the move, perform the move or kick the player out, and check if the game is
@@ -105,18 +108,21 @@ class Referee:
         a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
         """
         self.send_state_updates_to_observers(game_state)
-        while self.__game_not_over(game_state):
-            self.__run_round(game_state)
-        self.__inform_winning_players()
-        self.send_outcome_updates_to_observers(None)
+        current_round = 0
+        is_game_over = False
+        while current_round < Referee.MAX_ROUNDS and not is_game_over:
+            is_game_over = self.__run_round(game_state)
+            current_round += 1
+        self.__inform_winning_players(game_state)
+        self.send_game_over_to_observers()
         return self.__winning_players, self.__cheater_players
 
     @staticmethod
-    def get_proposed_board(list_of_players: List[APIPlayer]) -> Board:
+    def get_proposed_board(clients: List[APIPlayer]) -> Board:
         """
         Gets a Board from APIPlayers' proposals
         NOTE: this method is mainly defined for testing at this point, we will implement it fully when it is required
-        :param list_of_players: the list of APIPlayers allowed to propose a Board
+        :param clients: the list of APIPlayers allowed to propose a Board
         :return: a randomly selected Board from the list of proposed Boards
         """
         return Board.from_random_board(seed=3)
@@ -129,7 +135,6 @@ class Referee:
         :param active_player: The active APIPlayer who is making this Move
         :return: None
         """
-        self.__passed_players = []
         game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
         game_state.slide_and_insert(proposed_move.get_slide_index(),
                                     proposed_move.get_slide_direction())
@@ -162,10 +167,10 @@ class Referee:
         """
         self.__current_players.remove(active_player)
         game_state.kick_out_active_player()
-        self.__cheater_players.append(active_player.name())
+        self.__cheater_players.append(active_player)
         self.__did_active_player_cheat = True
 
-    def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]]) -> None:
+    def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]], game_state: State) -> None:
         """
         Kicks out all players who failed to acknowledge a broadcast, based on the given response list
         :param responses: A list of Maybe[Any] objects; each element represents the response of the corresponding
@@ -173,36 +178,18 @@ class Referee:
         :return: None
         :raises: ValueError if len(responses) doesn't equal the number of current players
         """
-        pass
-
-    def __handle_timeout(self, active_player: APIPlayer, game_state: State) -> None:
-        """
-        Raises an error given that the active player takes to long to make their move and handles the active player as
-        a cheater by kicking them out of the game and adding them to a list of cheating players.
-        :param active_player: the player taking too long to move
-        :return: None
-        raises: TimeoutError
-        """
-        self.__handle_cheater(active_player, game_state)
-        raise TimeoutError("Error: APIPlayer took to long to make their move")
-
-    # TODO: Replace whole method with APIPlayer central control for timeouts and pick new library
-    @staticmethod
-    def __get_proposed_move(active_player: APIPlayer, game_state: State) -> Union[Move, Pass]:
-        """
-        Gets the proposed move from the active player. If the active player takes too long to communicate their desired
-        move, then the game times them out and that player is removed from the game and added to a list of cheating
-        players.
-        :param active_player: the player who is proposing a move
-        :return: a desired Move from the active player
-        """
-        # TODO: Construct game_state without secrets
-        proposed_move = active_player.take_turn(game_state)
-        return proposed_move
-
-    @staticmethod
-    def __setup_one(client: APIPlayer, game_state: Optional[State], player: Player) -> Any:
-        return client.setup(game_state, player.get_goal_position())
+        num_players = len(self.__current_players)
+        if len(responses) != num_players:
+            raise ValueError("Error: Incorrect broadcast response list")
+        current_player_index = game_state.get_active_player_index()
+        responses_in_game_order = [*responses[current_player_index:], *responses[:current_player_index]]
+        for response in responses_in_game_order:
+            if not response.is_present:
+                # active client didn't send an acknowledgment
+                active_client = self.__current_players[game_state.get_active_player_index()]
+                self.__handle_cheater(active_client, game_state)
+            else:
+                game_state.change_active_player_turn()
 
     def __setup(self, game_state: State) -> None:
         """
@@ -210,12 +197,13 @@ class Referee:
          will be deemed to be cheating
         :return: None
         """
-        future_list: List[Future[Any]] = []
+        future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
-            future = self.__executor.submit(lambda: client.setup(game_state, player.get_goal_position()))
+            future = self.__executor.submit(lambda: client.setup(deepcopy(game_state),
+                                                                 player.get_goal_position()))
             future_list.append(future)
-        responses = gather_protected(future_list)
-        self.__handle_broadcast_acknowledgements(responses)
+        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
+        self.__handle_broadcast_acknowledgements(responses, game_state)
 
     def __generate_players(self, board: Board, count: int) -> List[Player]:
         """
@@ -266,31 +254,23 @@ class Referee:
                 if board.check_stationary_position(row, col):
                     return Position(row, col)
 
-    def __game_not_over(self, game_state: State) -> bool:
-        """
-        Returns whether the game is over or not. The game is considered over if the active player reaches their home
-        position after visiting their goal position, the number of rounds reaches 1000, every player in a round
-        passes, or there are 0 players left in the game.
-        :return: True if the game is over, otherwise False
-        """
-        if len(game_state.get_players()) == 0:
-            return False
-        active_player = self.__current_players[game_state.get_active_player_index()]
-        if self.__did_active_player_win(game_state):
-            self.__winning_players = [active_player]
-            return False
-        if self.__num_rounds == 1000 or len(self.__passed_players) == len(game_state.get_players()):
-            self.__winning_players = [client.name() for client in game_state.get_closest_players_to_victory()]
-            return False
-        return True
-
-    def __inform_winning_players(self) -> None:
+    def __inform_winning_players(self, game_state: State) -> None:
         """
         Tells all winning players they have won the game
         :return: None
         """
-        for player in self.__winning_players:
-            player.won(True)
+        winning_players = [client for client in game_state.get_closest_players_to_victory()]
+        future_list: "List[Future[Any]]" = []
+        for client, player in zip(self.__current_players, game_state.get_players()):
+            did_win = player in winning_players
+            future = self.__executor.submit(lambda: client.won(did_win))
+            future_list.append(future)
+        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
+        # clients that fail to acknowledge will be moved from current players to cheater players by this method
+        # clients which are still in current_players are the only candidates for the GameOutcome winners
+        self.__handle_broadcast_acknowledgements(responses, game_state)
+        self.__winning_players = [client for client, player in zip(self.__current_players, game_state.get_players())
+                                  if player in winning_players]
 
     def __is_valid_move(self, proposed_move: Move, game_state: State) -> bool:
         """
@@ -340,47 +320,52 @@ class Referee:
         state_copy.slide_and_insert(proposed_move.get_slide_index(), proposed_move.get_slide_direction())
         return state_copy.can_active_player_reach_position(proposed_move.get_destination_position())
 
-    def __perform_pass(self, active_player: APIPlayer) -> None:
+    def __perform_pass(self) -> None:
         """
         A helper method to perform a Pass move
-        :param active_player: The currently active player who is passing their turn
         :return: None
         """
-        self.__passed_players.append(active_player)
+        pass
 
-    def __run_round(self, game_state: State) -> None:
+    def __run_round(self, game_state: State) -> bool:
         """
         Runs a round of a game. A round is considered complete when all players have taken a turn.
         :param game_state: represents the current state of the game
-        :return: None
+        :return: True if the game is over, otherwise False
         """
-        round_over = False
-        self.__passed_players = []
-        while not round_over:
+        any_player_moved = False
+        num_players = len(self.__current_players)
+        for _ in range(num_players):
             self.__did_active_player_cheat = False
-            self.__run_active_player_turn(game_state)
+            any_player_moved |= self.__run_active_player_turn(game_state)
+            self.send_state_updates_to_observers(game_state)
+            if not self.__current_players:
+                return True
             if self.__did_active_player_win(game_state):
-                return
+                return True
             if not self.__did_active_player_cheat:
                 game_state.change_active_player_turn()
-            round_over = game_state.get_active_player_index() == 0
-        self.__num_rounds += 1
+        return not any_player_moved
 
-    def __run_active_player_turn(self, game_state: State) -> None:
+    def __run_active_player_turn(self, game_state: State) -> bool:
         """
         Runs a single player turn within a game given the current game state
         :param game_state: represents the current state of the game
-        :return: None
+        :return: True if the player moves legally, otherwise False
         """
         player_index = game_state.get_active_player_index()
-        player = self.__current_players[player_index]
-        try:
-            proposed_move = self.__get_proposed_move(player, game_state)
-        except TimeoutError:
-            return
-        proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, player, game_state),
-                                           lambda: self.__perform_pass(player))
-        self.send_state_updates_to_observers(game_state)
+        client = self.__current_players[player_index]
+        # TODO: remove other players' secret info
+        response = await_protected(self.__executor.submit(lambda: client.take_turn(deepcopy(game_state))),
+                                   timeout_seconds=self.__timeout_seconds)
+        if not response.is_present:
+            self.__handle_cheater(client, game_state)
+            return False
+        proposed_move = response.get_or_throw()
+        proposed_move.perform_move_or_pass(lambda: self.__perform_move(proposed_move, client, game_state),
+                                           lambda: self.__perform_pass())
+        # TODO: Fix dynamic dispatch so we can validate moves here and remove use of isinstance
+        return isinstance(proposed_move, Move) and not self.__did_active_player_cheat
 
     @staticmethod
     def __did_active_player_win(game_state: State) -> bool:
@@ -396,6 +381,6 @@ class Referee:
         # observer.receive_new_state(deepcopy(game_state))
         pass
 
-    def send_outcome_updates_to_observers(self, outcome: GameOutcome) -> None:
+    def send_game_over_to_observers(self) -> None:
         # observer.set_game_is_over()
         pass

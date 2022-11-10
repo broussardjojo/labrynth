@@ -15,7 +15,7 @@
 
 ### Priority: High
 
-- [ ] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current
+- [x] The Referee should interact with an `APIPlayer`, distinct from the class `Player` which holds info like current
   position, home position, and color
     - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
       game
@@ -25,10 +25,9 @@
     - [x] add acknowledgments from the player (no more void methods in player interactions)
       - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
       - Commit Message: **Separate Player from APIPlayer**
-    - [ ] Use threading to simulate an untrusted/remote player
-    - [ ] Write a remote proxy wrapper for the `APIPlayer` which handles timeout errors and safety errors
-    - [ ] Update referee to wrap all `APIPlayer` instances in its constructor, and replace thread logic
-    - [ ] While fixing this also inform losing players
+    - [x] Use threading to simulate an untrusted/remote player
+    - [x] Write a utility function for the `APIPlayer` calls which handles timeout errors and safety errors
+    - [x] While fixing this also inform losing players
 
 - [ ] Use the observer pattern for `Observer`
     - [ ] Define the observer interface

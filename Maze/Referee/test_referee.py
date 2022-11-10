@@ -1,10 +1,13 @@
+import threading
 import time
 from pathlib import Path
+from typing import Tuple, Optional, Callable, Any
+from unittest.mock import MagicMock
 
 import pytest
 
 from ..Players.euclid import Euclid
-from ..Players.move import Move
+from ..Players.move import Move, Pass
 from ..Players.player import Player
 from .referee import Referee
 from ..Players.riemann import Riemann
@@ -16,6 +19,7 @@ from ..Common.observableState import ObservableState
 from ..Common.position import Position
 from ..Common.utils import get_json_obj_list
 from ..Common.state import State
+from ..Players.api_player import APIPlayer
 
 
 # ----- Examples ------
@@ -81,13 +85,33 @@ def player_five():
 
 
 @pytest.fixture
-def referee_no_observer():
-    return Referee()
+def good_riemann_one():
+    return APIPlayer("riemann1", Riemann())
 
 
 @pytest.fixture
-def referee_with_observer():
-    return Referee(True)
+def good_riemann_two():
+    return APIPlayer("riemann2", Riemann())
+
+
+@pytest.fixture
+def good_euclid_one():
+    return APIPlayer("euclid1", Euclid())
+
+
+@pytest.fixture
+def good_euclid_two():
+    return APIPlayer("euclid2", Euclid())
+
+
+@pytest.fixture
+def referee_no_observer():
+    return Referee(timeout_seconds=0.5)
+
+
+# @pytest.fixture
+# def referee_with_observer():
+#     return Referee(True)
 
 
 @pytest.fixture
@@ -111,12 +135,49 @@ def seeded_game_state_four(basic_seeded_board_two, player_one, player_three, pla
 
 
 class ForeverStrategy(Strategy):
+    __alive = True
 
     def generate_move(self, current_state: ObservableState, current_position: Position,
                       target_position: Position) -> Move:
-        while True:
+        while self.__alive:
             time.sleep(1)
         return Move(0, Direction.Up, 0, Position(2, 0))
+
+    def wakeup(self):
+        self.__alive = False
+
+
+class BadSlideIndexStrategy(Strategy):
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(1, Direction.Up, 90, Position(2, 0))
+
+
+class BadMoveToStrategy(Strategy):
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(0, Direction.Up, 90, Position(2, 0))
+
+
+class BadRotationStrategy(Strategy):
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Move:
+        return Move(0, Direction.Up, 14, Position(2, 0))
+
+
+class AlwaysPassStrategy(Strategy):
+
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Pass:
+        return Pass()
+
+
+class AlwaysRaiseStrategy(Strategy):
+
+    def generate_move(self, current_state: ObservableState, current_position: Position,
+                      target_position: Position) -> Pass:
+        a = 1 // 0
+        return Pass()
 
 
 @pytest.fixture
@@ -125,25 +186,18 @@ def forever_strategy():
 
 
 @pytest.fixture
-def player_forever(forever_strategy):
-    return Player.from_home_goal_color(Position(3, 1), Position(1, 5), "green")
+def api_player_forever(forever_strategy):
+    return APIPlayer("forever", forever_strategy)
 
 
 @pytest.fixture
-def game_state_with_forever_player(seeded_board, player_forever, player_two, player_three, player_four):
-    return State.from_board_and_players(seeded_board, [player_forever, player_two, player_three, player_four])
+def game_state_with_forever_player(seeded_board, player_one, player_two, player_three, player_four):
+    return State.from_board_and_players(seeded_board, [player_one, player_two, player_three, player_four])
 
 
 @pytest.fixture
-def game_state_with_forever_player_two(basic_seeded_board_two, player_forever, player_two, player_three, player_four):
-    return State.from_board_and_players(basic_seeded_board_two, [player_forever, player_two, player_three, player_four])
-
-
-class BadRotationStrategy(Strategy):
-
-    def generate_move(self, current_state: ObservableState, current_position: Position,
-                      target_position: Position) -> Move:
-        return Move(0, Direction.Up, 14, Position(2, 0))
+def game_state_with_forever_player_two(basic_seeded_board_two, player_one, player_two, player_three, player_four):
+    return State.from_board_and_players(basic_seeded_board_two, [player_one, player_two, player_three, player_four])
 
 
 @pytest.fixture
@@ -161,13 +215,6 @@ def game_state_with_bad_rotation_player(seeded_board, player_bad_rotation, playe
     return State.from_board_and_players(seeded_board, [player_bad_rotation, player_three, player_four])
 
 
-class BadSlideIndexStrategy(Strategy):
-
-    def generate_move(self, current_state: ObservableState, current_position: Position,
-                      target_position: Position) -> Move:
-        return Move(1, Direction.Up, 90, Position(2, 0))
-
-
 @pytest.fixture
 def bad_slide_index_strategy():
     return BadSlideIndexStrategy()
@@ -181,13 +228,6 @@ def player_bad_slide_index(bad_slide_index_strategy):
 @pytest.fixture
 def game_state_with_bad_slide_index_player(seeded_board, player_bad_slide_index, player_three, player_four):
     return State.from_board_and_players(seeded_board, [player_bad_slide_index, player_three, player_four])
-
-
-class BadMoveToStrategy(Strategy):
-
-    def generate_move(self, current_state: ObservableState, current_position: Position,
-                      target_position: Position) -> Move:
-        return Move(0, Direction.Up, 90, Position(2, 0))
 
 
 @pytest.fixture
@@ -204,36 +244,50 @@ def player_bad_move_to(bad_move_to_strategy):
 def game_state_with_bad_move_to_player(seeded_board, player_bad_move_to, player_three, player_four):
     return State.from_board_and_players(seeded_board, [player_bad_move_to, player_three, player_four])
 
-"""
-# TODO: fix
-# @pytest.fixture
-# def game_state_all_cheaters(seeded_board, player_bad_move_to, player_forever, player_bad_slide_index,
-#                             player_bad_rotation):
-#     return State.from_board_and_players(seeded_board, [player_bad_move_to, player_forever, player_bad_slide_index,
-#                                                        player_bad_rotation])
+
+@pytest.fixture
+def game_state_all_cheaters(seeded_board, player_bad_move_to, player_forever, player_bad_slide_index,
+                            player_bad_rotation):
+    return State.from_board_and_players(seeded_board, [player_bad_move_to, player_forever, player_bad_slide_index,
+                                                       player_bad_rotation])
+
 
 # ----- Test referee without observer ------
 
 # ----- Test run_game -------
-def test_run_game_results_one(referee_no_observer, seeded_game_state, player_one):
-    winning_players, cheating_players = referee_no_observer.run_game(seeded_game_state)
-    assert winning_players == [player_one]
-    assert cheating_players == []
+
+# def test_run_game_results_two(referee_no_observer, seeded_game_state_two, player_three):
+#     winning_players, cheating_players = referee_no_observer.run_game(seeded_game_state_two)
+#     assert winning_players == [player_three]
+#     assert cheating_players == []
 
 
-def test_run_game_results_two(referee_no_observer, seeded_game_state_two, player_three):
-    winning_players, cheating_players = referee_no_observer.run_game(seeded_game_state_two)
-    assert winning_players == [player_three]
-    assert cheating_players == []
+def api_player_with_mock(player_name: str,
+                         player_strategy: Strategy,
+                         mocked_method_name: str,
+                         implementation: Optional[Callable[..., Any]] = None) -> Tuple[APIPlayer, MagicMock]:
+    api_player = APIPlayer(player_name, player_strategy)
+    impl = implementation if implementation else getattr(api_player, mocked_method_name)
+    mock = MagicMock(wraps=impl)
+    setattr(api_player, mocked_method_name, mock)
+    return api_player, mock
 
 
 def test_run_game_all_pass(referee_no_observer, seeded_game_state_three, player_one, player_two, player_three):
     player_one.set_current_position(Position(5, 5))
     player_two.set_current_position(Position(5, 5))
     player_three.set_current_position(Position(5, 5))
-    winning_players, cheating_players = referee_no_observer.run_game(seeded_game_state_three)
-    assert winning_players == [player_two]
+    api_players, mocks = [], []
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}", AlwaysPassStrategy(), "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == [api_players[1]]
     assert cheating_players == []
+    for mock in mocks:
+        assert mock.call_count == 1
 
 
 # TODO: fix
@@ -243,52 +297,127 @@ def test_run_game_all_pass(referee_no_observer, seeded_game_state_three, player_
 #     assert cheating_players == [player_forever]
 #
 #
-# def test_run_game_one_cheater_two(referee_no_observer, game_state_with_forever_player_two, player_forever, player_three):
+# def test_run_game_one_cheater_two(referee_no_observer, game_state_with_forever_player_two, player_forever,
+#                                   player_three):
 #     winning_players, cheating_players = referee_no_observer.run_game(game_state_with_forever_player_two)
 #     assert winning_players == [player_three]
 #     assert cheating_players == [player_forever]
+#
+#
+# def test_run_game_bad_rotation_cheater(referee_no_observer, game_state_with_bad_rotation_player, player_bad_rotation,
+#                                        player_three):
+#     winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_rotation_player)
+#     assert winning_players == [player_three]
+#     assert cheating_players == [player_bad_rotation]
+#
+#
+# def test_run_game_bad_slide_index_cheater(referee_no_observer, game_state_with_bad_slide_index_player,
+#                                           player_bad_slide_index,
+#                                           player_three):
+#     winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_slide_index_player)
+#     assert winning_players == [player_three]
+#     assert cheating_players == [player_bad_slide_index]
+#
+#
+# def test_run_game_bad_move_to_cheater(referee_no_observer, game_state_with_bad_move_to_player, player_bad_move_to,
+#                                       player_three):
+#     winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_move_to_player)
+#     assert winning_players == [player_three]
+#     assert cheating_players == [player_bad_move_to]
+#
+#
+@pytest.mark.parametrize("strategy_class", [BadMoveToStrategy, BadRotationStrategy, BadSlideIndexStrategy,
+                                            AlwaysRaiseStrategy])
+def test_run_game_all_cheaters(referee_no_observer, seeded_game_state_three, strategy_class):
+    api_players, mocks = [], []
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}", strategy_class(), "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == []
+    assert cheating_players == api_players
+    for mock in mocks:
+        assert mock.call_count == 1
 
 
-def test_run_game_bad_rotation_cheater(referee_no_observer, game_state_with_bad_rotation_player, player_bad_rotation,
-                                       player_three):
-    winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_rotation_player)
-    assert winning_players == [player_three]
-    assert cheating_players == [player_bad_rotation]
+def test_run_game_all_timeout(referee_no_observer, seeded_game_state_three):
+    api_players, mocks = [], []
+    strategies = [ForeverStrategy(), ForeverStrategy(), ForeverStrategy()]
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}", strategies[i], "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == []
+    assert cheating_players == api_players
+    for mock in mocks:
+        assert mock.call_count == 1
+    for strategy in strategies:
+        strategy.wakeup()
 
 
-def test_run_game_bad_slide_index_cheater(referee_no_observer, game_state_with_bad_slide_index_player,
-                                          player_bad_slide_index,
-                                          player_three):
-    winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_slide_index_player)
-    assert winning_players == [player_three]
-    assert cheating_players == [player_bad_slide_index]
+def test_run_game_one_timeout(referee_no_observer, seeded_game_state_three):
+    api_players, mocks = [], []
+    strategies = [ForeverStrategy(), Riemann(), Euclid()]
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}", strategies[i], "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == [api_players[2]]
+    assert cheating_players == [api_players[0]]
+    assert mocks[0].call_count == 1
+    assert mocks[1].call_count == 2
+    assert mocks[2].call_count == 2
+    strategies[0].wakeup()
 
 
-def test_run_game_bad_move_to_cheater(referee_no_observer, game_state_with_bad_move_to_player, player_bad_move_to,
-                                      player_three):
-    winning_players, cheating_players = referee_no_observer.run_game(game_state_with_bad_move_to_player)
-    assert winning_players == [player_three]
-    assert cheating_players == [player_bad_move_to]
+def test_run_game_one_safety_exception(referee_no_observer, seeded_game_state_three):
+    api_players, mocks = [], []
+    strategies = [Riemann(), AlwaysRaiseStrategy(), Euclid()]
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}", strategies[i], "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == [api_players[2]]
+    assert cheating_players == [api_players[1]]
+    assert mocks[0].call_count == 2
+    assert mocks[1].call_count == 1
+    assert mocks[2].call_count == 2
 
 
-# TODO: fix
-# def test_run_game_all_cheaters(referee_no_observer, game_state_all_cheaters, player_bad_rotation, player_bad_slide_index,
-#                                player_forever, player_bad_move_to):
-#     winning_players, cheating_players = referee_no_observer.run_game(game_state_all_cheaters)
-#     assert winning_players == []
-#     assert cheating_players == [player_bad_move_to, player_forever, player_bad_slide_index,
-#                                 player_bad_rotation]
+def test_run_game_one_timeout_setup(referee_no_observer, seeded_game_state_three):
+    api_players, mocks = [], []
+    for i in range(3):
+        api_player, mock = api_player_with_mock(f"player{i}",
+                                                AlwaysPassStrategy(),
+                                                "setup",
+                                                (lambda *args: time.sleep(1)) if i == 0 else None)
+        api_players.append(api_player)
+        mocks.append(mock)
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)
+    assert winning_players == [api_players[2]]
+    assert cheating_players == [api_players[0]]
+    for mock in mocks:
+        assert mock.call_count == 1
 
 
-def test_run_game_tie(referee_no_observer, seeded_game_state_four, player_one, player_three, player_five):
-    player_one.set_current_position(Position(5, 5))
-    player_five.set_current_position(Position(5, 5))
-    player_three.set_current_position(Position(5, 5))
-    winning_players, cheating_players = referee_no_observer.run_game(seeded_game_state_four)
-    assert winning_players == [player_one, player_five]
-    assert cheating_players == []
+# def test_run_game_tie(referee_no_observer, seeded_game_state_four, player_one, player_three, player_five):
+#     player_one.set_current_position(Position(5, 5))
+#     player_five.set_current_position(Position(5, 5))
+#     player_three.set_current_position(Position(5, 5))
+#     winning_players, cheating_players = referee_no_observer.run_game_from_state(seeded_game_state_four)
+#     assert winning_players == [player_one, player_five]
+#     assert cheating_players == []
 
 
+"""
 # ----- Test referee with observer ------
 
 # ----- Test run_game -------

@@ -1,4 +1,5 @@
 import os
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Generic, List, TypeVar, Union, Any
 from typing_extensions import Literal, NoReturn
@@ -8,12 +9,19 @@ from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross
 from .position import Position
 
-
 # Represents any type
 T = TypeVar("T")
 
 
-class Nothing:
+class Maybe(ABC, Generic[T]):
+    is_present: bool
+
+    @abstractmethod
+    def get_or_throw(self, message: str = "Missing Value") -> T:
+        pass
+
+
+class Nothing(Maybe[T]):
     """
     Represents the case where a Maybe[T] is absent.
     """
@@ -22,7 +30,7 @@ class Nothing:
     def __init__(self):
         self.is_present = False
 
-    def get_or_throw(self, message: str) -> NoReturn:
+    def get_or_throw(self, message: str = "Missing Value") -> NoReturn:
         """
         Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
         :param message: A string to use as the error message
@@ -46,7 +54,7 @@ class Nothing:
         return "Nothing()"
 
 
-class Just(Generic[T]):
+class Just(Maybe[T]):
     """
     Represents the case where a Maybe[T] is present.
     """
@@ -57,7 +65,7 @@ class Just(Generic[T]):
         self.is_present = True
         self.value = value
 
-    def get_or_throw(self, message: str) -> T:
+    def get_or_throw(self, message: str = "Missing Value") -> T:
         """
         Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
         :param message: A string to use as the error message
@@ -80,8 +88,6 @@ class Just(Generic[T]):
         :return: A string representing this Just
         """
         return f"Just({self.value})"
-
-Maybe = Union[Just[T], Nothing]
 
 
 def remove_gem_extension(filename: Path) -> str:
