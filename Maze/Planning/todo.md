@@ -14,15 +14,15 @@
 
 ### Priority: High
 
+We intend to complete this TODO between submission of Milestone 7 and beginning work on Milestone 8
 - [ ] Use the observer pattern for `Observer`
     - [ ] Define the observer interface
     - [ ] Update the current observer to be a `GUIObserver`, implementing `Observer`
     - [ ] Test referee interactions with an observer, using a different implementation
 
-- [ ] Boards are not NxN and are instead MxN
-
 &nbsp;
 
+We intend to complete this TODO between submission of Milestone 7 and beginning work on Milestone 8
 - [ ] There should be a `State` implementation which a `Strategy` can use to explore possible moves. It must not have
   access to any secrets.
     - Rationale: `Strategy` currently accesses many board methods, and implements its own player position tracking. It
@@ -53,22 +53,13 @@
       non-empty one
     - [ ] Create a utility function to find the first non-empty `Maybe` in a stream (Generator)
     - [ ] Refactor dynamic dispatch in `Referee` to improve readability
-
-- [x] `State` should not allow adding players
-    - Rationale: All players should be registered before gameplay begins
-
-- [ ] `Observer` should
-
+    
 ### Priority: Low
 
-- [ ] Multiple sources of truth: `check_stationary_position` should use `can_slide`
 - [ ] On classes we've written, `__hash__` can just use a tuple instead of doing math with multiple results
 - [ ] Get linter IDE support working
-- [ ] Remove `multipledispatch`
 - [ ] Make `get_opposite_direction` from utils an actual method on a Direction
 - [ ] The file checking in `Gem` can be cached
-- [ ] Break down make_tile_grid into pieces allowing callers to supply connectors without treasures so that tests can
-  use it too (will make testing with custom boards faster)
 - [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
   the same file as their main data structure's serialization code)
 
@@ -96,7 +87,7 @@
         - Commit Message: **update board to use new position transition map**
     - [x] Change signature of `Board.reachable_tiles` to take in Position and refactor all related code in `State`
       and `Board`
-        - Commit: 723ea1544a6e6bd0fdbd357ed759b67bd9561e34
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/723ea1544a6e6bd0fdbd357ed759b67bd9561e34
         - Commit Message: **update board.reachable_tiles and all code related to it**
     - [x] Update signatures of `BaseStrategy` to avoid dependency on specific Tile
         - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/80adfaff73ca02efb5e943abfc3d2b3cd43edf43
@@ -107,17 +98,29 @@
     - Rationale: Implementing the logical interactions is a separate task from managing a player's knowledge about the
       game
     - [x] Create `APIPlayer`
-        - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+       ** - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/562367b255ff581084e391c925ba0e49cedd1efd
         - Commit Message: **Separate Player from APIPlayer**
     - [x] add acknowledgments from the player (no more void methods in player interactions)
-        - Commit: 562367b255ff581084e391c925ba0e49cedd1efd
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/562367b255ff581084e391c925ba0e49cedd1efd
         - Commit Message: **Separate Player from APIPlayer**
     - [x] Use threading to simulate an untrusted/remote player
-        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/37dcc2af47a232f6431077f6f502e25876bae726
         - Commit Message: **implement timeout and safety handling for APIPlayers**
     - [x] Write a utility function for the `APIPlayer` calls which handles timeout errors and safety errors
-        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/37dcc2af47a232f6431077f6f502e25876bae726
         - Commit Message: **implement timeout and safety handling for APIPlayers**
     - [x] While fixing this also inform losing players
-        - Commit: 37dcc2af47a232f6431077f6f502e25876bae726
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/37dcc2af47a232f6431077f6f502e25876bae726
         - Commit Message: **implement timeout and safety handling for APIPlayers**
+
+- [x] Boards are not NxN and are instead MxN (HIGH)
+    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/505b17a022b37871a55668c5e1b4980216172a1d
+    - Commit Message: **allow boards to be size M by N**
+  
+- [x] Multiple sources of truth: `check_stationary_position` should use `can_slide` (LOW)
+    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/505b17a022b37871a55668c5e1b4980216172a1d
+    - Commit Message: **allow boards to be size M by N**
+
+- [x] Remove `multipledispatch` (LOW)
+    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/554442ed04d7c6d4cced154f3b983db588bb357a
+    - Commit Message: **Begin using APIPlayer in Referee**
