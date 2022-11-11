@@ -3,20 +3,17 @@
 ## Common
 Folder contains our implementation code in the following files:
 
-### __init__.py
+### \__init\__.py
 Python required file which labels the directory as a Python package, to help with relative imports
 
 ### board.py
 Contains the source code for our Board model
 
 ### boardSerializer.py
-Contains methods for creating a Board from JSON values and logic for the xboard testing harness
+Contains methods for creating a Board from JSON values
 
 ### direction.py
 Contains the source code for our Direction Enum
-
-### directionSerializer.py
-Contains methods for creating a Direction from JSON values
 
 ### gem.py
 Contains the source code for our Gem model
@@ -26,6 +23,8 @@ Contains the source code for our Observable State model
 
 ### position.py
 Contains the source code for our Position model
+
+### position_transition_map.py
 
 ### positionSerializer.py
 Contains methods for creating a Position from JSON values
