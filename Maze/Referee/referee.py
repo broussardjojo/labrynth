@@ -243,6 +243,7 @@ class Referee:
         :return: A Position representing the unique home Position for a player to use
         :raises: ValueError if there are no unique home tiles remaining, it is the job of whoever creates the referee
         to only permit the maximum number of players to avoid this error being raised.
+        TODO: Test this
         """
         for row in range(board.get_height()):
             for col in range(board.get_width()):

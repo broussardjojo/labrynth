@@ -11,7 +11,13 @@ The require revision calls for
 
 1. Which unit tests validate the implementation of the relaxation?
 
+https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/blob/e2cccb223f595c386aa6be608f281810f96a15db/Maze/Common/test_board.py#L260-L313
+
 2. Which unit tests validate the suitability of the board/player combination? 
+
+We did not unit test this modification. Here is a link to the code in a Referee which enforces this constraint:
+
+https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/blob/e2cccb223f595c386aa6be608f281810f96a15db/Maze/Referee/referee.py#L218-L253 
    
 The ideal feedback for each of these three points is a GitHub
 perma-link to the range of lines in a specific file or a collection of
