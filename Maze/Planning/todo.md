@@ -6,12 +6,6 @@
     - The file 6/requirements.txt locks package versions which aren't compatible with Python 3.6. The console error
       is `Could not find a version that satisfies the requirement importlib-metadata==5.0.0 (from -r requirements.txt (line 2))`
 
-- [ ] Fix deserializers and guard against type errors
-    - Using the JSON object list directly is bypassing type hints and causing bugs test failures like this
-      one: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/blob/8e6f41ed2867bc7de71b5603d05e245d7878fe51/4/testfest/test-results.txt#L14
-    - [ ] Create JSON data definitions as Python types
-    - [ ] Type hint all functions, and avoid the `Any` type
-
 ### Priority: High
 
 We intend to complete this TODO between submission of Milestone 7 and beginning work on Milestone 8
@@ -59,8 +53,7 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 
 - [ ] On classes we've written, `__hash__` can just use a tuple instead of doing math with multiple results
 - [ ] The file checking in `Gem` can be cached
-- [ ] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
-  the same file as their main data structure's serialization code)
+
 
 ### Completed
 
@@ -130,3 +123,21 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
 - [x] Make `get_opposite_direction` from utils an actual method on a Direction (LOW)
     - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/9b0faae9b36dc840169f1b9ef3b217e17a3ff336 
     - Commit Message: **eliminate duplicate implementations of get_opposite_direction**
+
+- [x] Fix deserializers and guard against type errors (VERY HIGH)
+    - Using the JSON object list directly is bypassing type hints and causing bugs test failures like this
+      one: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/blob/8e6f41ed2867bc7de71b5603d05e245d7878fe51/4/testfest/test-results.txt#L14
+    - [x] Create JSON data definitions as Python types
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/925937afcb67fce4134863c48377ac7666d5978a
+        - Commit Message: **Add JSON definitions, JSON serializers through milestone 5**
+    - [x] Type hint all functions, and avoid the `Any` type
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/925937afcb67fce4134863c48377ac7666d5978a
+        - Commit Message: **Add JSON definitions, JSON serializers through milestone 5**
+    - [x] Update some harnesses to use well-typed deserializers
+        - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/1718182af0c126219cb4b0674cb457fe972904ef
+        - Commit Message: **Write rest of deserializers, create Harnesses packages, implement xbad**
+
+- [x] Organize serializers/deserializers and integration test harnesses (currently the integration test harnesses are in
+  the same file as their main data structure's serialization code) (LOW)
+   - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/1718182af0c126219cb4b0674cb457fe972904ef
+   - Commit Message: **Write rest of deserializers, create Harnesses packages, implement xbad**
