@@ -78,7 +78,7 @@ class Tile:
     def rotate(self, rotations: int) -> None:
         """
         Rotates this Tile the given number of times.
-        :param rotations: an int representing how many times to rotate this Tile
+        :param rotations: an int representing how many times to rotate this Tile (clockwise)
         :return: None
         side effect: mutates the Shape of this Tile
         """

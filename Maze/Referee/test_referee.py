@@ -17,7 +17,7 @@ from .referee import Referee
 from ..Players.riemann import Riemann
 from ..Players.strategy import Strategy
 from ..Common.board import Board
-from ..Common.boardSerializer import make_tile_grid
+from ..JSON.deserializers import get_tile_grid_from_json
 from ..Common.direction import Direction
 from ..Common.observableState import ObservableState
 from ..Common.position import Position
@@ -42,7 +42,7 @@ def seeded_board():
     with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
-        return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
+        return Board.from_list_of_tiles(get_tile_grid_from_json(json_obj_list[0]), seed=30)
 
 
 # This board has the following shape:
@@ -60,7 +60,7 @@ def basic_seeded_board_two():
     with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
-        return Board.from_list_of_tiles(make_tile_grid(json_obj_list[0]), seed=30)
+        return Board.from_list_of_tiles(get_tile_grid_from_json(json_obj_list[0]), seed=30)
 
 
 @pytest.fixture

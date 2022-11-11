@@ -158,7 +158,7 @@ class JSONRefereeState(TypedDict):
 # https://course.ccs.neu.edu/cs4500f22/7.html
 
 # Interpretation: One of a player's public methods, which is instructed to behave badly
-JSONBadMethod = Union[Literal["setup"], Literal["takeTurn"], Literal["win"]]
+JSONBadMethod = Union[Literal["setUp"], Literal["takeTurn"], Literal["win"]]
 
 # Interpretation: Requests a test with a player acting badly. It is a list of 3 values.
 #   - [0] is a string that specifies the name of a player

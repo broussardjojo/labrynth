@@ -7,7 +7,7 @@ from .gem import Gem
 from .position import Position
 from .tile import Tile
 from .shapes import Corner, Cross
-from .tileSerializer import get_connector_from_shape
+from .utils import get_connector_from_shape
 
 
 def board_to_unicode(board):

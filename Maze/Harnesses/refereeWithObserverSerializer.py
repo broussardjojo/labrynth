@@ -1,9 +1,9 @@
 import json
 from typing import List
 
-from ..Players.player import Player
-from .referee import Referee
-from .refereeSerializer import make_state_from_json, sort_winners
+from Maze.Players.player import Player
+from Maze.Referee.referee import Referee
+from .xgames import make_state_from_json, sort_winners
 
 
 def main() -> str:

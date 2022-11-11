@@ -50,7 +50,7 @@ class State(ObservableState):
     def rotate_spare_tile(self, degrees: int) -> None:
         """
         Rotates the spare tile of this State's Board some multiple of 90 degrees.
-        :param degrees: int representing the number of degrees to rotate the spare tile
+        :param degrees: int representing the number of degrees to rotate the spare tile (clockwise)
         :return: None
         :raises: ValueError if given degrees is not a multiple of 90
         side effect: mutates the spare tile of this State's Board by changing the Tile's Shape paths

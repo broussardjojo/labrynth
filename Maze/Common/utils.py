@@ -6,7 +6,7 @@ from typing_extensions import Literal, NoReturn
 
 from .direction import Direction
 from json import JSONDecoder
-from .shapes import TShaped, Line, Corner, Cross
+from .shapes import TShaped, Line, Corner, Cross, Shape
 from .position import Position
 
 # Represents any type
@@ -188,3 +188,7 @@ def get_euclidean_distance_between(position_one: Position, position_two: Positio
     """
     return (position_one.get_row() - position_two.get_row()) ** 2 + \
            (position_one.get_col() - position_two.get_col()) ** 2
+
+
+def get_connector_from_shape(shape: Shape) -> str:
+    return inverse_shape_dict[shape]

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List, Tuple, cast
 
 from typing_extensions import assert_never
@@ -11,12 +12,21 @@ from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
     JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethod, \
-    JSONBadPlayerSpec, JSONPlayerSpec
+    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadMethodName, BadLocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Players.player import Player
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy
+
+
+def get_position_from_json(json_coordinate: JSONCoordinate) -> Position:
+    """
+    Creates the Position represented by the JSON
+    :param json_coordinate: a JSONCoordinate
+    :return: a Position
+    """
+    return Position(json_coordinate["row#"], json_coordinate["column#"])
 
 
 def get_gems_from_json(gem_name_list: JSONTreasure) -> Tuple[Gem, Gem]:
@@ -63,8 +73,8 @@ def get_player_details_from_json(json_player: JSONPlayer) -> Player:
     {"color": Named color or hex color string, "current": {"column#":0,"row#":0}, "home":{"column#":1,"row#":1}}
     :return: A List of Player objects representing the players defined in the provided json
     """
-    current_position = Position(json_player["current"]["row#"], json_player["current"]["column#"])
-    home_position = Position(json_player["home"]["row#"], json_player["home"]["column#"])
+    current_position = get_position_from_json(json_player["current"])
+    home_position = get_position_from_json(json_player["home"])
     player_color = json_player["color"]
     return Player.from_current_home_color(current_position, home_position, player_color)
 
@@ -97,7 +107,8 @@ def get_previous_move_from_json(json_action: JSONAction) -> Tuple[int, Direction
 
 def get_state_from_json_state(json_state: JSONState) -> State:
     """
-    Creates the State represented by the JSON
+    Creates the State represented by the JSON, without player secrets
+    TODO: Make this actually without player secrets, instead of with incorrect ones
     :param json_state: a dictionary containing values for "board", "spare", "plmt", and "last"
     :return: a State
     """
@@ -105,6 +116,38 @@ def get_state_from_json_state(json_state: JSONState) -> State:
     json_treasure = [json_state["spare"]["1-image"], json_state["spare"]["2-image"]]
     spare_tile = get_tile_from_json(json_state["spare"]["tilekey"], json_treasure)
     player_details = [get_player_details_from_json(json_player) for json_player in json_state["plmt"]]
+    previous_moves: List[Tuple[int, Direction]] = []
+    if json_state["last"] is not None:
+        previous_moves.append(get_previous_move_from_json(json_state["last"]))
+    board = Board(tile_grid, spare_tile)
+    return State.from_current_state(board, player_details, previous_moves)
+
+
+def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> Player:
+    """
+    Creates the Player represented by the JSON
+    :param json_referee_player: A dictionary with the format
+    {"color": Named color or hex color string, "current": {"column#":0,"row#":0}, "home":{"column#":1,"row#":1},
+     "goto":{"column#":1,"row#":1}}
+    :return: A List of Player objects representing the players defined in the provided json
+    """
+    current_position = get_position_from_json(json_referee_player["current"])
+    home_position = get_position_from_json(json_referee_player["home"])
+    goal_position = get_position_from_json(json_referee_player["goto"])
+    player_color = json_referee_player["color"]
+    return Player(home_position, goal_position, current_position, player_color)
+
+
+def get_state_from_json_referee_state(json_state: JSONRefereeState) -> State:
+    """
+    Creates the State represented by the JSON, with player secrets
+    :param json_state: a dictionary containing values for "board", "spare", "plmt", and "last"
+    :return: a State
+    """
+    tile_grid = get_tile_grid_from_json(json_state["board"])
+    json_treasure = [json_state["spare"]["1-image"], json_state["spare"]["2-image"]]
+    spare_tile = get_tile_from_json(json_state["spare"]["tilekey"], json_treasure)
+    player_details = [get_referee_player_details_from_json(json_player) for json_player in json_state["plmt"]]
     previous_moves: List[Tuple[int, Direction]] = []
     if json_state["last"] is not None:
         previous_moves.append(get_previous_move_from_json(json_state["last"]))
@@ -147,7 +190,7 @@ def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecEleme
     strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
     json_bad_method = cast(JSONBadMethod, json_bad_player_spec_el[2])
     strategy = get_strategy_from_json(strategy_designation)
-    if json_bad_method == "setup":
+    if json_bad_method == "setUp":
         return BadLocalPlayer(name, strategy, "setup")
     elif json_bad_method == "takeTurn":
         return BadLocalPlayer(name, strategy, "take_turn")
@@ -179,5 +222,3 @@ def get_api_player_list_from_player_spec_json(json_player_spec: JSONPlayerSpec) 
     :return: a list of APIPlayers
     """
     return get_api_player_list_from_bad_player_spec_json(json_player_spec)
-
-

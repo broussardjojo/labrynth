@@ -1,6 +1,7 @@
 .idea
 .DS_Store
 .ignored
+IgnoredTests
 
 #
 # Copied from https://github.com/github/gitignore/blob/main/Python.gitignore

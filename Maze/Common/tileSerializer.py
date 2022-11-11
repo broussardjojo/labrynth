@@ -1,6 +1,5 @@
-from .shapes import Shape
+from .utils import get_connector_from_shape
 from ..Common.tile import Tile
-from ..Common.utils import shape_dict, inverse_shape_dict
 
 
 def get_serialized_tile(tile: Tile) -> dict:
@@ -13,5 +12,3 @@ def get_serialized_tile(tile: Tile) -> dict:
     return tile_dict
 
 
-def get_connector_from_shape(shape: Shape) -> str:
-    return inverse_shape_dict[shape]
