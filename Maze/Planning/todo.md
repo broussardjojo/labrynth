@@ -2,9 +2,7 @@
 
 ### Priority: Very High
 
-- [ ] Fix Makefile
-    - The file 6/requirements.txt locks package versions which aren't compatible with Python 3.6. The console error
-      is `Could not find a version that satisfies the requirement importlib-metadata==5.0.0 (from -r requirements.txt (line 2))`
+All done! 🎉
 
 ### Priority: High
 
@@ -141,3 +139,9 @@ We intend to complete this TODO between submission of Milestone 7 and beginning 
   the same file as their main data structure's serialization code) (LOW)
    - Commit: https://github.khoury.northeastern.edu/CS4500-F22/salty-dolphins/commit/1718182af0c126219cb4b0674cb457fe972904ef
    - Commit Message: **Write rest of deserializers, create Harnesses packages, implement xbad**
+
+- [x] Fix Makefile (VERY HIGH)
+    - Rationale: The file 6/requirements.txt locks package versions which aren't compatible with Python 3.6. The console error
+      is `Could not find a version that satisfies the requirement importlib-metadata==5.0.0 (from -r requirements.txt (line 2))`
+    - Commit: 288d1357ad27430e01cf4b887a05f82ee44b02f1
+    - Commit Message: **Use venv in Makefile and new script**
