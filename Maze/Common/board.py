@@ -40,7 +40,7 @@ class Board:
 
     @classmethod
     def from_list_of_shapes(cls, shape_grid: List[List[Shape]], next_tile_shape: Shape,
-                            treasure_provider: Optional[Callable[[int, int], Tuple[Gem, Gem]]] = None):
+                            treasure_provider: Optional[Callable[[int, int], Tuple[Gem, Gem]]] = None) -> "Board":
         """
         A constructor for a Board, taking in a 2-D List of TileShapes used to create a tile_grid, and one tile shape
         for the next_tile. If
@@ -68,7 +68,7 @@ class Board:
         return cls(tile_grid, next_tile)
 
     @classmethod
-    def from_list_of_tiles(cls, tile_grid: List[List[Tile]], **kwargs):
+    def from_list_of_tiles(cls, tile_grid: List[List[Tile]], **kwargs) -> "Board":
         """
         A constructor for a Board, taking in a 2-D List of Tiles used to create a tile_grid and generates the next_tile.
         :param tile_grid: a 2-D list of tiles that represents the grid of tiles on a Board
@@ -81,7 +81,7 @@ class Board:
         return cls(tile_grid, next_tile)
 
     @classmethod
-    def from_random_board(cls, height: int = 7, width: int = 7, **kwargs):
+    def from_random_board(cls, height: int = 7, width: int = 7, **kwargs) -> "Board":
         """
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
         It creates a tile_grid and generates the next_tile.

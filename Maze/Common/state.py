@@ -262,5 +262,10 @@ class State(ObservableState):
         """
         return self.get_active_player().get_current_position()
 
-    def get_active_player(self):
+    def get_active_player(self) -> Player:
+        """
+        Returns the active player
+        :return: A Player
+        :raises: IndexError if there are no players left
+        """
         return self.__players[self.__active_player_index]

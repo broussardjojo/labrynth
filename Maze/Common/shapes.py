@@ -204,4 +204,10 @@ class Cross(Shape):
         super().__init__(True, True, True, True)
 
     def rotate(self, rotations: int) -> "Cross":
+        """
+        This method rotates this Shape n times, where n is the number of rotations passed in.
+        :param rotations: int which represents the number of 90 degree rotations to perform on the Shape, must be a
+        positive number
+        :return: The rotated shape
+        """
         return self
