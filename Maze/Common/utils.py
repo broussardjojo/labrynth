@@ -1,23 +1,31 @@
 import os
 from abc import ABC, abstractmethod
+from json import JSONDecoder
 from pathlib import Path
 from typing import Generic, List, TypeVar, Union, Any
 from typing_extensions import Literal, NoReturn
 
-from .direction import Direction
-from json import JSONDecoder
 from .shapes import TShaped, Line, Corner, Cross, Shape
 from .position import Position
+from ..JSON.definitions import JSONConnector
 
 # Represents any type
 T = TypeVar("T")
 
 
 class Maybe(ABC, Generic[T]):
+    """
+    Represents a value that may or may not be present; these cases are implemented by Just and Nothing, respectively.
+    """
     is_present: bool
 
     @abstractmethod
     def get_or_throw(self, message: str = "Missing Value") -> T:
+        """
+        Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
+        :param message: A string to use as the error message
+        :raises: ValueError when this is called on a Nothing
+        """
         pass
 
 
@@ -190,5 +198,10 @@ def get_euclidean_distance_between(position_one: Position, position_two: Positio
            (position_one.get_col() - position_two.get_col()) ** 2
 
 
-def get_connector_from_shape(shape: Shape) -> str:
+def get_connector_from_shape(shape: Shape) -> JSONConnector:
+    """
+    Gets the JSON connector (one of 11 unicode characters) that represents the given Shape
+    :param shape: A Shape
+    :return: A JSONConnector
+    """
     return inverse_shape_dict[shape]

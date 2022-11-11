@@ -1,1 +1,6 @@
-disable=line-too-long
+[MESSAGES CONTROL]
+disable=
+    line-too-long,
+    inconsistent-return-statements,
+    missing-module-docstring,
+    no-else-return,

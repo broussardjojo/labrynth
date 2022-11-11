@@ -19,10 +19,11 @@ def run_game(players: List[APIPlayer], state: State) -> List[str]:
     :return: A lists of strings representing winners, which is sorted in alphabetical order
     """
     referee = Referee()
-    winners, cheaters = referee.run_game_from_state(players, state)
+    winners, _ = referee.run_game_from_state(players, state)
     winners_names = [player.name() for player in winners]
     winners_names.sort()
     return winners_names
+
 
 def main() -> str:
     """

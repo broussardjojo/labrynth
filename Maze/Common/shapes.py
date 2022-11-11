@@ -51,7 +51,6 @@ class Shape(ABC):
         positive number
         :return: The rotated shape
         """
-        pass
 
     def __eq__(self, other) -> bool:
         """
@@ -72,11 +71,11 @@ class Shape(ABC):
         :param path_direction: a Direction representing the path to check
         :return: True if this Shape has a path in the given Direction, otherwise False
         """
-        if path_direction == Direction.Right:
+        if path_direction == Direction.RIGHT:
             return self.__right
-        elif path_direction == Direction.Left:
+        elif path_direction == Direction.LEFT:
             return self.__left
-        elif path_direction == Direction.Up:
+        elif path_direction == Direction.UP:
             return self.__top
         else:
             return self.__bottom

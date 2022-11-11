@@ -80,19 +80,19 @@ def test_board_constructor3():
 # verify slide raises an exception when given an impossible move
 def test_slide_out_of_bounds1(basic_board):
     with pytest.raises(ValueError) as error_message:
-        basic_board.slide_and_insert(-1, Direction.Up)
+        basic_board.slide_and_insert(-1, Direction.UP)
     assert str(error_message.value) == 'Invalid index'
 
 
 def test_slide_out_of_bounds2(basic_board):
     with pytest.raises(ValueError) as error_message:
-        basic_board.slide_and_insert(7, Direction.Up)
+        basic_board.slide_and_insert(7, Direction.UP)
     assert str(error_message.value) == 'Invalid index'
 
 
 def test_slide_out_of_bounds3(basic_board):
     with pytest.raises(ValueError) as error_message:
-        basic_board.slide_and_insert(1, Direction.Up)
+        basic_board.slide_and_insert(1, Direction.UP)
     assert str(error_message.value) == 'Invalid index'
 
 
@@ -101,7 +101,7 @@ def test_removed_tile_after_slide_down(basic_board):
     tile_grid_copy = deepcopy(basic_board.get_tile_grid())
     spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[6][0]
-    basic_board.slide_and_insert(0, Direction.Down)
+    basic_board.slide_and_insert(0, Direction.DOWN)
     assert basic_board.get_next_tile() == tile_to_be_removed
     tile_grid_after = basic_board.get_tile_grid()
     for row, tiles in enumerate(tile_grid_copy):
@@ -118,7 +118,7 @@ def test_removed_tile_after_slide_right(basic_board):
     tile_grid_copy = deepcopy(basic_board.get_tile_grid())
     spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[2][6]
-    basic_board.slide_and_insert(2, Direction.Right)
+    basic_board.slide_and_insert(2, Direction.RIGHT)
     assert basic_board.get_next_tile() == tile_to_be_removed
     tile_grid_after = basic_board.get_tile_grid()
     for row, tiles in enumerate(tile_grid_copy):
@@ -135,7 +135,7 @@ def test_removed_tile_after_slide_up(basic_board):
     tile_grid_copy = deepcopy(basic_board.get_tile_grid())
     spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[0][4]
-    basic_board.slide_and_insert(4, Direction.Up)
+    basic_board.slide_and_insert(4, Direction.UP)
     assert basic_board.get_next_tile() == tile_to_be_removed
     tile_grid_after = basic_board.get_tile_grid()
     for row, tiles in enumerate(tile_grid_copy):
@@ -152,7 +152,7 @@ def test_removed_tile_after_slide_left(basic_board):
     tile_grid_copy = deepcopy(basic_board.get_tile_grid())
     spare_tile = deepcopy(basic_board.get_next_tile())
     tile_to_be_removed = basic_board.get_tile_grid()[6][0]
-    basic_board.slide_and_insert(6, Direction.Left)
+    basic_board.slide_and_insert(6, Direction.LEFT)
     assert basic_board.get_next_tile() == tile_to_be_removed
     tile_grid_after = basic_board.get_tile_grid()
     for row, tiles in enumerate(tile_grid_copy):
@@ -168,25 +168,25 @@ def test_removed_tile_after_slide_left(basic_board):
 # verifies that the slide_and_insert method fills in the empty space in the correct spot with the next Tile
 def test_slide_generates_gap_down(basic_board):
     next_tile = basic_board.get_next_tile()
-    basic_board.slide_and_insert(2, Direction.Down)
+    basic_board.slide_and_insert(2, Direction.DOWN)
     assert basic_board.get_tile_grid()[0][2] is next_tile
 
 
 def test_slide_generates_gap_right(basic_board):
     next_tile = basic_board.get_next_tile()
-    basic_board.slide_and_insert(4, Direction.Right)
+    basic_board.slide_and_insert(4, Direction.RIGHT)
     assert basic_board.get_tile_grid()[4][0] is next_tile
 
 
 def test_slide_generates_gap_up(basic_board):
     next_tile = basic_board.get_next_tile()
-    basic_board.slide_and_insert(0, Direction.Up)
+    basic_board.slide_and_insert(0, Direction.UP)
     assert basic_board.get_tile_grid()[6][0] is next_tile
 
 
 def test_slide_generates_gap_left(basic_board):
     next_tile = basic_board.get_next_tile()
-    basic_board.slide_and_insert(6, Direction.Left)
+    basic_board.slide_and_insert(6, Direction.LEFT)
     assert basic_board.get_tile_grid()[6][6] is next_tile
 
 

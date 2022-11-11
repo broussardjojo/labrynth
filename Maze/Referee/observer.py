@@ -134,14 +134,14 @@ class Observer:
         canvas = Canvas(width=self.TILE_CANVAS_DIM, height=self.TILE_CANVAS_DIM, bd=0, highlightthickness=1)
         canvas.create_rectangle(0, 0, self.TILE_CANVAS_DIM, self.TILE_CANVAS_DIM, fill="lemon chiffon",
                                 outline="lemon chiffon")
-        if tile_to_draw.has_path(Direction.Up):
+        if tile_to_draw.has_path(Direction.UP):
             canvas.create_line(self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2, 0)
-        if tile_to_draw.has_path(Direction.Right):
+        if tile_to_draw.has_path(Direction.RIGHT):
             canvas.create_line(self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM,
                                self.TILE_CANVAS_DIM / 2)
-        if tile_to_draw.has_path(Direction.Left):
+        if tile_to_draw.has_path(Direction.LEFT):
             canvas.create_line(self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2, 0, self.TILE_CANVAS_DIM / 2)
-        if tile_to_draw.has_path(Direction.Down):
+        if tile_to_draw.has_path(Direction.DOWN):
             canvas.create_line(self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2, self.TILE_CANVAS_DIM / 2,
                                self.TILE_CANVAS_DIM)
         return canvas
@@ -216,7 +216,7 @@ class Observer:
                           text="Save", command=self.__save, state=("normal" if self.__list_of_states else "disabled"))
         save_btn.grid(row=1, column=button_column)
 
-    def display_gui(self) -> bool:
+    def display_gui(self) -> None:
         """
         Displays the current state in a pop-up window
         :return: None

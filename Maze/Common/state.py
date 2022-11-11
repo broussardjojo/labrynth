@@ -4,7 +4,7 @@ from .board import Board
 from .position_transition_map import PositionTransitionMap
 from ..Players.player import Player
 from .direction import Direction
-from .utils import ALL_NAMED_COLORS, get_euclidean_distance_between
+from .utils import get_euclidean_distance_between
 
 from .position import Position
 from .observableState import ObservableState
@@ -199,18 +199,6 @@ class State(ObservableState):
             self.__active_player_index += 1
         else:
             self.__active_player_index = 0
-
-    def __get_unique_color(self) -> str:
-        """
-        Gets a unique color for a Player from the list of named colors
-        :return: A string representing a color for a player to use
-        :raises: ValueError if there are no named colors available for Players to use
-        """
-        currently_used_colors = [player.get_color() for player in self.__players]
-        for color in ALL_NAMED_COLORS:
-            if color not in currently_used_colors:
-                return color
-        raise ValueError("No colors left")
 
     def move_active_player_to(self, position_to_move_to: Position) -> None:
         """

@@ -108,9 +108,9 @@ class Board:
         side effect: fills in the __tile_grid field with unique Tiles
         """
         board: List[List[Tile]] = []
-        for row in range(height):
+        for _ in range(height):
             tile_row: List[Tile] = []
-            for column in range(width):
+            for _ in range(width):
                 unique_tile = cls.__generate_unique_tile(gem_name_list, board)
                 tile_row.append(unique_tile)
             board.append(tile_row)
@@ -182,7 +182,7 @@ class Board:
         :raises: ValueError if the given index is not eligible to slide
         side effect: mutates __tile_grid and mutates __next_tile
         """
-        if direction is Direction.Up or direction is Direction.Down:
+        if direction is Direction.UP or direction is Direction.DOWN:
             if not self.can_slide_vertically(index):
                 raise ValueError("Invalid index")
             position_transitions = self.__get_slide_column_transitions(index, direction)
@@ -226,15 +226,15 @@ class Board:
         :param direction: a Direction which is one of Direction.Left or Direction.Right
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        col_offset = LEFT_OFFSET if direction is Direction.Left else RIGHT_OFFSET
+        col_offset = LEFT_OFFSET if direction is Direction.LEFT else RIGHT_OFFSET
         last_col = self.__width - 1
         updated_positions = {
             Position(index, col): Position(index, col + col_offset)
             for col in range(self.__width)
             if 0 <= col + col_offset < self.__width
         }
-        removed_position = Position(index, 0) if direction is Direction.Left else Position(index, last_col)
-        inserted_position = Position(index, 0) if direction is Direction.Right else Position(index, last_col)
+        removed_position = Position(index, 0) if direction is Direction.LEFT else Position(index, last_col)
+        inserted_position = Position(index, 0) if direction is Direction.RIGHT else Position(index, last_col)
         return PositionTransitionMap(updated_positions, removed_position, inserted_position)
 
     def __get_slide_column_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
@@ -244,15 +244,15 @@ class Board:
         :param direction: a Direction which is one of Direction.Up or Direction.Down
         :return: a PositionTransitionMap with the appropriate slide, insert, and removal information
         """
-        row_offset = UP_OFFSET if direction is Direction.Up else DOWN_OFFSET
+        row_offset = UP_OFFSET if direction is Direction.UP else DOWN_OFFSET
         last_row = self.__height - 1
         updated_positions = {
             Position(row, index): Position(row + row_offset, index)
             for row in range(self.__height)
             if 0 <= row + row_offset < self.__height
         }
-        removed_position = Position(0, index) if direction is Direction.Up else Position(last_row, index)
-        inserted_position = Position(0, index) if direction is Direction.Down else Position(last_row, index)
+        removed_position = Position(0, index) if direction is Direction.UP else Position(last_row, index)
+        inserted_position = Position(0, index) if direction is Direction.DOWN else Position(last_row, index)
         return PositionTransitionMap(updated_positions, removed_position, inserted_position)
 
     def __perform_slide_and_insert(self, transitions: PositionTransitionMap) -> None:

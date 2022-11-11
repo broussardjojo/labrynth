@@ -30,7 +30,6 @@ class APIPlayer(ABC):
         :param goal_position: The player's goal position
         :return: an acknowledgment that the message has been received
         """
-        pass
 
     @abstractmethod
     def propose_board0(self, rows: int, columns: int) -> Board:
@@ -40,7 +39,6 @@ class APIPlayer(ABC):
         :param columns: an int representing the minimum number of columns to make the Board from
         :return: A Board representing the Board this player proposes
         """
-        pass
 
     @abstractmethod
     def name(self) -> str:
@@ -48,7 +46,6 @@ class APIPlayer(ABC):
         Returns the name of this player
         :return: A string representing this player's name
         """
-        pass
 
     @abstractmethod
     def take_turn(self, current_state: State) -> Union[Move, Pass]:
@@ -66,7 +63,6 @@ class APIPlayer(ABC):
         :param did_win: A boolean which is True if the player won (outright or tied), and False otherwise
         :return: an acknowledgment that the message has been received
         """
-        pass
 
 
 class LocalPlayer(APIPlayer):

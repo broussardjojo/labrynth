@@ -12,13 +12,13 @@ def direction_to_json(direction: Direction) -> JSONDirection:
     :param direction: the Direction representing the direction to translate
     :return: a string representing a direction
     """
-    if direction is Direction.Down:
+    if direction is Direction.DOWN:
         return "DOWN"
-    elif direction is Direction.Up:
+    elif direction is Direction.UP:
         return "UP"
-    elif direction is Direction.Right:
+    elif direction is Direction.RIGHT:
         return "RIGHT"
-    elif direction is Direction.Left:
+    elif direction is Direction.LEFT:
         return "LEFT"
     else:
         assert_never(direction)
@@ -48,5 +48,3 @@ def move_to_json(self: Move) -> JSONChoiceMove:
             direction_to_json(direction),
             -degrees_clockwise % 360,
             position_to_json(destination_pos)]
-
-

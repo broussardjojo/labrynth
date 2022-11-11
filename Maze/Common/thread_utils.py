@@ -1,5 +1,5 @@
 from concurrent import futures
-from concurrent.futures import Future, TimeoutError
+from concurrent.futures import Future
 from typing import List, TypeVar
 from .utils import Nothing, Maybe, Just
 
@@ -28,7 +28,7 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds=DEFAULT_TIM
             except Exception:
                 # The execution of the protected method raised an Exception
                 pass
-    except TimeoutError:
+    except futures.TimeoutError:
         # The timeout of the `as_completed()` call was hit; we've received every result we can
         pass
     return results

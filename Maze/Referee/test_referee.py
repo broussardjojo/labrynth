@@ -138,7 +138,7 @@ def state_slow_riemann_win(board_slow_riemann_win, player_one, player_two, playe
     player_two.set_current_position(Position(0, 4))
     player_six.set_current_position(Position(0, 5))
     return State(board_slow_riemann_win,
-                 [(0, Direction.Left)],
+                 [(0, Direction.LEFT)],
                  [player_one, player_two, player_six],
                  active_player_index=0)
 
@@ -150,7 +150,7 @@ class ForeverStrategy(Strategy):
                       target_position: Position) -> Move:
         while self.__alive:
             time.sleep(1)
-        return Move(0, Direction.Up, 0, Position(2, 0))
+        return Move(0, Direction.UP, 0, Position(2, 0))
 
     def wakeup(self):
         self.__alive = False
@@ -159,19 +159,19 @@ class ForeverStrategy(Strategy):
 class BadSlideIndexStrategy(Strategy):
     def generate_move(self, current_state: ObservableState, current_position: Position,
                       target_position: Position) -> Move:
-        return Move(1, Direction.Up, 90, Position(2, 0))
+        return Move(1, Direction.UP, 90, Position(2, 0))
 
 
 class BadMoveToStrategy(Strategy):
     def generate_move(self, current_state: ObservableState, current_position: Position,
                       target_position: Position) -> Move:
-        return Move(0, Direction.Up, 90, Position(2, 0))
+        return Move(0, Direction.UP, 90, Position(2, 0))
 
 
 class BadRotationStrategy(Strategy):
     def generate_move(self, current_state: ObservableState, current_position: Position,
                       target_position: Position) -> Move:
-        return Move(0, Direction.Up, 14, Position(2, 0))
+        return Move(0, Direction.UP, 14, Position(2, 0))
 
 
 class AlwaysPassStrategy(Strategy):

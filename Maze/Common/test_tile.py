@@ -145,35 +145,35 @@ def test_same_gems_on_tiles4(corner_tile, amethyst_gem, emerald_gem):
 
 # Test the has_path method
 def test_has_path_corner_tile_right(corner_tile):
-    assert corner_tile.has_path(Direction.Right)
+    assert corner_tile.has_path(Direction.RIGHT)
 
 
 def test_has_path_corner_tile_not_bottom(corner_tile):
-    assert not corner_tile.has_path(Direction.Down)
+    assert not corner_tile.has_path(Direction.DOWN)
 
 
 def test_has_path_cross_tile_left(cross_tile):
-    assert cross_tile.has_path(Direction.Left)
+    assert cross_tile.has_path(Direction.LEFT)
 
 
 def test_has_path_cross_tile_up(cross_tile):
-    assert cross_tile.has_path(Direction.Up)
+    assert cross_tile.has_path(Direction.UP)
 
 
 def test_has_path_line_tile_up(line_tile):
-    assert line_tile.has_path(Direction.Up)
+    assert line_tile.has_path(Direction.UP)
 
 
 def test_has_path_line_tile_not_right(line_tile):
-    assert not line_tile.has_path(Direction.Right)
+    assert not line_tile.has_path(Direction.RIGHT)
 
 
 def test_has_path_t_shape_tile_not_up(t_shape_tile):
-    assert not t_shape_tile.has_path(Direction.Up)
+    assert not t_shape_tile.has_path(Direction.UP)
 
 
 def test_has_path_t_shape_tile_left(t_shape_tile):
-    assert t_shape_tile.has_path(Direction.Left)
+    assert t_shape_tile.has_path(Direction.LEFT)
 
 
 # ------- Tests for rotating Tile --------------------------------

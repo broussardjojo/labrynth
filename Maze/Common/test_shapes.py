@@ -97,32 +97,32 @@ def test_rotate_corner_twice(basic_corner, double_rotated_corner):
 
 # ----- Testing has_path -----
 def test_has_path_corner_has_right(basic_corner):
-    assert basic_corner.has_path(Direction.Right)
+    assert basic_corner.has_path(Direction.RIGHT)
 
 
 def test_has_path_corner_has_top(basic_corner):
-    assert basic_corner.has_path(Direction.Up)
+    assert basic_corner.has_path(Direction.UP)
 
 
 def test_has_path_corner_no_bottom(basic_corner):
-    assert not basic_corner.has_path(Direction.Down)
+    assert not basic_corner.has_path(Direction.DOWN)
 
 
 def test_has_path_corner_no_left(basic_corner):
-    assert not basic_corner.has_path(Direction.Left)
+    assert not basic_corner.has_path(Direction.LEFT)
 
 
 def test_has_path_cross(cross):
-    assert cross.has_path(Direction.Left)
+    assert cross.has_path(Direction.LEFT)
 
 
 def test_has_path_line_up(basic_line):
-    assert basic_line.has_path(Direction.Up)
+    assert basic_line.has_path(Direction.UP)
 
 
 def test_has_path_line_not_right(basic_line):
-    assert not basic_line.has_path(Direction.Right)
+    assert not basic_line.has_path(Direction.RIGHT)
 
 
 def test_has_path_t_shape_right(basic_t_shape):
-    assert basic_t_shape.has_path(Direction.Right)
+    assert basic_t_shape.has_path(Direction.RIGHT)

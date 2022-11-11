@@ -1,15 +1,14 @@
+from abc import abstractmethod
 from copy import deepcopy
-from typing import List, Set, Union, Tuple
+from typing import List, Union, Tuple
 
 from .move import Move, Pass
-from ..Common.direction import Direction
-from ..Common.position import Position
-from ..Common.observableState import ObservableState
-from ..Common.position_transition_map import PositionTransitionMap
-from ..Common.tile import Tile
 from .strategy import Strategy
 from ..Common.board import Board
-from abc import abstractmethod
+from ..Common.direction import Direction
+from ..Common.observableState import ObservableState
+from ..Common.position import Position
+from ..Common.position_transition_map import PositionTransitionMap
 
 FULL_ROTATION = 4
 
@@ -55,7 +54,6 @@ class BaseStrategy(Strategy):
         :param board: The board to get the next Position from
         :return: a Position representing the next Position to use as a goal
         """
-        pass
 
     @abstractmethod
     def possible_next_target_positions(self, board: Board) -> bool:
@@ -64,7 +62,6 @@ class BaseStrategy(Strategy):
         :param board: A Board which can be used to determine how many tiles we should check
         :return: True if there are more positions to check, False otherwise
         """
-        pass
 
     def __reset_checked_positions(self) -> None:
         """
@@ -137,7 +134,7 @@ class BaseStrategy(Strategy):
         :return: A Move representing either a valid Move to a target or a Pass if no move is found
         """
         possible_move = self.__check_possible_slides(board_copy, base_position, target_position, previous_moves,
-                                                     [Direction.Left, Direction.Right])
+                                                     [Direction.LEFT, Direction.RIGHT])
         return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_vertical(board_copy,
                                                                                                  base_position,
                                                                                                  target_position,
@@ -157,7 +154,7 @@ class BaseStrategy(Strategy):
         :return: A Move representing either a valid Move to a target or a Pass if no move is found
         """
         possible_move = self.__check_possible_slides(board_copy, base_position, target_position, previous_moves,
-                                                     [Direction.Up, Direction.Down])
+                                                     [Direction.UP, Direction.DOWN])
         return possible_move.return_if_move_perform_action_if_pass(lambda: self.__check_new_goal(board_copy,
                                                                                                  base_position,
                                                                                                  target_position,

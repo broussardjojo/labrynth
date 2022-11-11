@@ -186,7 +186,7 @@ def test_player_can_not_reach_tile_right(sample_seeded_game_state):
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
     unreachable_tile = current_board.get_tile_grid()[5][6]
-    assert not unreachable_tile.has_path(Direction.Left)
+    assert not unreachable_tile.has_path(Direction.LEFT)
     # validate that reachable tile is not reachable using previously tested reachable_tiles method
     assert Position(5, 6) not in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
@@ -231,7 +231,7 @@ def test_slide_does_not_move_stationary_players(sample_seeded_game_state):
     pre_slide_positions = {}
     for player in sample_seeded_game_state.get_players():
         pre_slide_positions[player] = (player.get_current_position())
-    sample_seeded_game_state.slide_and_insert(0, Direction.Down)
+    sample_seeded_game_state.slide_and_insert(0, Direction.DOWN)
     for player in sample_seeded_game_state.get_players():
         assert player.get_current_position() == pre_slide_positions[player]
 
@@ -242,7 +242,7 @@ def test_slide_bumps_player_on_edge(sample_seeded_game_state):
     edge_tile_pos = Position(6, 0)
     player_one.set_current_position(edge_tile_pos)
     assert player_one.get_current_position() == edge_tile_pos
-    sample_seeded_game_state.slide_and_insert(0, Direction.Down)
+    sample_seeded_game_state.slide_and_insert(0, Direction.DOWN)
     assert sample_seeded_game_state.get_board().get_tile_grid()[0][0] == next_tile
     assert player_one.get_current_position() == Position(0, 0)
 
@@ -260,7 +260,7 @@ def test_slide_bumps_two_players_on_edge(sample_seeded_game_state):
     assert player_one.get_current_position() == edge_tile_pos
     assert player_two.get_current_position() == unbumped_tile_pos
     assert player_three.get_current_position() == edge_tile_pos
-    sample_seeded_game_state.slide_and_insert(2, Direction.Right)
+    sample_seeded_game_state.slide_and_insert(2, Direction.RIGHT)
     assert sample_seeded_game_state.get_board().get_tile_grid()[2][0] == next_tile
     assert player_one.get_current_position() == Position(2, 0)
     assert player_two.get_current_position() == unbumped_tile_pos

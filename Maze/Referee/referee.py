@@ -39,6 +39,7 @@ class Referee:
     __current_players: List[APIPlayer]
     __num_rounds: int
     __timeout_seconds: float
+    __did_active_player_cheat: bool
 
     __observers: List[Observer]
     __executor: Executor
@@ -70,6 +71,7 @@ class Referee:
         self.__cheater_players = []
         self.__winning_players = []
         self.__current_players = []
+        self.__did_active_player_cheat = False
 
     def run_game(self, clients: List[APIPlayer]) -> GameOutcome:
         """
@@ -268,7 +270,7 @@ class Referee:
         Tells all winning players they have won the game
         :return: None
         """
-        winning_players = [client for client in game_state.get_closest_players_to_victory()]
+        winning_players = game_state.get_closest_players_to_victory()
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
             did_win = player in winning_players
@@ -314,7 +316,7 @@ class Referee:
             last_index, last_direction = previous_moves[-1]
             if last_index == slide_index and last_direction == slide_direction.get_opposite_direction():
                 return False
-        if slide_direction is Direction.Up or slide_direction is Direction.Down:
+        if slide_direction is Direction.UP or slide_direction is Direction.DOWN:
             return game_state.get_board().can_slide_vertically(slide_index)
         return game_state.get_board().can_slide_horizontally(slide_index)
 
@@ -336,7 +338,6 @@ class Referee:
         A helper method to perform a Pass move
         :return: None
         """
-        pass
 
     def __run_round(self, game_state: State) -> bool:
         """

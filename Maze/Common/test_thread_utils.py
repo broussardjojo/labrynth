@@ -1,12 +1,10 @@
-import concurrent.futures
 import time
 from concurrent.futures import ThreadPoolExecutor
-from ..Referee.player_proxy import PlayerProxy
+import pytest
+
 from ..Players.api_player import LocalPlayer
 from ..Players.riemann import Riemann
 from .thread_utils import gather_protected
-import pytest
-
 from .utils import Just, Nothing
 
 

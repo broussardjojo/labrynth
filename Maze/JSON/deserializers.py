@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import List, Tuple, cast
 
 from typing_extensions import assert_never
@@ -13,7 +12,7 @@ from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
     JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethod, \
     JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer
-from Maze.Players.api_player import LocalPlayer, APIPlayer, BadMethodName, BadLocalPlayer
+from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Players.player import Player
 from Maze.Players.riemann import Riemann
@@ -86,12 +85,12 @@ def get_direction_from_json(direction_str: JSONDirection) -> Direction:
     :return: a Direction representing a translated direction
     """
     if direction_str == "DOWN":
-        return Direction.Down
+        return Direction.DOWN
     if direction_str == "UP":
-        return Direction.Up
+        return Direction.UP
     if direction_str == "RIGHT":
-        return Direction.Right
-    return Direction.Left
+        return Direction.RIGHT
+    return Direction.LEFT
 
 
 def get_previous_move_from_json(json_action: JSONAction) -> Tuple[int, Direction]:

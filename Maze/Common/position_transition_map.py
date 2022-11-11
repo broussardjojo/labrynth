@@ -1,4 +1,4 @@
-from typing import Dict, Set, Any
+from typing import Dict, Any
 
 from ..Common.position import Position
 
@@ -30,4 +30,3 @@ class PositionTransitionMap:
                    self.removed_position == other.updated_positions and \
                    self.inserted_position == other.inserted_position
         return False
-

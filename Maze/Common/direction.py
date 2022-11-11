@@ -13,23 +13,23 @@ class Direction(Enum):
     """
     An Enum representing one of the four directions a Tile can move: Up, Right, Down, or Left
     """
-    Up = 1
-    Right = 2
-    Down = 3
-    Left = 4
+    UP = 1
+    RIGHT = 2
+    DOWN = 3
+    LEFT = 4
 
     def get_offset_tuple(self) -> Tuple[int, int]:
         """
         Gets the offset row col tuple for this Direction
         :return: a Tuple[int, int] representing the offset in this direction
         """
-        if self is Direction.Up:
+        if self is Direction.UP:
             return UP_OFFSET, 0
-        if self is Direction.Right:
+        if self is Direction.RIGHT:
             return 0, RIGHT_OFFSET
-        if self is Direction.Down:
+        if self is Direction.DOWN:
             return DOWN_OFFSET, 0
-        if self is Direction.Left:
+        if self is Direction.LEFT:
             return 0, LEFT_OFFSET
         assert_never(self)
 
@@ -38,12 +38,12 @@ class Direction(Enum):
         Get the opposite direction of this direction
         :return: A Direction representing the flipped Direction
         """
-        if self is Direction.Up:
-            return Direction.Down
-        if self is Direction.Down:
-            return Direction.Up
-        if self is Direction.Right:
-            return Direction.Left
-        if self is Direction.Left:
-            return Direction.Right
+        if self is Direction.UP:
+            return Direction.DOWN
+        if self is Direction.DOWN:
+            return Direction.UP
+        if self is Direction.RIGHT:
+            return Direction.LEFT
+        if self is Direction.LEFT:
+            return Direction.RIGHT
         assert_never(self)

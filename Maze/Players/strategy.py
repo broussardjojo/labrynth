@@ -24,4 +24,3 @@ class Strategy(ABC):
         :param target_position: The target Position of the Player (where the goal/home is depending on implementation)
         :return: A Move representing a Slide/Insert, rotate, and destination or a Pass
         """
-        pass
