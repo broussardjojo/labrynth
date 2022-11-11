@@ -18,7 +18,7 @@ class ObservableState:
         :param board: a Board representing the board for a game of Labyrinth
         """
         self._board = board
-        self._previous_moves = previous_moves
+        self._previous_moves = previous_moves.copy()
 
     def get_board(self) -> Board:
         """

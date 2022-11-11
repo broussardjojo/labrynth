@@ -99,3 +99,10 @@ class Player:
         :return: The color of the current Player
         """
         return self.__color
+
+    def __hash__(self) -> int:
+        """
+        Overrides the __hash__ method for Players. Uses the reference ID of the Player
+        :return: An int representing the hash of the Player
+        """
+        return id(self)

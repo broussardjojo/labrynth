@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from .board import Board
 from .position_transition_map import PositionTransitionMap
@@ -16,12 +16,16 @@ class State(ObservableState):
     Player.
     """
 
+    __players: List[Player]
+    __active_player_index: int
+    __player_to_goals_reached: Dict[Player, int]
+
     def __init__(self, board: Board, previous_moves: List[Tuple[int, Direction]], players: List[Player],
                  active_player_index: int):
         super().__init__(board, previous_moves)
-        self.__players = players
+        self.__players = players.copy()
         self.__active_player_index = active_player_index
-        self.__players_reached_goal = set()
+        self.__player_to_goals_reached = {player: 0 for player in players}
 
     @classmethod
     def from_current_state(cls, board: Board, players: List[Player], previous_moves: List[Tuple[int, Direction]]):
@@ -68,7 +72,8 @@ class State(ObservableState):
         side effect: mutates this State's list of players
         """
         if self.__players:
-            self.__players.pop(self.__active_player_index)
+            kicked_player = self.__players.pop(self.__active_player_index)
+            self.__player_to_goals_reached.pop(kicked_player)
             if self.__active_player_index >= len(self.__players):
                 self.__active_player_index = 0
         else:
@@ -79,14 +84,31 @@ class State(ObservableState):
         Checks if the active player for this State is at their goal Position.
         :return: True if the active player is at their goal Position, otherwise False
         :raises: ValueError if there are no players in this State
-        side effect: adds active player to Set of __players_reached_goal if they are at their goal
+        side effect: adds 1 to the player's __player_to_goals_reached value if they are at their goal
         """
         if self.__players:
             active_player = self.get_active_player()
-            if active_player.get_current_position() == active_player.get_goal_position():
-                self.__players_reached_goal.add(active_player)
+            current_goals_reached = self.__player_to_goals_reached[active_player]
+            next_goal_position = (active_player.get_home_position()
+                                  if current_goals_reached > 0
+                                  else active_player.get_goal_position())
+            if active_player.get_current_position() == next_goal_position:
+                self.__player_to_goals_reached[active_player] += 1
                 return True
             return False
+        raise ValueError("No players to check")
+
+    def did_active_player_win(self):
+        """
+        Checks if the active player for this State is has won (i.e. has reached two goals, their treasure
+        Position followed by their home Position).
+        TODO: Don't hardcode 2 goals
+        :return: True if the active player has won, otherwise False
+        :raises: ValueError if there are no players in this State
+        """
+        if self.__players:
+            active_player = self.get_active_player()
+            return self.__player_to_goals_reached[active_player] >= 2
         raise ValueError("No players to check")
 
     def slide_and_insert(self, index: int, direction: Direction) -> None:
@@ -205,7 +227,7 @@ class State(ObservableState):
         Checks if the active player has ever reached their goal position
         :return: True if the active player for this State has ever reached their goal position, otherwise False
         """
-        return self.get_active_player() in self.__players_reached_goal
+        return self.__player_to_goals_reached[self.get_active_player()] > 0
 
     def get_closest_players_to_victory(self) -> List[Player]:
         """
@@ -214,15 +236,17 @@ class State(ObservableState):
         goal)
         :return: A list of Players representing the winning Players
         """
-        if len(self.__players_reached_goal) > 0:
-            return self.__get_closest_players_to_goal_or_home(list(self.__players_reached_goal), is_goal=False)
-        return self.__get_closest_players_to_goal_or_home(self.__players, is_goal=True)
+        if not self.__players:
+            return []
+        max_goals_reached = max(self.__player_to_goals_reached.values())
+        players_at_max_goals = [player for player, num_goals in self.__player_to_goals_reached.items()
+                                if num_goals == max_goals_reached]
+        return self.__get_closest_players_to_goal_or_home(players_at_max_goals)
 
-    def __get_closest_players_to_goal_or_home(self, possible_winners: List[Player], is_goal: bool):
+    def __get_closest_players_to_goal_or_home(self, possible_winners: List[Player]):
         """
         A method to get the closest players to either their goal or their home
         :param possible_winners: A List of Players representing the players who are eligible to win the game
-        :param is_goal: A bool that is True if the target destination to check against is the goal, False if it is the
         home
         :return: A list of Players representing the winning Players
         """
@@ -231,12 +255,11 @@ class State(ObservableState):
                                                               Position(self._board.get_height(),
                                                                        self._board.get_width()))
         for player in possible_winners:
-            if is_goal:
-                player_distance = get_euclidean_distance_between(player.get_current_position(),
-                                                                 player.get_goal_position())
-            else:
-                player_distance = get_euclidean_distance_between(player.get_current_position(),
-                                                                 player.get_home_position())
+            current_goals_reached = self.__player_to_goals_reached[player]
+            next_goal_position = (player.get_home_position()
+                                  if current_goals_reached > 0
+                                  else player.get_goal_position())
+            player_distance = get_euclidean_distance_between(player.get_current_position(), next_goal_position)
             if player_distance < current_min_distance:
                 current_min_distance = player_distance
                 closest_players = [player]

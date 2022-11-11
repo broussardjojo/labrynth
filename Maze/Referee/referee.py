@@ -147,7 +147,8 @@ class Referee:
         game_state.slide_and_insert(proposed_move.get_slide_index(),
                                     proposed_move.get_slide_direction())
         game_state.move_active_player_to(proposed_move.get_destination_position())
-        if game_state.is_active_player_at_goal():
+        at_any_goal = game_state.is_active_player_at_goal()
+        if at_any_goal and not game_state.did_active_player_win():
             # TODO: parallel ds
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
@@ -351,7 +352,7 @@ class Referee:
             self.send_state_updates_to_observers(game_state)
             if not self.__current_players:
                 return True
-            if self.__did_active_player_win(game_state):
+            if game_state.did_active_player_win():
                 return True
             if not self.__did_active_player_cheat:
                 game_state.change_active_player_turn()
@@ -376,16 +377,6 @@ class Referee:
                                            lambda _: self.__perform_pass())
         # TODO: Fix dynamic dispatch so we can validate moves here and remove use of isinstance
         return isinstance(proposed_move, Move) and not self.__did_active_player_cheat
-
-    @staticmethod
-    def __did_active_player_win(game_state: State) -> bool:
-        """
-        Checks win conditions for the current active player. Namely, checks if the active player is home after reaching
-        their goal
-        :param game_state: represents the current state of the game
-        :return: True if the active player has reached their home after visiting their goal, otherwise False
-        """
-        return game_state.is_active_player_at_home() and game_state.active_player_has_reached_goal()
 
     def send_state_updates_to_observers(self, game_state: State) -> None:
         """
