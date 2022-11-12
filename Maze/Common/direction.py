@@ -33,7 +33,7 @@ class Direction(Enum):
             return 0, LEFT_OFFSET
         assert_never(self)
 
-    def get_opposite_direction(self):
+    def get_opposite_direction(self) -> "Direction":
         """
         Get the opposite direction of this direction
         :return: A Direction representing the flipped Direction

@@ -93,5 +93,9 @@ class Tile:
         """
         return (rotations % self.FULL_ROTATION) + self.FULL_ROTATION
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Overrides the __str__ method of Tiles
+        :return: A string describing this tile's shape and gems
+        """
         return f"Shape: {str(self.__shape)} Gem1: {str(self.__gem1)} Gem2: {str(self.__gem2)}"

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 
 class Gem:
@@ -18,7 +19,7 @@ class Gem:
         else:
             raise ValueError('Invalid Gem Name')
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """
         Overrides equals for the Gem class. Two Gems are equal if their name is the same.
         :param other: Any, which represents the object being compared to this Gem
@@ -49,14 +50,14 @@ class Gem:
         """
         return self.__gem_filepath
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Provides the name of this Gem as a string.
         :return: this Gem's name
         """
         return f"Gem({self.__gem_name})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
         Overrides the hash method for a Gem
         :return: An int representing the hash of a Gem

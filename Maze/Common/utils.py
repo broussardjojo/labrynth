@@ -26,7 +26,6 @@ class Maybe(ABC, Generic[T]):
         :param message: A string to use as the error message
         :raises: ValueError when this is called on a Nothing
         """
-        pass
 
 
 class Nothing(Maybe[T]):

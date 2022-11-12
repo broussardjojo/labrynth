@@ -28,7 +28,8 @@ class State(ObservableState):
         self.__player_to_goals_reached = {player: 0 for player in players}
 
     @classmethod
-    def from_current_state(cls, board: Board, players: List[Player], previous_moves: List[Tuple[int, Direction]]):
+    def from_current_state(cls, board: Board, players: List[Player],
+                           previous_moves: List[Tuple[int, Direction]]) -> "State":
         """
         A constructor for a State, taking in a Board and creating an empty game state with no players
         :param board: a Board representing the game board to use in this state
@@ -41,7 +42,7 @@ class State(ObservableState):
         return cls(board, previous_moves, players, active_player_index)
 
     @classmethod
-    def from_board_and_players(cls, selected_board: Board, list_of_players: List[Player]):
+    def from_board_and_players(cls, selected_board: Board, list_of_players: List[Player]) -> "State":
         """
         A constructor for a State, taking in a Board and a list of players and creating a state with no previous moves.
         :param selected_board: a Board representing the game board to use in this state
@@ -98,7 +99,7 @@ class State(ObservableState):
             return False
         raise ValueError("No players to check")
 
-    def did_active_player_win(self):
+    def did_active_player_win(self) -> bool:
         """
         Checks if the active player for this State is has won (i.e. has reached two goals, their treasure
         Position followed by their home Position).
@@ -231,7 +232,7 @@ class State(ObservableState):
                                 if num_goals == max_goals_reached]
         return self.__get_closest_players_to_goal_or_home(players_at_max_goals)
 
-    def __get_closest_players_to_goal_or_home(self, possible_winners: List[Player]):
+    def __get_closest_players_to_goal_or_home(self, possible_winners: List[Player]) -> List[Player]:
         """
         A method to get the closest players to either their goal or their home
         :param possible_winners: A List of Players representing the players who are eligible to win the game

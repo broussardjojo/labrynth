@@ -105,7 +105,7 @@ class Move:
         """
         return self.__destination_position
 
-    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]):
+    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]) -> None:
         """
         Acts as a getter for this Move object
         NOTE: This method is intended to be used in tandem with the same method in a Pass but could be used

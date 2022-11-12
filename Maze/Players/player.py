@@ -34,7 +34,7 @@ class Player:
         self.__current_position = current_position
 
     @classmethod
-    def from_home_goal_color(cls, home_position: Position, goal_position: Position, color: str):
+    def from_home_goal_color(cls, home_position: Position, goal_position: Position, color: str) -> "Player":
         """
         Constructor to create a Player from a given goal position, home position, and color
         :param home_position: a Position representing the home Position of this Player
@@ -46,7 +46,7 @@ class Player:
         return cls(home_position, goal_position, current_position, color)
 
     @classmethod
-    def from_current_home_color(cls, current_position: Position, home_position: Position, color: str):
+    def from_current_home_color(cls, current_position: Position, home_position: Position, color: str) -> "Player":
         """
         Constructor to create a Player given a current position, home position, and color
         TODO: makes an arbitrary decision to assigns the Player's goal to its current Position

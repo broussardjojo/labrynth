@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 
 from .direction import Direction
 
@@ -52,7 +52,7 @@ class Shape(ABC):
         :return: The rotated shape
         """
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """
         Overrides equals. This Shape is equal to another Shape if they have the same paths.
         :param other: Any, to be compared to this Shape
@@ -80,7 +80,7 @@ class Shape(ABC):
         else:
             return self.__bottom
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
         Overrides a hash for a Shape (using different math operations to prevent collisions with shapes that are rotated
         versions of themselves)
@@ -88,7 +88,7 @@ class Shape(ABC):
         """
         return hash((self.__top, self.__right, self.__bottom, self.__left))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Override the to string method for a shape
         :return: A string representing the paths of this shapes

@@ -25,6 +25,11 @@ class PositionTransitionMap:
         self.inserted_position = inserted_position
 
     def __eq__(self, other: Any) -> bool:
+        """
+        Overrides the __eq__ method of PositionTransitionMap objects
+        :param other: The object being compared to this PositionTransitionMap
+        :return: True if the updated, removed, and inserted positions match, otherwise false
+        """
         if isinstance(other, PositionTransitionMap):
             return self.updated_positions == other.updated_positions and \
                    self.removed_position == other.updated_positions and \

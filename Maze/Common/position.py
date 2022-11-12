@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Any
 
 
 class Position:
@@ -36,7 +36,7 @@ class Position:
         """
         return self.__row, self.__col
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """
         Overrides equal in order to compare Position objects. A Position is equal to another if they have the same row
         and column integers.
@@ -47,14 +47,14 @@ class Position:
             return self.__row == other.__row and self.__col == other.__col
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Formats Position objects in a human readable form.
         :return: this Position object as a row, col
         """
         return f"Position({self.__row}, {self.__col})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
         Overrides hash method for a Position using tuple to avoid collisions
         :return: an int representing the hash value for this position
