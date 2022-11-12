@@ -5,19 +5,7 @@ from typing_extensions import Literal, TypedDict
 # https://course.ccs.neu.edu/cs4500f22/3.html
 
 # Interpretation: The shape of paths on one Tile
-JSONConnector = Union[
-    Literal["│"],
-    Literal["─"],
-    Literal["┐"],
-    Literal["└"],
-    Literal["┌"],
-    Literal["┘"],
-    Literal["┬"],
-    Literal["├"],
-    Literal["┴"],
-    Literal["┤"],
-    Literal["┼"],
-]
+JSONConnector = Literal["│", "─", "┐", "└", "┌", "┘", "┬", "├", "┴", "┤", "┼"]
 
 # Interpretation: One of the gems that a Tile can contain
 JSONGem = str
@@ -48,11 +36,11 @@ JSONCoordinate = TypedDict("JSONCoordinate", {"row#": int, "column#": int})
 # or column. For example, "LEFT" means that the spare tile is inserted into the
 # right side, such that the pieces move to the left, and the
 # left-most tile of the row drops out.
-JSONDirection = Union[Literal["UP"], Literal["RIGHT"], Literal["DOWN"], Literal["LEFT"]]
+JSONDirection = Literal["UP", "RIGHT", "DOWN", "LEFT"]
 
 # Interpretation: Describes the four possible counter-clockwise rotations around
 # the center of a tile.
-JSONDegree = Union[Literal[0], Literal[90], Literal[180], Literal[270]]
+JSONDegree = Literal[0, 90, 180, 270]
 
 # Interpretation: Specifies the last sliding action that an actor
 # performed.
@@ -102,7 +90,7 @@ class JSONState(TypedDict):
 # https://course.ccs.neu.edu/cs4500f22/5.html
 
 # Interpretation: Represents a strategy that a player can follow
-JSONStrategyDesignation = Union[Literal["Euclid"], Literal["Riemann"]]
+JSONStrategyDesignation = Literal["Euclid", "Riemann"]
 
 # Interpretation: Denotes that the player wants to pass
 JSONChoicePass = Literal["PASS"]
@@ -158,7 +146,7 @@ class JSONRefereeState(TypedDict):
 # https://course.ccs.neu.edu/cs4500f22/7.html
 
 # Interpretation: One of a player's public methods, which is instructed to behave badly
-JSONBadMethod = Union[Literal["setUp"], Literal["takeTurn"], Literal["win"]]
+JSONBadMethod = Literal["setUp", "takeTurn", "win"]
 
 # Interpretation: Requests a test with a player acting badly. It is a list of 3 values.
 #   - [0] is a string that specifies the name of a player

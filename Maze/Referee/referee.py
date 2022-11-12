@@ -67,7 +67,6 @@ class Referee:
         Resets this Referee's fields to their initial states
         :return: None
         """
-        self.__observers = []
         self.__cheater_players = []
         self.__winning_players = []
         self.__current_players = []

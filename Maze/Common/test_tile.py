@@ -115,15 +115,15 @@ def test_tile_constructor_t_shaped(basic_t_shape, amethyst_gem, emerald_gem):
 # Tests to validate get_gems returns the gems on a Tile
 
 def test_get_gems_cross(cross_tile, amethyst_gem, emerald_gem):
-    assert cross_tile.get_gems() == [amethyst_gem, emerald_gem]
+    assert cross_tile.get_gems() == (amethyst_gem, emerald_gem)
 
 
 def test_get_gems_corner(corner_tile, amethyst_gem):
-    assert corner_tile.get_gems() == [amethyst_gem, amethyst_gem]
+    assert corner_tile.get_gems() == (amethyst_gem, amethyst_gem)
 
 
 def test_get_gems_line(line_tile, emerald_gem, alexandrite_gem):
-    assert line_tile.get_gems() == [emerald_gem, alexandrite_gem]
+    assert line_tile.get_gems() == (emerald_gem, alexandrite_gem)
 
 
 # Tests same_gems_on_tiles

@@ -1,8 +1,8 @@
-from typing import List
+from typing import Tuple
 
+from .direction import Direction
 from .gem import Gem
 from .shapes import Shape
-from .direction import Direction
 
 
 class Tile:
@@ -23,12 +23,12 @@ class Tile:
         self.__gem1 = gem1
         self.__gem2 = gem2
 
-    def get_gems(self) -> List[Gem]:
+    def get_gems(self) -> Tuple[Gem, Gem]:
         """
         Returns a list containing both gems found on this tile.
         :return: a list of gems found on this tile
         """
-        return [self.__gem1, self.__gem2]
+        return self.__gem1, self.__gem2
 
     def get_shape(self) -> Shape:
         """
