@@ -1,5 +1,7 @@
+# pylint: disable=missing-function-docstring,redefined-outer-name
 import pytest
 from .board import Board
+from .referee_player_details import RefereePlayerDetails
 from .state import State
 from .tile import Tile
 from .shapes import Line
@@ -7,9 +9,6 @@ from .gem import Gem
 from .direction import Direction
 from .position import Position
 from .utils import shape_dict
-from ..Players.euclid import Euclid
-from ..Players.player import Player
-from ..Players.riemann import Riemann
 
 
 @pytest.fixture
@@ -39,17 +38,17 @@ def rotated_seeded_spare_tile():
 
 @pytest.fixture
 def player_one():
-    return Player.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
+    return RefereePlayerDetails.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
 
 
 @pytest.fixture
 def player_two():
-    return Player.from_home_goal_color(Position(3, 3), Position(5, 5), "red")
+    return RefereePlayerDetails.from_home_goal_color(Position(3, 3), Position(5, 5), "red")
 
 
 @pytest.fixture
 def player_three():
-    return Player.from_home_goal_color(Position(3, 1), Position(1, 1), "black")
+    return RefereePlayerDetails.from_home_goal_color(Position(3, 1), Position(1, 1), "black")
 
 
 @pytest.fixture
@@ -173,7 +172,6 @@ def test_player_can_reach_tile_below(sample_seeded_game_state):
     current_player = sample_seeded_game_state.get_players()[0]
     # Tile at location 5, 5, is cross shaped
     current_tile_pos = current_player.get_current_position()
-    reachable_tile = current_board.get_tile_grid()[6][5]
     # validate that reachable tile is reachable using previously tested reachable_tiles method
     assert Position(6, 5) in current_board.reachable_tiles(current_tile_pos)
     # assertion for new method
@@ -207,20 +205,16 @@ def test_player_can_reach_tile_left(sample_seeded_game_state):
 # verifies can_active_player_reach_given_tile throws an exception when no players are in the game
 def test_player_can_reach_tile_no_players(zero_player_game_state):
     with pytest.raises(ValueError) as error_message:
-        current_board = zero_player_game_state.get_board()
-        unreachable_tile = current_board.get_tile_grid()[2][2]
-        zero_player_game_state.can_active_player_reach_position(unreachable_tile)
+        zero_player_game_state.can_active_player_reach_position(Position(2, 2))
     assert str(error_message.value) == "No players to check"
 
 
 def test_player_can_reach_tile_removed_all_players(sample_seeded_game_state):
     with pytest.raises(ValueError) as error_message:
-        current_board = sample_seeded_game_state.get_board()
-        unreachable_tile = current_board.get_tile_grid()[0][0]
         sample_seeded_game_state.kick_out_active_player()
         sample_seeded_game_state.kick_out_active_player()
         sample_seeded_game_state.kick_out_active_player()
-        sample_seeded_game_state.can_active_player_reach_position(unreachable_tile)
+        sample_seeded_game_state.can_active_player_reach_position(Position(0, 0))
     assert str(error_message.value) == "No players to check"
 
 
@@ -348,8 +342,7 @@ def test_active_player_has_not_reached_goal_two(sample_seeded_game_state):
 
 
 # ---- Test get_closest_player_to_victory ---------
-def test_get_closest_player_to_victory_no_goals_start(sample_seeded_game_state, player_one,
-                                                      player_two, player_three):
+def test_get_closest_player_to_victory_no_goals_start(sample_seeded_game_state, player_one, player_three):
     assert sample_seeded_game_state.get_closest_players_to_victory() == [player_one, player_three]
 
 

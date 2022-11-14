@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from ..Common.observableState import ObservableState
+from ..Common.abstract_state import AbstractState
 from ..Common.position import Position
 from .move import Move, Pass
 
@@ -12,7 +12,7 @@ class Strategy(ABC):
     implemented in any number of ways depending on the Player's AI of choice
     """
     @abstractmethod
-    def generate_move(self, current_state: ObservableState,
+    def generate_move(self, current_state: AbstractState,
                       current_position: Position,
                       target_position: Position) -> Union[Move, Pass]:
         """

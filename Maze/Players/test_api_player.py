@@ -1,9 +1,9 @@
+# pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
 import pytest
 
 from .api_player import LocalPlayer
-from ..Common.observableState import ObservableState
+from ..Common.abstract_state import AbstractState
 from ..Common.board import Board
-from ..Common.position import Position
 from .riemann import Riemann
 from .euclid import Euclid
 
@@ -15,7 +15,7 @@ def basic_board():
 
 @pytest.fixture
 def observable_state(basic_board):
-    return ObservableState(basic_board, [])
+    return AbstractState(basic_board, [])
 
 
 @pytest.fixture

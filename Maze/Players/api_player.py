@@ -7,7 +7,7 @@ from .move import Pass, Move
 from .strategy import Strategy
 from ..Common.board import Board
 from ..Common.position import Position
-from ..Common.state import State
+from ..Common.redacted_state import RedactedState
 from ..Common.utils import Just, Maybe, Nothing
 
 Acknowledgement = Any
@@ -23,7 +23,7 @@ class APIPlayer(ABC):
     """
 
     @abstractmethod
-    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
         """
         Informs this player of its goal position, and optionally the initial state of the game
         :param state: The initial state of the game, or None if this is not the first setup call
@@ -48,7 +48,7 @@ class APIPlayer(ABC):
         """
 
     @abstractmethod
-    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
         """
         Gets the next move for this player based on its Strategy
         TODO: change type of state
@@ -87,7 +87,7 @@ class LocalPlayer(APIPlayer):
         self.__goal_position = Nothing()
         self.__won = Nothing()
 
-    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
         """
         Informs this player of its goal position, and optionally the initial state of the game
         :param state: The initial state of the game, or None if this is not the first setup call
@@ -116,7 +116,7 @@ class LocalPlayer(APIPlayer):
         """
         return self.__name
 
-    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
         """
         Gets the next move for this player based on its Strategy
         :param current_state: a State representing the current state of the game
@@ -154,12 +154,12 @@ class BadLocalPlayer(LocalPlayer):
         super().__init__(name, strategy)
         self.__bad_method_name = bad_method_name
 
-    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
         if self.__bad_method_name == "setup":
             return 1 // 0
         return super().setup(state, goal_position)
 
-    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
         if self.__bad_method_name == "take_turn":
             return cast(Pass, 1 // 0)
         return super().take_turn(current_state)

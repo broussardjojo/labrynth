@@ -6,7 +6,7 @@ from .move import Move, Pass
 from .strategy import Strategy
 from ..Common.board import Board
 from ..Common.direction import Direction
-from ..Common.observableState import ObservableState
+from ..Common.abstract_state import AbstractState
 from ..Common.position import Position
 from ..Common.position_transition_map import PositionTransitionMap
 
@@ -27,7 +27,7 @@ class BaseStrategy(Strategy):
         """
         self.__checked_positions = []
 
-    def generate_move(self, current_state: ObservableState, current_position: Position,
+    def generate_move(self, current_state: AbstractState, current_position: Position,
                       target_position: Position) -> Union[Move, Pass]:
         """
         Generates a Move based on a BaseStrategy format: 1. pick a target destination, 2. try all moves to achieve that,

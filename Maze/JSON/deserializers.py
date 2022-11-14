@@ -6,6 +6,7 @@ from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
 from Maze.Common.position import Position
+from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
 from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
@@ -14,7 +15,7 @@ from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnec
     JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer
 from Maze.Players.euclid import Euclid
-from Maze.Players.player import Player
+from Maze.Common.player_details import PlayerDetails
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy
 
@@ -65,7 +66,7 @@ def get_tile_grid_from_json(board_dict: JSONBoard) -> List[List[Tile]]:
     return tile_grid
 
 
-def get_player_details_from_json(json_player: JSONPlayer) -> Player:
+def get_player_details_from_json(json_player: JSONPlayer) -> PlayerDetails:
     """
     Creates the Player represented by the JSON
     :param json_player: A dictionary with the format
@@ -75,7 +76,7 @@ def get_player_details_from_json(json_player: JSONPlayer) -> Player:
     current_position = get_position_from_json(json_player["current"])
     home_position = get_position_from_json(json_player["home"])
     player_color = json_player["color"]
-    return Player.from_current_home_color(current_position, home_position, player_color)
+    return PlayerDetails(home_position, current_position, player_color)
 
 
 def get_direction_from_json(direction_str: JSONDirection) -> Direction:
@@ -122,7 +123,7 @@ def get_state_from_json_state(json_state: JSONState) -> State:
     return State.from_current_state(board, player_details, previous_moves)
 
 
-def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> Player:
+def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> RefereePlayerDetails:
     """
     Creates the Player represented by the JSON
     :param json_referee_player: A dictionary with the format
@@ -134,7 +135,7 @@ def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer)
     home_position = get_position_from_json(json_referee_player["home"])
     goal_position = get_position_from_json(json_referee_player["goto"])
     player_color = json_referee_player["color"]
-    return Player(home_position, goal_position, current_position, player_color)
+    return RefereePlayerDetails(home_position, goal_position, current_position, player_color)
 
 
 def get_state_from_json_referee_state(json_state: JSONRefereeState) -> State:

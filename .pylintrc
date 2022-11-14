@@ -4,3 +4,4 @@ disable=
     inconsistent-return-statements,
     missing-module-docstring,
     no-else-return,
+    too-few-public-methods,

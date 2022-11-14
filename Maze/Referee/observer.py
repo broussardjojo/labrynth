@@ -8,16 +8,13 @@ from typing import Deque, Dict, Union
 from PIL import Image, ImageTk
 from typing_extensions import Literal, assert_never
 
-from ..Common.boardSerializer import get_serialized_board
+from ..Common.player_details import PlayerDetails
 from ..Common.direction import Direction
 from ..Common.gem import Gem
 from ..Common.position import Position
 from ..Common.state import State
 from ..Common.tile import Tile
-from ..Common.tileSerializer import get_serialized_tile
-from ..Players.moveSerializer import get_serialized_last_action
-from ..Players.player import Player
-from ..Players.playerSerializer import get_serialized_players
+from ..JSON.serializers import state_to_json
 
 
 class DisplayStageTag(Enum):
@@ -147,7 +144,7 @@ class Observer:
         if output_file is None:
             # User cancelled
             return
-        serialized_state = self.__get_serialized_state(current_state)
+        serialized_state = state_to_json(current_state)
         jsonified_state = json.dumps(serialized_state, ensure_ascii=False)
         output_file.write(jsonified_state)
 
@@ -157,21 +154,6 @@ class Observer:
         :return: None
         """
         self.__is_gui_destroyed = True
-
-    @staticmethod
-    def __get_serialized_state(current_state: State) -> dict:
-        """
-        Converts information from the given state into a dictionary
-        :param current_state: the State whose information is being turned into a dictionary
-        :return: a dictionary containing information on the given state including its board, the spare tile, the
-        players, and the last action
-        """
-        state_dict = {'board': get_serialized_board(current_state.get_board()),
-                      'spare': get_serialized_tile(current_state.get_board().get_next_tile()),
-                      'plmt': get_serialized_players(current_state.get_players()),
-                      'last': get_serialized_last_action(current_state.get_all_previous_non_passes())
-                      }
-        return state_dict
 
     def display_gui(self) -> bool:
         """
@@ -311,7 +293,7 @@ class Observer:
                 return self.__add_home_to_canvas(drawn_tile, player)
         return drawn_tile
 
-    def __add_home_to_canvas(self, drawn_tile: Canvas, player: Player) -> Canvas:
+    def __add_home_to_canvas(self, drawn_tile: Canvas, player: PlayerDetails) -> Canvas:
         """
         Draws the given player's home on the given canvas
         :param drawn_tile: a canvas representing a drawing of a tile on the current state's board
@@ -342,7 +324,7 @@ class Observer:
                 offset += 5
         return drawn_tile
 
-    def __add_avatar_to_canvas(self, drawn_tile: Canvas, player: Player, offset: int) -> Canvas:
+    def __add_avatar_to_canvas(self, drawn_tile: Canvas, player: PlayerDetails, offset: int) -> Canvas:
         """
         Draws the given player's avatar on the given canvas
         # TODO: take in an index and total number of players, then compute a non-overlapping area to draw in

@@ -1,14 +1,18 @@
+# pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
 from pathlib import Path
 
 import pytest
-from ..Common.observableState import ObservableState
-from ..Common.position import Position
+
 from .euclid import Euclid
 from .move import Move, Pass
-from ..Common.direction import Direction
-from ..JSON.deserializers import get_tile_grid_from_json
-from ..Common.utils import get_json_obj_list
 from ..Common.board import Board
+from ..Common.direction import Direction
+from ..Common.player_details import PlayerDetails
+from ..Common.position import Position
+from ..Common.redacted_state import RedactedState
+from ..Common.utils import get_json_obj_list
+from ..JSON.deserializers import get_tile_grid_from_json
+
 
 # ----- Examples ------
 # This board has the following shape:
@@ -32,26 +36,6 @@ def basic_seeded_board():
         return Board.from_list_of_tiles(get_tile_grid_from_json(json_obj_list[0]), seed=30)
 
 
-@pytest.fixture
-def observable_state(basic_seeded_board):
-    return ObservableState(basic_seeded_board, [])
-
-
-@pytest.fixture
-def current_position():
-    return Position(0, 4)
-
-
-@pytest.fixture
-def target_position():
-    return Position(3, 5)
-
-
-@pytest.fixture
-def euclid_strategy():
-    return Euclid()
-
-
 # This board has the following shape:
 #   ["┬","┐","─","─","┐","└","┌"],
 #   ["└","│","─","┘","┬","├","┴"],
@@ -71,8 +55,28 @@ def basic_seeded_board_two():
 
 
 @pytest.fixture
-def observable_state_two(basic_seeded_board_two):
-    return ObservableState(basic_seeded_board_two, [])
+def observable_state(basic_seeded_board, current_position):
+    return RedactedState(basic_seeded_board, [], [PlayerDetails(current_position, current_position, "red")], 0)
+
+
+@pytest.fixture
+def observable_state_two(basic_seeded_board_two, current_position):
+    return RedactedState(basic_seeded_board_two, [], [PlayerDetails(current_position, current_position, "blue")], 0)
+
+
+@pytest.fixture
+def current_position():
+    return Position(0, 4)
+
+
+@pytest.fixture
+def target_position():
+    return Position(3, 5)
+
+
+@pytest.fixture
+def euclid_strategy():
+    return Euclid()
 
 
 # ----- Test generate_move method -----

@@ -6,12 +6,12 @@ from .observer import Observer
 from ..Common.board import Board
 from ..Common.direction import Direction
 from ..Common.position import Position
+from ..Common.referee_player_details import RefereePlayerDetails
 from ..Common.state import State
 from ..Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
 from ..Common.utils import ALL_NAMED_COLORS, Maybe
 from ..Players.api_player import APIPlayer
 from ..Players.move import Move
-from ..Players.player import Player
 
 # A pair of lists of APIPlayers; the first list represents all winners,
 # the second represents all ejected players
@@ -209,26 +209,28 @@ class Referee:
         """
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
-            future = self.__executor.submit(client.setup, deepcopy(game_state), player.get_goal_position())
+            future = self.__executor.submit(client.setup, game_state.copy_redacted(), player.get_goal_position())
             future_list.append(future)
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
         self.__handle_broadcast_acknowledgements(responses, game_state)
 
-    def __generate_players(self, board: Board, count: int) -> List[Player]:
+    def __generate_players(self, board: Board, count: int) -> List[RefereePlayerDetails]:
         """
         Generates the initial info (home, goal, current, color) for a given number of players on a given board
         :param board: The Board to prepare players for
         :param count: The number of player information pieces to create
         :return: A list of Player instances with unique homes
         """
-        players: List[Player] = []
+        players: List[RefereePlayerDetails] = []
         homes: Set[Position] = set()
         for idx in range(count):
             # Make a unique color
             color = ALL_NAMED_COLORS[idx] if idx < len(ALL_NAMED_COLORS) else str(idx).zfill(6)
-            player = Player.from_home_goal_color(self.__generate_unique_home(board, homes),
-                                                 self.__generate_goal(board),
-                                                 color)
+            player = RefereePlayerDetails.from_home_goal_color(
+                self.__generate_unique_home(board, homes),
+                self.__generate_goal(board),
+                color
+            )
             players.append(player)
             homes.add(player.get_home_position())
         return players
@@ -367,8 +369,7 @@ class Referee:
         """
         player_index = game_state.get_active_player_index()
         client = self.__current_players[player_index]
-        # TODO: remove other players' secret info
-        response = await_protected(self.__executor.submit(lambda: client.take_turn(deepcopy(game_state))),
+        response = await_protected(self.__executor.submit(client.take_turn, game_state.copy_redacted()),
                                    timeout_seconds=self.__timeout_seconds)
         if not response.is_present:
             self.__handle_cheater(client, game_state)
