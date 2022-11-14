@@ -3,10 +3,12 @@ from typing import List, Tuple
 from typing_extensions import assert_never
 
 from .definitions import JSONDirection, JSONChoiceMove, JSONCoordinate, JSONRefereePlayer, JSONRefereeState, JSONBoard, \
-    JSONConnector, JSONTreasure, JSONTile, OptionalJSONAction
+    JSONConnector, JSONTreasure, JSONTile, OptionalJSONAction, JSONState, JSONPlayer
 from ..Common.board import Board
 from ..Common.direction import Direction
+from ..Common.player_details import PlayerDetails
 from ..Common.position import Position
+from ..Common.redacted_state import RedactedState
 from ..Common.referee_player_details import RefereePlayerDetails
 from ..Common.state import State
 from ..Common.tile import Tile
@@ -125,6 +127,19 @@ def referee_player_details_to_json(player: RefereePlayerDetails) -> JSONRefereeP
     }
 
 
+def player_details_to_json(player: PlayerDetails) -> JSONPlayer:
+    """
+    Gets the JSON representation of the given player details
+    :param player: A PlayerDetails
+    :return: A dict in the format {"current":{"row#":int,"column#":int},"home":{"row#":int,"column#":int},"color":str}
+    """
+    return {
+        "current": position_to_json(player.get_current_position()),
+        "home": position_to_json(player.get_home_position()),
+        "color": player.get_color()
+    }
+
+
 def last_action_to_json(action_list: List[Tuple[int, Direction]]) -> OptionalJSONAction:
     """
     Gets the JSON representation of the last action in the given list, or None if empty
@@ -147,5 +162,19 @@ def state_to_json(state: State) -> JSONRefereeState:
     return {'board': board_to_json(state.get_board()),
             'spare': tile_to_spare_tile_json(state.get_board().get_next_tile()),
             'plmt': [referee_player_details_to_json(player) for player in state.get_players()],
+            'last': last_action_to_json(state.get_all_previous_non_passes())
+            }
+
+
+def redacted_state_to_json(state: RedactedState) -> JSONState:
+    """
+       Gets the JSON representation of the given RedactedState
+       :param state: A RedactedState
+       :return: A dict in the format {"board":{"connectors":[...],"treasures":[...]},"spare":
+       {"tilekey":JSONConnector,"1-image":str,"2-image":str},"plmt":[...],"last":[int, JSONDirection]|null}
+       """
+    return {'board': board_to_json(state.get_board()),
+            'spare': tile_to_spare_tile_json(state.get_board().get_next_tile()),
+            'plmt': [player_details_to_json(player) for player in state.get_players()],
             'last': last_action_to_json(state.get_all_previous_non_passes())
             }
