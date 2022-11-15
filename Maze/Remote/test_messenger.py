@@ -1,3 +1,4 @@
+import contextlib
 import socket
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -11,6 +12,7 @@ from Maze.Common.board import Board
 from Maze.Common.position import Position
 from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
+from Maze.Common.thread_utils import await_protected
 from Maze.Common.utils import get_json_obj_list
 from Maze.JSON.deserializers import get_tile_grid_from_json
 from Maze.Players.api_player import APIPlayer, LocalPlayer
@@ -64,6 +66,14 @@ def api_player_two():
     return LocalPlayer("player2", Euclid())
 
 
+@contextlib.contextmanager
+def ensure_shutdown(connection: socket.socket):
+    try:
+        yield
+    finally:
+        connection.shutdown(socket.SHUT_RDWR)
+
+
 def dispatching_receiver_with_mock_player(connection: socket.socket,
                                           **implementations: Callable[..., Any]) -> Tuple[DispatchingReceiver, MagicMock]:
     mock_player = MagicMock()
@@ -90,11 +100,11 @@ def test_remote_call_setup(seeded_game_state):
     receiver, mock = dispatching_receiver_with_mock_player(client_conn, setup=lambda state, goal: "✓")
     messenger = Messenger(server_conn.makefile("rb", buffering=0), server_conn.makefile("wb", buffering=0))
     with ThreadPoolExecutor() as executor:
-        client_task = executor.submit(receiver.listen_forever)
-        goal = seeded_game_state.get_players()[0].get_goal_position()
-        assert messenger.call("setup", (seeded_game_state.copy_redacted(), goal)) == "✓"
-        server_conn.shutdown(socket.SHUT_RDWR)
-        client_task.result(timeout=1)
+        with ensure_shutdown(server_conn):
+            client_task = executor.submit(receiver.listen_forever)
+            goal = seeded_game_state.get_players()[0].get_goal_position()
+            assert messenger.call("setup", (seeded_game_state.copy_redacted(), goal)) == "✓"
+        await_protected(client_task, timeout_seconds=1)
     setup_mock: MagicMock = mock.setup
     assert setup_mock.call_count == 1
     assert setup_mock.call_args[0][0].get_board().get_tile_grid() == seeded_game_state.get_board().get_tile_grid()
@@ -110,11 +120,11 @@ def test_remote_call_name_type_error(seeded_game_state, api_player_one):
     receiver, mock = dispatching_receiver_with_mock_serializer(api_player_one, client_conn, lambda _: 0)
     messenger = Messenger(server_conn.makefile("rb", buffering=0), server_conn.makefile("wb", buffering=0))
     with ThreadPoolExecutor() as executor:
-        client_task = executor.submit(receiver.listen_forever)
-        with pytest.raises(ValidationError):
-            messenger.call("name", ())
-        server_conn.shutdown(socket.SHUT_RDWR)
-        client_task.result(timeout=1)
+        with ensure_shutdown(server_conn):
+            client_task = executor.submit(receiver.listen_forever)
+            with pytest.raises(ValidationError):
+                messenger.call("name", ())
+        await_protected(client_task, timeout_seconds=1)
     assert mock.call_count == 1
     server_conn.close()
     client_conn.close()
