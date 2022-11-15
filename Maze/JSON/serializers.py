@@ -3,7 +3,7 @@ from typing import List, Tuple
 from typing_extensions import assert_never
 
 from .definitions import JSONDirection, JSONChoiceMove, JSONCoordinate, JSONRefereePlayer, JSONRefereeState, JSONBoard, \
-    JSONConnector, JSONTreasure, JSONTile, OptionalJSONAction, JSONState, JSONPlayer
+    JSONConnector, JSONTreasure, JSONTile, OptionalJSONAction, JSONState, JSONPlayer, JSONChoicePass
 from ..Common.board import Board
 from ..Common.direction import Direction
 from ..Common.player_details import PlayerDetails
@@ -13,7 +13,7 @@ from ..Common.referee_player_details import RefereePlayerDetails
 from ..Common.state import State
 from ..Common.tile import Tile
 from ..Common.utils import get_connector_from_shape
-from ..Players.move import Move
+from ..Players.move import Move, Pass
 
 
 def direction_to_json(direction: Direction) -> JSONDirection:
@@ -54,10 +54,18 @@ def move_to_json(move: Move) -> JSONChoiceMove:
     degrees_clockwise = move.get_spare_tile_rotation_degrees()
     destination_pos = move.get_destination_position()
     # Note that we convert to counterclockwise
-    return [index,
+    return (index,
             direction_to_json(direction),
             -degrees_clockwise % 360,
-            position_to_json(destination_pos)]
+            position_to_json(destination_pos))
+
+
+def pass_to_json(pass_instance: Pass) -> JSONChoicePass:
+    """
+    Gets the JSON representation of the given pass
+    :return: the string "PASS"
+    """
+    return "PASS"
 
 
 def __connectors_to_json(board: Board) -> List[List[JSONConnector]]:

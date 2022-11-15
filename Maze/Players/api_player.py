@@ -51,7 +51,6 @@ class APIPlayer(ABC):
     def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
         """
         Gets the next move for this player based on its Strategy
-        TODO: change type of state
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """

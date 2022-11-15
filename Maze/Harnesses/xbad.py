@@ -5,7 +5,7 @@ from typing import cast, List, Tuple
 from ..Common.state import State
 from ..Common.utils import get_json_obj_list
 from ..JSON.definitions import JSONBadPlayerSpec, JSONRefereeState
-from ..JSON.deserializers import get_api_player_list_from_bad_player_spec_json, get_state_from_json_referee_state
+from ..JSON.deserializers import get_api_player_list_from_bad_player_spec_json, get_state_from_json
 from ..Players.api_player import APIPlayer
 from ..Referee.referee import Referee
 
@@ -38,7 +38,7 @@ def main() -> str:
     json_bad_player_spec = cast(JSONBadPlayerSpec, json_obj_list[0])
     json_referee_state = cast(JSONRefereeState, json_obj_list[1])
     players = get_api_player_list_from_bad_player_spec_json(json_bad_player_spec)
-    state = get_state_from_json_referee_state(json_referee_state)
+    state = get_state_from_json(json_referee_state)
     winners_names, cheaters_names = run_game(players, state)
     return json.dumps([winners_names, cheaters_names])
 

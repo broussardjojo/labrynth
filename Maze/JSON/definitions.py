@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Tuple
 from typing_extensions import Literal, TypedDict
 
 # ==========
@@ -101,7 +101,8 @@ JSONChoicePass = Literal["PASS"]
 #  - [2] is an int that describes number of degrees by which the spare tile is rotated (counter-clockwise)
 #    before it is inserted into the freed-up spot on the board
 #  - [3] is a JSONCoordinate that describes the place the player wants to move its avatar
-JSONChoiceMove = List[Union[int, JSONDirection, JSONCoordinate]]
+# Note that this is not really a Tuple, but pydantic will allow the list to be parsed correctly
+JSONChoiceMove = Tuple[int, JSONDirection, JSONDegree, JSONCoordinate]
 
 # Interpretation: Spells out the two alternatives of a player's response
 JSONChoice = Union[JSONChoicePass, JSONChoiceMove]
@@ -146,7 +147,7 @@ class JSONRefereeState(TypedDict):
 # https://course.ccs.neu.edu/cs4500f22/7.html
 
 # Interpretation: One of a player's public methods, which is instructed to behave badly
-JSONBadMethod = Literal["setUp", "takeTurn", "win"]
+JSONBadMethodName = Literal["setUp", "takeTurn", "win"]
 
 # Interpretation: Requests a test with a player acting badly. It is a list of 3 values.
 #   - [0] is a string that specifies the name of a player
@@ -155,8 +156,14 @@ JSONBadMethod = Literal["setUp", "takeTurn", "win"]
 #
 # The player behaves normally until the bad method is called, at which point it
 # integer-divides 1 by 0, raising an exception.
-JSONBadPlayerSpecElement = List[Union[str, JSONStrategyDesignation, JSONBadMethod]]
+JSONBadPlayerSpecElement = List[Union[str, JSONStrategyDesignation, JSONBadMethodName]]
 
 # Interpretation: Describes a list of players, some of whom may behave badly
 # Constraint: The names of any two different elements must be distinct.
 JSONBadPlayerSpec = List[Union[JSONPlayerSpecElement, JSONBadPlayerSpecElement]]
+
+
+# =========
+
+# Interpretation: One of a player's public methods
+JSONPlayerMethodName = Union[Literal["name", "proposeBoard0"], JSONBadMethodName]

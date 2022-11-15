@@ -1,4 +1,4 @@
-from typing import List, Tuple, cast
+from typing import List, Tuple, cast, Union
 
 from typing_extensions import assert_never
 
@@ -6,16 +6,18 @@ from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
 from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
 from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
-    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethod, \
-    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer
+    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethodName, \
+    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Common.player_details import PlayerDetails
+from Maze.Players.move import Move, Pass
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy
 
@@ -105,10 +107,9 @@ def get_previous_move_from_json(json_action: JSONAction) -> Tuple[int, Direction
     return index, get_direction_from_json(json_direction)
 
 
-def get_state_from_json_state(json_state: JSONState) -> State:
+def get_redacted_state_from_json(json_state: JSONState) -> RedactedState:
     """
     Creates the State represented by the JSON, without player secrets
-    TODO: Make this actually without player secrets, instead of with incorrect ones
     :param json_state: a dictionary containing values for "board", "spare", "plmt", and "last"
     :return: a State
     """
@@ -120,7 +121,7 @@ def get_state_from_json_state(json_state: JSONState) -> State:
     if json_state["last"] is not None:
         previous_moves.append(get_previous_move_from_json(json_state["last"]))
     board = Board(tile_grid, spare_tile)
-    return State.from_current_state(board, player_details, previous_moves)
+    return RedactedState(board, previous_moves, player_details, active_player_index=0)
 
 
 def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> RefereePlayerDetails:
@@ -138,7 +139,7 @@ def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer)
     return RefereePlayerDetails(home_position, goal_position, current_position, player_color)
 
 
-def get_state_from_json_referee_state(json_state: JSONRefereeState) -> State:
+def get_state_from_json(json_state: JSONRefereeState) -> State:
     """
     Creates the State represented by the JSON, with player secrets
     :param json_state: a dictionary containing values for "board", "spare", "plmt", and "last"
@@ -188,7 +189,7 @@ def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecEleme
     """
     name = cast(str, json_bad_player_spec_el[0])
     strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
-    json_bad_method = cast(JSONBadMethod, json_bad_player_spec_el[2])
+    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
     strategy = get_strategy_from_json(strategy_designation)
     if json_bad_method == "setUp":
         return BadLocalPlayer(name, strategy, "setup")
@@ -222,3 +223,16 @@ def get_api_player_list_from_player_spec_json(json_player_spec: JSONPlayerSpec) 
     :return: a list of APIPlayers
     """
     return get_api_player_list_from_bad_player_spec_json(json_player_spec)
+
+
+def get_move_or_pass_from_json(json_choice: JSONChoice) -> Union[Move, Pass]:
+    """
+    Creates the Move or Pass represented by the JSON choice
+    :param json_choice: A JSONChoice
+    :return: A Move or a Pass
+    """
+    if json_choice == "PASS":
+        return Pass()
+    index, direction, ccw_degrees, coordinate = json_choice
+    cw_degrees = -ccw_degrees % 360
+    return Move(index, direction, cw_degrees, get_position_from_json(coordinate))

@@ -8,7 +8,7 @@ from Maze.Common.state import State
 from Maze.Common.utils import get_json_obj_list
 from Maze.JSON.definitions import JSONPlayerSpec, JSONRefereeState
 from Maze.JSON.deserializers import get_api_player_list_from_player_spec_json, \
-    get_state_from_json_referee_state
+    get_state_from_json
 from Maze.Players.api_player import APIPlayer
 from Maze.Referee.observer import Observer
 from Maze.Referee.referee import Referee
@@ -56,7 +56,7 @@ def main(should_add_observer: bool) -> str:
     json_bad_player_spec = cast(JSONPlayerSpec, json_obj_list[0])
     json_referee_state = cast(JSONRefereeState, json_obj_list[1])
     players = get_api_player_list_from_player_spec_json(json_bad_player_spec)
-    state = get_state_from_json_referee_state(json_referee_state)
+    state = get_state_from_json(json_referee_state)
     observers = [Observer()] if should_add_observer else []
     winners_names = run_game(players, state, observers)
     return json.dumps(winners_names)
