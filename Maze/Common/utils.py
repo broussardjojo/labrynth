@@ -1,4 +1,5 @@
 import os
+import re
 from abc import ABC, abstractmethod
 from json import JSONDecoder
 from pathlib import Path
@@ -20,7 +21,7 @@ class Maybe(ABC, Generic[T]):
     is_present: bool
 
     @abstractmethod
-    def get_or_throw(self, message: str = "Missing Value") -> T:
+    def get(self, message: str = "Missing Value") -> T:
         """
         Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
         :param message: A string to use as the error message
@@ -37,7 +38,7 @@ class Nothing(Maybe[T]):
     def __init__(self):
         self.is_present = False
 
-    def get_or_throw(self, message: str = "Missing Value") -> NoReturn:
+    def get(self, message: str = "Missing Value") -> NoReturn:
         """
         Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
         :param message: A string to use as the error message
@@ -72,7 +73,7 @@ class Just(Maybe[T]):
         self.is_present = True
         self.value = value
 
-    def get_or_throw(self, message: str = "Missing Value") -> T:
+    def get(self, message: str = "Missing Value") -> T:
         """
         Gets the value of the Maybe, or throws a ValueError with the given message if no value is present.
         :param message: A string to use as the error message
@@ -204,3 +205,8 @@ def get_connector_from_shape(shape: Shape) -> JSONConnector:
     :return: A JSONConnector
     """
     return inverse_shape_dict[shape]
+
+
+def is_valid_player_name(name: str) -> bool:
+    name_regex = re.compile("^[a-zA-Z0-9]{1,20}$")
+    return bool(re.search(name_regex, name))

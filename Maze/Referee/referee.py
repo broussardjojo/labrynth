@@ -374,7 +374,7 @@ class Referee:
         if not response.is_present:
             self.__handle_cheater(client, game_state)
             return False
-        proposed_move = response.get_or_throw()
+        proposed_move = response.get()
         proposed_move.perform_move_or_pass(lambda move: self.__perform_move(move, client, game_state),
                                            lambda _: self.__perform_pass())
         # TODO: Fix dynamic dispatch so we can validate moves here and remove use of isinstance

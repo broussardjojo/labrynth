@@ -1,5 +1,4 @@
 import json
-from io import TextIOWrapper
 from typing import overload, Optional, Tuple, Union, IO, Iterator, Any, Dict, Callable
 from typing_extensions import Literal
 
@@ -95,7 +94,8 @@ class Messenger:
             return redacted_state_to_json(arg)
         return arg
 
-    def __deserialize_response(self, method_name: PlayerMethodName, response: Any):
+    @staticmethod
+    def __deserialize_response(method_name: PlayerMethodName, response: Any):
         """
         Checks that the runtime type of the given response matches the expected JSON representation of the given
         method's return type, then returns our real representation of the given method's return value.
@@ -119,3 +119,10 @@ class Messenger:
             serializer = serializer_map[method_name]
             return serializer(transport_value)
         return transport_value
+
+    def __hash__(self) -> int:
+        """
+        Overrides the __hash__ method for Messengers. Uses the reference ID of the Messenger
+        :return: An int representing the hash of the Messenger
+        """
+        return id(self)

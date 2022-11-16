@@ -121,7 +121,7 @@ class LocalPlayer(APIPlayer):
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """
-        goal_pos = self.__goal_position.get_or_throw("take_turn must not be called before setup")
+        goal_pos = self.__goal_position.get("take_turn must not be called before setup")
         current_position = current_state.get_active_player_position()
         return self.__strategy.generate_move(current_state, current_position, goal_pos)
 
