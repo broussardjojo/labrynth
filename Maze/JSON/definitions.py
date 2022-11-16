@@ -167,3 +167,4 @@ JSONBadPlayerSpec = List[Union[JSONPlayerSpecElement, JSONBadPlayerSpecElement]]
 
 # Interpretation: One of a player's public methods
 JSONPlayerMethodName = Union[Literal["name", "proposeBoard0"], JSONBadMethodName]
+PlayerMethodName = Literal["setup", "take-turn", "win"]

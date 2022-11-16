@@ -8,18 +8,18 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import ValidationError
 
-from Maze.Common.board import Board
-from Maze.Common.position import Position
-from Maze.Common.referee_player_details import RefereePlayerDetails
-from Maze.Common.state import State
-from Maze.Common.thread_utils import await_protected
-from Maze.Common.utils import get_json_obj_list
-from Maze.JSON.deserializers import get_tile_grid_from_json
-from Maze.Players.api_player import APIPlayer, LocalPlayer
-from Maze.Players.euclid import Euclid
-from Maze.Players.riemann import Riemann
-from Maze.Remote.dispatching_receiver import DispatchingReceiver
-from Maze.Remote.messenger import Messenger
+from ..Common.board import Board
+from ..Common.position import Position
+from ..Common.referee_player_details import RefereePlayerDetails
+from ..Common.state import State
+from ..Common.thread_utils import await_protected
+from ..Common.utils import get_json_obj_list
+from ..JSON.deserializers import get_tile_grid_from_json
+from ..Players.api_player import LocalPlayer
+from ..Players.euclid import Euclid
+from ..Players.riemann import Riemann
+from ..Remote.dispatching_receiver import DispatchingReceiver, RemotePlayerMethods
+from ..Remote.player import RemotePlayer
 
 
 # ----- Examples ------
@@ -66,6 +66,17 @@ def api_player_two():
     return LocalPlayer("player2", Euclid())
 
 
+@pytest.fixture
+def socketpair():
+    pair = socket.socketpair()
+    try:
+        yield pair
+    finally:
+        pair[0].close()
+        pair[1].close()
+
+SocketPairType = Tuple[socket.socket, socket.socket]
+
 @contextlib.contextmanager
 def ensure_shutdown(connection: socket.socket):
     try:
@@ -84,50 +95,50 @@ def dispatching_receiver_with_mock_player(connection: socket.socket,
     return receiver, mock_player
 
 
-def dispatching_receiver_with_mock_serializer(api_player: APIPlayer,
-                                              connection: socket.socket,
-                                              implementation: Callable[[Any], Any]) -> Tuple[DispatchingReceiver, MagicMock]:
-    receiver = DispatchingReceiver(api_player, connection.makefile("rb", buffering=0),
-                                   connection.makefile("wb", buffering=0))
-    mock_serializer = MagicMock(wraps=implementation)
-    setattr(receiver, "_DispatchingReceiver__serialize_return_type", mock_serializer)
-    return receiver, mock_serializer
-
-
-def test_remote_call_setup(seeded_game_state):
-    server_conn, client_conn = socket.socketpair()
+def test_remote_call_setup(socketpair: SocketPairType, seeded_game_state):
+    server_conn, client_conn = socketpair
 
     receiver, mock = dispatching_receiver_with_mock_player(client_conn, setup=lambda state, goal: "✓")
-    messenger = Messenger(server_conn.makefile("rb", buffering=0), server_conn.makefile("wb", buffering=0))
+    remote_player = RemotePlayer.from_socket("player1", server_conn)
     with ThreadPoolExecutor() as executor:
         with ensure_shutdown(server_conn):
             client_task = executor.submit(receiver.listen_forever)
             goal = seeded_game_state.get_players()[0].get_goal_position()
-            assert messenger.call("setup", (seeded_game_state.copy_redacted(), goal)) == "✓"
+            assert remote_player.setup(seeded_game_state.copy_redacted(), goal) == "void"
         await_protected(client_task, timeout_seconds=1)
     setup_mock: MagicMock = mock.setup
     assert setup_mock.call_count == 1
     assert setup_mock.call_args[0][0].get_board().get_tile_grid() == seeded_game_state.get_board().get_tile_grid()
     assert setup_mock.call_args[0][1] == Position(3, 1)
-    server_conn.close()
-    client_conn.close()
 
 
-def test_remote_call_name_type_error(seeded_game_state, api_player_one):
-    server_conn, client_conn = socket.socketpair()
+@pytest.mark.parametrize("choice", [
+    0,
+    "pass",
+    [],
+    {},
+    [0.5, "UP", 90, {"row#": 0, "column#": 0}],
+    [0, "up", 90, {"row#": 0, "column#": 0}],
+    [0, "UP", -90, {"row#": 0, "column#": 0}],
+    [0, "UP", 90, {"row": 0, "column": 0}],
+])
+def test_remote_call_take_turn_type_error(socketpair: SocketPairType, seeded_game_state, monkeypatch, choice):
+    server_conn, client_conn = socketpair
 
-    # A number is not a name
-    receiver, mock = dispatching_receiver_with_mock_serializer(api_player_one, client_conn, lambda _: 0)
-    messenger = Messenger(server_conn.makefile("rb", buffering=0), server_conn.makefile("wb", buffering=0))
+    # Ensure that the Player.take_turn() result is passed directly to json.dumps
+    getattr(RemotePlayerMethods.take_turn, "_RemotePlayerMethod__serialize_result")
+    monkeypatch.setattr(RemotePlayerMethods.take_turn, "_RemotePlayerMethod__serialize_result", lambda x: x)
+
+    receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda state: choice)
+    remote_player = RemotePlayer.from_socket("player1", server_conn)
     with ThreadPoolExecutor() as executor:
         with ensure_shutdown(server_conn):
             client_task = executor.submit(receiver.listen_forever)
+            goal = seeded_game_state.get_players()[0].get_goal_position()
+            assert remote_player.setup(seeded_game_state.copy_redacted(), goal) == "void"
             with pytest.raises(ValidationError):
-                messenger.call("name", ())
+                remote_player.take_turn(seeded_game_state.copy_redacted())
         await_protected(client_task, timeout_seconds=1)
-    assert mock.call_count == 1
-    server_conn.close()
-    client_conn.close()
 
-# test_remote_call_setup(State.from_board_and_players(Board.from_random_board(3, 3), [
-#     RefereePlayerDetails.from_home_goal_color(Position(5, 1), Position(3, 1), "red")]))
+    take_turn_mock: MagicMock = mock.take_turn
+    assert take_turn_mock.call_count == 1

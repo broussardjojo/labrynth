@@ -1,33 +1,227 @@
 import json
-from typing import Optional, Tuple, Union, IO, Iterator, Any, Dict, Callable
+from typing import Optional, Tuple, Union, IO, Iterator, Any, Callable, TypeVar, Generic
 
 import ijson
 from pydantic import parse_obj_as
 from typing_extensions import Literal
 from typing_extensions import assert_never
 
-from ..Common.board import Board
-from ..JSON.definitions import JSONPlayerMethodName, JSONState, JSONCoordinate
+from ..Common.position import Position
+from ..Common.redacted_state import RedactedState
+from ..JSON.definitions import JSONState, JSONCoordinate, JSONChoice, PlayerMethodName
 from ..JSON.deserializers import (get_redacted_state_from_json,
-                                  get_position_from_json)
-from ..JSON.serializers import move_to_json, pass_to_json, board_to_json
-from ..Players.api_player import Acknowledgement, APIPlayer
+                                  get_position_from_json, get_move_or_pass_from_json)
+from ..JSON.serializers import move_to_json, pass_to_json, redacted_state_to_json, position_to_json
+from ..Players.api_player import APIPlayer
 from ..Players.move import Move, Pass
 
-PlayerMethodName = Literal["name", "propose_board0", "setup", "take_turn", "win"]
+T = TypeVar("T")
+R = TypeVar("R")
+TJsonArgs = TypeVar("TJsonArgs")
+TArgs = TypeVar("TArgs")
+TResult = TypeVar("TResult")
+TJsonResult = TypeVar("TJsonResult")
 
 
-# TTransport = TypeVar("TTransport")
-# TArgs = TypeVar("TArgs")
-# TReturn = TypeVar("TReturn")
-#
-# class ValidatingCaller(Generic[TTransport, TArgs, TReturn]):
-#     def __init__(self, arg_getter: Callable[[TTransport], TArgs], method: Callable[[TArgs], TReturn]):
-#         self.__arg_getter = arg_getter
-#         self.__method = method
-#
-#     def call(self, transport_value: TTransport):
-#         return self.__method(self.__arg_getter(transport_value))
+class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
+    name: PlayerMethodName
+
+    # __wrapped: Callable[[APIPlayer, TArgs], TResult]
+    # __serialize_args: Callable[[TArgs], TJsonArgs]
+    # __deserialize_args: Callable[[TJsonArgs], TArgs]
+    # __serialize_result: Callable[[TResult], TJsonResult]
+    # __deserialize_result: Callable[[TJsonResult], TResult]
+
+    def __init__(
+            self,
+            name: PlayerMethodName,
+            *,
+            wraps: Callable[[APIPlayer, TArgs], TResult],
+            serialize_args: Callable[[TArgs], TJsonArgs],
+            deserialize_args: Callable[[TJsonArgs], TArgs],
+            validate_args: Callable[[TJsonArgs], Any],
+            serialize_result: Callable[[TResult], TJsonResult],
+            deserialize_result: Callable[[TJsonResult], TResult],
+            validate_result: Callable[[TJsonResult], Any]
+    ):
+        self.name = name
+        self.__wrapped = wraps
+        self.__serialize_args = serialize_args
+        self.__deserialize_args = deserialize_args
+        self.__validate_args = validate_args
+        self.__serialize_result = serialize_result
+        self.__deserialize_result = deserialize_result
+        self.__validate_result = validate_result
+
+    def call(self, args: TArgs, read_channel: Iterator[Any], write_channel: IO[bytes]) -> TResult:
+        """
+        Runs the pipelines:
+            1. args | serialize_args | write
+            2. read | validate_result | deserialize_result
+        :param args: The arguments to the remote call
+        :param read_channel: The JSON value channel on which to listen for a result
+        :param write_channel: The byte channel on which to send a [MName, TJsonArgs] method call
+        :return: The result of the remote call
+        """
+        json_args = self.__serialize_args(args)
+        json_call = [self.name, json_args]
+        write_channel.write(json.dumps(json_call).encode("utf-8"))
+        json_result = next(read_channel)
+        self.__validate_result(json_result)
+        result = self.__deserialize_result(json_result)
+        return result
+
+    def respond(self, player: APIPlayer, json_args: TJsonArgs, write_channel: IO[bytes]) -> None:
+        """
+        Runs the pipelines:
+            1. json_args | validate_args | deserialize_args
+            2. (wrapped) | deserialize_result | write
+        :param player: The APIPlayer which should logically respond to the method call
+        :param json_args: The TJsonArgs which need to be deserialized and validated
+        :param write_channel: The byte channel on which to send a TJsonResult response
+        :return: None
+        """
+        self.__validate_args(json_args)
+        args = self.__deserialize_args(json_args)
+        result = self.__wrapped(player, args)
+        json_result = self.__serialize_result(result)
+        write_channel.write(json.dumps(json_result).encode("utf-8"))
+        # A number can be the top-level of a JSON stream, so to ensure that the receiver can
+        # find the end of the record immediately, we send a trailing byte of whitespace.
+        write_channel.write(b" ")
+
+
+def identity(x: T) -> T:
+    """
+    Takes one argument and returns it
+    :param x: The argument
+    :return: The argument
+    """
+    return x
+
+
+def boxed(func: Callable[[T], R]) -> Callable[[Tuple[T]], Tuple[R]]:
+    """
+    Wraps the given function so that boxed(func)(x) == (func(x[0]),) - where x is a tuple with 1 element
+    :param func: A function taking one argument
+    :return: A wrapped function
+    """
+    return lambda box: (func(box[0]),)
+
+
+class _RemoteSetup(
+    RemotePlayerMethod[
+        Tuple[Optional[RedactedState], Position],  # args
+        Tuple[Union[Literal[False], JSONState], JSONCoordinate],  # json_args
+        Any,  # result
+        Literal["void"]  # json_result
+    ]
+):
+    def __init__(self):
+        super().__init__(
+            "setup",
+            wraps=lambda player, args: player.setup(args[0], args[1]),
+            serialize_args=lambda pair: (
+                redacted_state_to_json(pair[0]) if (pair[0] is not None) else False,
+                position_to_json(pair[1])
+            ),
+            deserialize_args=lambda pair: (
+                get_redacted_state_from_json(pair[0]) if (pair[0] is not False) else None,
+                get_position_from_json(pair[1])
+            ),
+            validate_args=lambda args: parse_obj_as(
+                Tuple[Union[Literal[False], JSONState], JSONCoordinate],
+                args
+            ),
+            serialize_result=lambda _: "void",
+            deserialize_result=lambda _: "void",
+            validate_result=lambda _: (),
+        )
+
+    def call(self, args: Tuple[Optional[RedactedState], Position], read_channel: Iterator[Any],
+             write_channel: IO[bytes]) -> Literal["void"]:
+        return super().call(args, read_channel, write_channel)
+
+
+class _RemoteTakeTurn(
+    RemotePlayerMethod[
+        Tuple[RedactedState],  # args
+        Tuple[JSONState],  # json_args
+        Union[Move, Pass],  # result
+        JSONChoice  # json_result
+    ]
+):
+    def __init__(self):
+        super().__init__(
+            "take-turn",
+            wraps=lambda player, args: player.take_turn(args[0]),
+            serialize_args=boxed(redacted_state_to_json),
+            deserialize_args=boxed(get_redacted_state_from_json),
+            validate_args=lambda args: parse_obj_as(
+                Tuple[JSONState],
+                args
+            ),
+            serialize_result=lambda res: move_to_json(res) if isinstance(res, Move) else pass_to_json(res),
+            deserialize_result=get_move_or_pass_from_json,
+            validate_result=lambda res: parse_obj_as(
+                JSONChoice,
+                res
+            ),
+        )
+
+    def call(self, args: Tuple[RedactedState], read_channel: Iterator[Any],
+             write_channel: IO[bytes]) -> Union[Move, Pass]:
+        return super().call(args, read_channel, write_channel)
+
+
+class _RemoteWin(
+    RemotePlayerMethod[
+        Tuple[bool],  # args
+        Tuple[bool],  # json_args
+        Any,  # result
+        Literal["void"]  # json_result
+    ]
+):
+    def __init__(self):
+        super().__init__(
+            "win",
+            wraps=lambda player, args: player.win(args[0]),
+            serialize_args=identity,
+            deserialize_args=identity,
+            validate_args=lambda args: parse_obj_as(Tuple[bool], args),
+            serialize_result=lambda _: "void",
+            deserialize_result=lambda _: "void",
+            validate_result=lambda _: (),
+        )
+
+    def call(self, args: Tuple[bool], read_channel: Iterator[Any], write_channel: IO[bytes]) -> Any:
+        return super().call(args, read_channel, write_channel)
+
+
+class RemotePlayerMethods:
+    setup = _RemoteSetup()
+    take_turn = _RemoteTakeTurn()
+    win = _RemoteWin()
+
+    @classmethod
+    def respond(cls, player: APIPlayer, method_name: PlayerMethodName, json_args: Any,
+                write_channel: IO[bytes]) -> None:
+        """
+        Uses a given player to respond to a method call received from a remote server
+        :param player: An APIPlayer representing the logical responder
+        :param method_name: A PlayerMethodName representing the method to call
+        :param json_args: The argument list received in the method call JSON
+        :param write_channel: The byte channel on which to send a response
+        :return: None
+        """
+        if method_name == "setup":
+            cls.setup.respond(player, json_args, write_channel)
+        elif method_name == "take-turn":
+            cls.take_turn.respond(player, json_args, write_channel)
+        elif method_name == "win":
+            cls.take_turn.respond(player, json_args, write_channel)
+        else:
+            assert_never(method_name)
 
 
 class DispatchingReceiver:
@@ -58,77 +252,6 @@ class DispatchingReceiver:
         """
         for method_instruction in self.__read_channel:
             assert isinstance(method_instruction, list)
-            assert len(method_instruction) >= 1
-            json_method_name = parse_obj_as(JSONPlayerMethodName, method_instruction[0])
-            method_name = self.__convert_method_name(json_method_name)
-            method_args = self.__deserialize_args(method_name, method_instruction[1:])
-            return_value = self.__call(method_name, method_args)
-            json_return_value = self.__serialize_return_type(return_value)
-            self.__write_channel.write(json.dumps(json_return_value).encode("utf-8"))
-            # A number can be the top-level of a JSON stream, so to ensure that the receiver can
-            # find the end of the record immediately, we send a trailing byte of whitespace.
-            self.__write_channel.write(b" ")
-
-    def __convert_method_name(self, method_name: JSONPlayerMethodName) -> PlayerMethodName:
-        if method_name == "name":
-            return "name"
-        if method_name == "proposeBoard0":
-            return "propose_board0"
-        if method_name == "setUp":
-            return "setup"
-        if method_name == "takeTurn":
-            return "take_turn"
-        if method_name == "win":
-            return "win"
-        assert_never(method_name)
-
-    @staticmethod
-    def __serialize_return_type(arg: Union[Move, Pass, Board, str, Acknowledgement]):
-        if isinstance(arg, Move):
-            return move_to_json(arg)
-        if isinstance(arg, Pass):
-            return pass_to_json(arg)
-        if isinstance(arg, Board):
-            return board_to_json(arg)
-        return arg
-
-    def __call(self, method_name: PlayerMethodName, arguments: Any):
-        if method_name == "name":
-            return self.__player.name()
-        if method_name == "propose_board0":
-            return self.__player.propose_board0(*arguments)
-        if method_name == "setup":
-            return self.__player.setup(*arguments)
-        if method_name == "take_turn":
-            return self.__player.take_turn(*arguments)
-        if method_name == "win":
-            return self.__player.win(*arguments)
-        assert_never(method_name)
-
-    def __deserialize_args(self, method_name: PlayerMethodName, arguments: Any):
-        """
-        Checks that the runtime type of the given argument tuple matches the expected JSON representation of the given
-        method's argument types, then returns our real representation of the given method's arguments.
-        :param method_name: One of "name", "propose_board0", "setup", "take_turn", or "win"
-        :param arguments: An Any; should be the result of json.load or a compatible JSON deserializer
-        :return: The type corresponding to the method name. See `APIPlayer`
-        """
-        transport_types: Dict[PlayerMethodName, Any] = {
-            "name": Tuple[()],
-            "propose_board0": Tuple[int, int],
-            "setup": Tuple[Optional[JSONState], JSONCoordinate],
-            "take_turn": Tuple[JSONState],
-            "win": Tuple[bool]
-        }
-        transport_value = parse_obj_as(transport_types[method_name], arguments)
-        deserializer_map: Dict[PlayerMethodName, Callable[[Any], Any]] = {
-            "setup": lambda pair: (
-                get_redacted_state_from_json(pair[0]) if (pair[0] is not None) else None,
-                get_position_from_json(pair[1])
-            ),
-            "take_turn": lambda box: (get_redacted_state_from_json(box[0]),)
-        }
-        if method_name in deserializer_map:
-            deserializer = deserializer_map[method_name]
-            return deserializer(transport_value)
-        return transport_value
+            assert len(method_instruction) == 2
+            method_name, json_args = method_instruction
+            RemotePlayerMethods.respond(self.__player, method_name, json_args, self.__write_channel)

@@ -233,6 +233,7 @@ def get_move_or_pass_from_json(json_choice: JSONChoice) -> Union[Move, Pass]:
     """
     if json_choice == "PASS":
         return Pass()
-    index, direction, ccw_degrees, coordinate = json_choice
+    index, json_direction, ccw_degrees, coordinate = json_choice
+    direction = get_direction_from_json(json_direction)
     cw_degrees = -ccw_degrees % 360
     return Move(index, direction, cw_degrees, get_position_from_json(coordinate))

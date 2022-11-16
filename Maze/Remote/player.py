@@ -1,6 +1,9 @@
-from typing import Union, Optional
+import socket
+from typing import Union, Optional, Iterator, Any, IO
 
-from .messenger import Messenger
+import ijson
+
+from .dispatching_receiver import RemotePlayerMethods
 from ..Common.board import Board
 from ..Common.position import Position
 from ..Common.redacted_state import RedactedState
@@ -15,10 +18,29 @@ class RemotePlayer(APIPlayer):
     running elsewhere.
     """
 
-    __messenger: Messenger
+    __read_channel: Iterator[Any]
+    __write_channel: IO[bytes]
 
-    def __init__(self, messenger: Messenger):
-        self.__messenger = messenger
+    def __init__(self, name: str, read_channel: IO[bytes], write_channel: IO[bytes]):
+        """
+        Method to construct a RemotePlayer with a read channel and write channel
+        :param name: the player's name
+        :param read_channel: a BufferedIOBase representing where responses will come from
+        :param write_channel: a BufferedIOBase representing where requests will go
+        """
+        self.__name = name
+        self.__read_channel = ijson.items(read_channel, "", multiple_values=True)
+        self.__write_channel = write_channel
+
+    @classmethod
+    def from_socket(cls, name: str, connection: socket.socket) -> "RemotePlayer":
+        """
+        Method to construct a RemotePlayer given a socket
+        :param name: the player's name
+        :param connection: a socket.socket connected to a program compatible with the Remote Interactions spec
+        :return: A RemotePlayer
+        """
+        return cls(name, connection.makefile("rb", buffering=0), connection.makefile("wb", buffering=0))
 
     def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
         """
@@ -27,7 +49,7 @@ class RemotePlayer(APIPlayer):
         :param goal_position: The player's goal position
         :return: an acknowledgment that the message has been received
         """
-        return self.__messenger.call("setup", (state, goal_position))
+        return RemotePlayerMethods.setup.call((state, goal_position), self.__read_channel, self.__write_channel)
 
     def propose_board0(self, rows: int, columns: int) -> Board:
         """
@@ -36,14 +58,14 @@ class RemotePlayer(APIPlayer):
         :param columns: an int representing the minimum number of columns to make the Board from
         :return: A Board representing the Board this player proposes
         """
-        return self.__messenger.call("propose_board0", (rows, columns))
+        raise RuntimeError("RemotePlayer does not support propose_board0")
 
     def name(self) -> str:
         """
         Returns the name of this player
         :return: A string representing this player's name
         """
-        return self.__messenger.call("name", ())
+        return self.__name
 
     def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
         """
@@ -51,7 +73,7 @@ class RemotePlayer(APIPlayer):
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """
-        return self.__messenger.call("take_turn", (current_state,))
+        return RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
 
     def win(self, did_win: bool) -> Acknowledgement:
         """
@@ -59,4 +81,4 @@ class RemotePlayer(APIPlayer):
         :param did_win: A boolean which is True if the player won (outright or tied), and False otherwise
         :return: an acknowledgment that the message has been received
         """
-        return self.__messenger.call("win", (did_win,))
+        return RemotePlayerMethods.win.call((did_win,), self.__read_channel, self.__write_channel)
