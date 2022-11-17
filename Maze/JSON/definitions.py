@@ -1,4 +1,6 @@
 from typing import Union, List, Optional, Tuple
+
+from pydantic import StrictInt
 from typing_extensions import Literal, TypedDict
 
 # ==========
@@ -27,7 +29,7 @@ class JSONBoard(TypedDict):
 
 # Interpretation: Specifies a tile location. The row count starts at the top,
 # the column count at the left.
-JSONCoordinate = TypedDict("JSONCoordinate", {"row#": int, "column#": int})
+JSONCoordinate = TypedDict("JSONCoordinate", {"row#": StrictInt, "column#": StrictInt})
 
 # ==========
 # https://course.ccs.neu.edu/cs4500f22/4.html
@@ -102,7 +104,7 @@ JSONChoicePass = Literal["PASS"]
 #    before it is inserted into the freed-up spot on the board
 #  - [3] is a JSONCoordinate that describes the place the player wants to move its avatar
 # Note that this is not really a Tuple, but pydantic will allow the list to be parsed correctly
-JSONChoiceMove = Tuple[int, JSONDirection, JSONDegree, JSONCoordinate]
+JSONChoiceMove = Tuple[StrictInt, JSONDirection, JSONDegree, JSONCoordinate]
 
 # Interpretation: Spells out the two alternatives of a player's response
 JSONChoice = Union[JSONChoicePass, JSONChoiceMove]

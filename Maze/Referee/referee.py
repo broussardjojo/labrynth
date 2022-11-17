@@ -208,8 +208,9 @@ class Referee:
         :return: None
         """
         future_list: "List[Future[Any]]" = []
-        for client, player in zip(self.__current_players, game_state.get_players()):
-            future = self.__executor.submit(client.setup, game_state.copy_redacted(), player.get_goal_position())
+        for index, (client, player) in enumerate(zip(self.__current_players, game_state.get_players())):
+            state_copy = game_state.copy_redacted(active_player_index=index)
+            future = self.__executor.submit(client.setup, state_copy, player.get_goal_position())
             future_list.append(future)
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
         self.__handle_broadcast_acknowledgements(responses, game_state)
@@ -272,7 +273,6 @@ class Referee:
         Tells all winning players they have won the game
         :return: None
         """
-        print("c", self.__cheater_players)
         winning_players = game_state.get_closest_players_to_victory()
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):

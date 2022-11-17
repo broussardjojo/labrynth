@@ -10,8 +10,6 @@ from ..Common.redacted_state import RedactedState
 from ..Players.api_player import APIPlayer, Acknowledgement
 from ..Players.move import Move, Pass
 
-printandreturn = lambda it: print(it) or it
-printit = lambda f: (lambda *args, **kwargs: print((f, args, kwargs)) or printandreturn(f(*args, **kwargs)))
 
 class RemotePlayer(APIPlayer):
     """
@@ -79,7 +77,6 @@ class RemotePlayer(APIPlayer):
         """
         return RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
 
-    @printit
     def win(self, did_win: bool) -> Acknowledgement:
         """
         Informs this player of the given outcome of the game

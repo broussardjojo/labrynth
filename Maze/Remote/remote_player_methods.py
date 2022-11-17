@@ -85,12 +85,11 @@ class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
         :param write_channel: The byte channel on which to send a TJsonResult response
         :return: None
         """
-        print("call88", json_args, type(json_args))
-        self.__validate_args(json_args); print("call89")
-        args = self.__deserialize_args(json_args); print("call90", args)
-        result = self.__wrapped(player, args); print("call91", result)
-        json_result = self.__serialize_result(result); print("call92", json_result)
-        write_channel.write(json.dumps(json_result).encode("utf-8")); print("call93")
+        self.__validate_args(json_args)
+        args = self.__deserialize_args(json_args)
+        result = self.__wrapped(player, args)
+        json_result = self.__serialize_result(result)
+        write_channel.write(json.dumps(json_result).encode("utf-8"))
         # A number can be the top-level of a JSON stream, so to ensure that the receiver can
         # find the end of the record immediately, we send a trailing byte of whitespace.
         write_channel.write(b" ")

@@ -1,13 +1,15 @@
+import contextlib
 import socket
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Iterator
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 
+from Maze.Referee.observer import Observer
 from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer
 from ..Referee.referee import Referee
@@ -48,17 +50,37 @@ class Server:
         else:
             raise ValueError("Invalid port number supplied")
 
+    @contextlib.contextmanager
+    def __bind(self) -> socket.socket:
+        """
+        Binds a server socket to the configured port number, yields control to the main server logic block,
+        then shuts down any connections that are still open
+        :return: None
+        """
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as socket_server:
+            try:
+                socket_server.bind(("0.0.0.0", self.__port_num))
+                # listen takes a `backlog` argument for the number of unaccepted connections the server can have,
+                # anything beyond that is refused.
+                socket_server.listen(8)
+                yield socket_server
+            finally:
+                players = list(self.__players.keys())
+                for player in players:
+                    conn = self.__players.pop(player)
+                    self.__shutdown_if_needed(conn)
+                future_list = list(self.__pending_handshakes.keys())
+                for future in future_list:
+                    _, conn = self.__pending_handshakes.pop(future)
+                    self.__shutdown_if_needed(conn)
+
     def conduct_game(self) -> Tuple[List[str], List[str]]:
         """
         Create a TCP socket to listen and register players then run a game of Labyrinth with all
         successfully registered players
         :return: Two lists of strings representing the names of the winning and cheating players
         """
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as socket_server:
-            socket_server.bind(("0.0.0.0", self.__port_num))
-            # listen takes a `backlog` argument for the number of unaccepted connections the server can have, anything
-            # beyond that is refused.
-            socket_server.listen(8)
+        with self.__bind() as socket_server:
             self.__selector.register(socket_server, EVENT_READ)
             start_time = time.time()
             with ThreadPoolExecutor() as executor:
@@ -73,22 +95,27 @@ class Server:
                     # TODO: close all connections on game end
                     if maybe_players.is_present:
                         referee = Referee()
-                        winners, cheaters = referee.run_game(maybe_players.get())
+                        observers = []
+                        # for observer in observers:
+                        #     referee.add_observer(observer)
+                        game_outcome_future = executor.submit(referee.run_game, maybe_players.get())
+                        self.__run_observers(observers)
+                        winners, cheaters = game_outcome_future.result()
                         winners_names = [player.name() for player in winners]
                         cheaters_names = [player.name() for player in cheaters]
                         return winners_names, cheaters_names
                     if self.__waiting_period >= 2:
                         return [], []
 
-    class tmp:
-        def __init__(self, wraps):
-            self.wrapped = wraps
-        def readinto(self, buf):
-            n = self.wrapped.readinto(buf)
-            print("readinto =", n, buf[:n])
-            return n
-        def read(self, n):
-            return self.wrapped.read(n)
+    def __run_observers(self, observers: List[Observer]) -> None:
+        live_observers = observers.copy()
+        while len(live_observers):
+            timer_start = time.time()
+            for observer in live_observers:
+                if not observer.display_gui():
+                    # Observer exited
+                    live_observers.remove(observer)
+            time.sleep(max(0.0, timer_start + 0.017 - time.time()))
 
     @staticmethod
     def __handshake(connection: socket.socket) -> str:
@@ -138,12 +165,13 @@ class Server:
             if future.done():
                 self.__pending_handshakes.pop(future)
                 try:
+                    name = future.result()
                     remote_player = RemotePlayer.from_socket(future.result(), connection)
                     self.__players[remote_player] = connection
-                    print("handshake complete", file=sys.stderr)
+                    print("handshake complete, name={}".format(name), file=sys.stderr)
                 except (ValidationError, ijson.IncompleteJSONError, InvalidNameError) as exc:
                     self.__shutdown_if_needed(connection)
-                    print("handshake failed", exc, file=sys.stderr)
+                    print("handshake failed, exception={}".format(exc), file=sys.stderr)
             elif current_time - start_time >= self.HANDSHAKE_TIMEOUT_SECONDS:
                 self.__pending_handshakes.pop(future)
                 self.__shutdown_if_needed(connection)

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 from .board import Board
 from .direction import Direction
@@ -184,12 +184,17 @@ class State(AbstractState[RefereePlayerDetails]):
                 closest_players.append(player)
         return closest_players
 
-    def copy_redacted(self) -> RedactedState:
+    def copy_redacted(self, active_player_index: Optional[int] = None) -> RedactedState:
         """
         Creates a copy of this state without access to any player secrets.
+        :param active_player_index: An int representing the active player index to copy with, or None to use the
+        State's active player index
         :return: A RedactedState
         """
+        active_index_for_copy = self._active_player_index
+        if active_player_index is not None:
+            active_index_for_copy = active_player_index
         return RedactedState(self._board,
                              self._previous_moves,
                              [player.copy_without_secrets() for player in self._players],
-                             active_player_index=self._active_player_index)
+                             active_player_index=active_index_for_copy)

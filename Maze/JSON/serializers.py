@@ -167,9 +167,13 @@ def state_to_json(state: State) -> JSONRefereeState:
     :return: A dict in the format {"board":{"connectors":[...],"treasures":[...]},"spare":
     {"tilekey":JSONConnector,"1-image":str,"2-image":str},"plmt":[...],"last":[int, JSONDirection]|null}
     """
+    players = [referee_player_details_to_json(player) for player in state.get_players()]
+    shift_index = state.get_active_player_index()
+    # Rotate so that the first player of `plmt` is active
+    players_in_order = [*players[shift_index:], *players[:shift_index]]
     return {'board': board_to_json(state.get_board()),
             'spare': tile_to_spare_tile_json(state.get_board().get_next_tile()),
-            'plmt': [referee_player_details_to_json(player) for player in state.get_players()],
+            'plmt': players_in_order,
             'last': last_action_to_json(state.get_all_previous_non_passes())
             }
 
@@ -181,8 +185,12 @@ def redacted_state_to_json(state: RedactedState) -> JSONState:
        :return: A dict in the format {"board":{"connectors":[...],"treasures":[...]},"spare":
        {"tilekey":JSONConnector,"1-image":str,"2-image":str},"plmt":[...],"last":[int, JSONDirection]|null}
        """
+    players = [player_details_to_json(player) for player in state.get_players()]
+    shift_index = state.get_active_player_index()
+    # Rotate so that the first player of `plmt` is active
+    players_in_order = [*players[shift_index:], *players[:shift_index]]
     return {'board': board_to_json(state.get_board()),
             'spare': tile_to_spare_tile_json(state.get_board().get_next_tile()),
-            'plmt': [player_details_to_json(player) for player in state.get_players()],
+            'plmt': players_in_order,
             'last': last_action_to_json(state.get_all_previous_non_passes())
             }

@@ -1,3 +1,4 @@
+import io
 import json
 import tkinter.constants
 from collections import deque
@@ -139,14 +140,15 @@ class Observer:
         if self.__display_stage.kind is not DisplayStageTag.MID_GAME:
             return
         current_state = self.__list_of_states[self.__display_stage.index]
-        output_file = filedialog.asksaveasfile(initialdir="/", title="Select a File",
+        output_file = filedialog.asksaveasfile("wb", initialdir="/", title="Select a File",
                                                filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
         if output_file is None:
             # User cancelled
             return
         serialized_state = state_to_json(current_state)
         jsonified_state = json.dumps(serialized_state, ensure_ascii=False)
-        output_file.write(jsonified_state)
+        text_fileobj = io.TextIOWrapper(output_file, encoding="utf-8")
+        text_fileobj.write(jsonified_state)
 
     def __quit(self) -> None:
         """

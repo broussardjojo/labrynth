@@ -49,6 +49,4 @@ class DispatchingReceiver:
             assert isinstance(method_instruction, list)
             assert len(method_instruction) == 2
             method_name, json_args = method_instruction
-            import sys
-            print(method_name, json_args, file=sys.stderr)
             RemotePlayerMethods.respond(self.__player, method_name, json_args, self.__write_channel)
