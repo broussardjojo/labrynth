@@ -3,13 +3,15 @@ from typing import Union, Optional, Iterator, Any, IO
 
 import ijson
 
-from .dispatching_receiver import RemotePlayerMethods
+from .remote_player_methods import RemotePlayerMethods
 from ..Common.board import Board
 from ..Common.position import Position
 from ..Common.redacted_state import RedactedState
 from ..Players.api_player import APIPlayer, Acknowledgement
 from ..Players.move import Move, Pass
 
+printandreturn = lambda it: print(it) or it
+printit = lambda f: (lambda *args, **kwargs: print((f, args, kwargs)) or printandreturn(f(*args, **kwargs)))
 
 class RemotePlayer(APIPlayer):
     """
@@ -21,15 +23,15 @@ class RemotePlayer(APIPlayer):
     __read_channel: Iterator[Any]
     __write_channel: IO[bytes]
 
-    def __init__(self, name: str, read_channel: IO[bytes], write_channel: IO[bytes]):
+    def __init__(self, name: str, read_channel: Iterator[Any], write_channel: IO[bytes]):
         """
         Method to construct a RemotePlayer with a read channel and write channel
         :param name: the player's name
-        :param read_channel: a BufferedIOBase representing where responses will come from
+        :param read_channel: a generator of JSON values representing where responses will arrive
         :param write_channel: a BufferedIOBase representing where requests will go
         """
         self.__name = name
-        self.__read_channel = ijson.items(read_channel, "", multiple_values=True)
+        self.__read_channel = read_channel
         self.__write_channel = write_channel
 
     @classmethod
@@ -40,7 +42,9 @@ class RemotePlayer(APIPlayer):
         :param connection: a socket.socket connected to a program compatible with the Remote Interactions spec
         :return: A RemotePlayer
         """
-        return cls(name, connection.makefile("rb", buffering=0), connection.makefile("wb", buffering=0))
+        binary_read_channel = connection.makefile("rb", buffering=0)
+        read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
+        return cls(name, read_channel, connection.makefile("wb", buffering=0))
 
     def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
         """
@@ -75,6 +79,7 @@ class RemotePlayer(APIPlayer):
         """
         return RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
 
+    @printit
     def win(self, did_win: bool) -> Acknowledgement:
         """
         Informs this player of the given outcome of the game

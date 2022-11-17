@@ -27,7 +27,7 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds=DEFAULT_TIM
                 results[index] = Just(future.result())
             except Exception:
                 # The execution of the protected method raised an Exception
-                pass
+                raise
     except futures.TimeoutError:
         # The timeout of the `as_completed()` call was hit; we've received every result we can
         pass

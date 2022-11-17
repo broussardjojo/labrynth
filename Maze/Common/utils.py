@@ -3,15 +3,36 @@ import re
 from abc import ABC, abstractmethod
 from json import JSONDecoder
 from pathlib import Path
-from typing import Generic, List, TypeVar, Union, Any
+from typing import Generic, List, Tuple, Union, Any, Callable, TypeVar
 from typing_extensions import Literal, NoReturn
 
-from .shapes import TShaped, Line, Corner, Cross, Shape
 from .position import Position
+from .shapes import TShaped, Line, Corner, Cross, Shape
 from ..JSON.definitions import JSONConnector
 
 # Represents any type
 T = TypeVar("T")
+
+# Represents a result type
+R = TypeVar("R")
+
+
+def identity(x: T) -> T:
+    """
+    Takes one argument and returns it
+    :param x: The argument
+    :return: The argument
+    """
+    return x
+
+
+def boxed(func: Callable[[T], R]) -> Callable[[Tuple[T]], Tuple[R]]:
+    """
+    Wraps the given function so that boxed(func)(x) == (func(x[0]),) - where x is a tuple with 1 element
+    :param func: A function taking one argument
+    :return: A wrapped function
+    """
+    return lambda box: (func(box[0]),)
 
 
 class Maybe(ABC, Generic[T]):
@@ -145,7 +166,6 @@ inverse_shape_dict = {
     shape: connector
     for connector, shape in shape_dict.items()
 }
-
 
 ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
 

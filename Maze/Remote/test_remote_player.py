@@ -18,7 +18,8 @@ from ..JSON.deserializers import get_tile_grid_from_json
 from ..Players.api_player import LocalPlayer
 from ..Players.euclid import Euclid
 from ..Players.riemann import Riemann
-from ..Remote.dispatching_receiver import DispatchingReceiver, RemotePlayerMethods
+from ..Remote.referee import DispatchingReceiver
+from .remote_player_methods import RemotePlayerMethods
 from ..Remote.player import RemotePlayer
 
 
@@ -90,8 +91,7 @@ def dispatching_receiver_with_mock_player(connection: socket.socket,
     mock_player = MagicMock()
     for key, fn in implementations.items():
         mock_player.attach_mock(MagicMock(wraps=fn), key)
-    receiver = DispatchingReceiver(mock_player, connection.makefile("rb", buffering=0),
-                                   connection.makefile("wb", buffering=0))
+    receiver = DispatchingReceiver.from_socket(mock_player, connection)
     return receiver, mock_player
 
 
@@ -121,12 +121,12 @@ def test_remote_call_setup(socketpair: SocketPairType, seeded_game_state):
     [0, "up", 90, {"row#": 0, "column#": 0}],
     [0, "UP", -90, {"row#": 0, "column#": 0}],
     [0, "UP", 90, {"row": 0, "column": 0}],
+    [0, "UP", 90, {"row#": 0, "column#": 0}, None],
 ])
 def test_remote_call_take_turn_type_error(socketpair: SocketPairType, seeded_game_state, monkeypatch, choice):
     server_conn, client_conn = socketpair
 
     # Ensure that the Player.take_turn() result is passed directly to json.dumps
-    getattr(RemotePlayerMethods.take_turn, "_RemotePlayerMethod__serialize_result")
     monkeypatch.setattr(RemotePlayerMethods.take_turn, "_RemotePlayerMethod__serialize_result", lambda x: x)
 
     receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda state: choice)
