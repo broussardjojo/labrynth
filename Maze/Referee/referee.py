@@ -153,7 +153,10 @@ class Referee:
             # TODO: parallel ds
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
-            active_api_player.setup(None, active_game_state_player.get_home_position())
+            future = self.__executor.submit(active_api_player.setup, None, active_game_state_player.get_home_position())
+            response = await_protected(future, timeout_seconds=self.__timeout_seconds)
+            if not response.is_present:
+                self.__handle_cheater(active_api_player, game_state)
 
     def __perform_move(self, proposed_move: Move, active_player: APIPlayer, game_state: State) -> None:
         """

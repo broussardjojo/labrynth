@@ -116,7 +116,8 @@ JSONChoice = Union[JSONChoicePass, JSONChoiceMove]
 #   - [0] is a string that specifies the name of a player
 #   - [1] is a JSONStrategyDesignation for the strategy the named player employs
 # Constraint: the name must match NAME_REGEX
-JSONPlayerSpecElement = List[Union[str, JSONStrategyDesignation]]
+# Note: A list in practice, using Tuple makes typing more robust
+JSONPlayerSpecElement = Tuple[str, JSONStrategyDesignation]
 
 # Interpretation: Describes a list of players
 # Constraint: The names of any two different JSONPlayerSpecElements must be distinct.
@@ -158,7 +159,8 @@ JSONBadMethodName = Literal["setUp", "takeTurn", "win"]
 #
 # The player behaves normally until the bad method is called, at which point it
 # integer-divides 1 by 0, raising an exception.
-JSONBadPlayerSpecElement = List[Union[str, JSONStrategyDesignation, JSONBadMethodName]]
+# Note: A list in practice, using Tuple makes typing more robust
+JSONBadPlayerSpecElement = Tuple[str, JSONStrategyDesignation, JSONBadMethodName]
 
 # Interpretation: Describes a list of players, some of whom may behave badly
 # Constraint: The names of any two different elements must be distinct.
@@ -166,7 +168,26 @@ JSONBadPlayerSpec = List[Union[JSONPlayerSpecElement, JSONBadPlayerSpecElement]]
 
 
 # =========
+# https://course.ccs.neu.edu/cs4500f22/8.html
+
+# Interpretation: Requests a test with a player acting badly. It is a list of 3 values.
+#   - [0] is a string that specifies the name of a player
+#   - [1] is a JSONStrategyDesignation for the strategy the named player employs
+#   - [2] is a JSONBadMethod that specifies the bad method
+#   - [3] is a natural number k
+#
+# When b is called for the kth time, the method goes into an infinite loop.
+# Note: A list in practice, using Tuple makes typing more robust
+JSONEventuallyBadPlayerSpecElement = Tuple[str, JSONStrategyDesignation, JSONBadMethodName, int]
+
+# Interpretation: Describes a list of players, some of whom may behave badly
+# Constraint: The names of any two different elements must be distinct.
+JSONEventuallyBadPlayerSpec = List[Union[JSONPlayerSpecElement,
+                                         JSONBadPlayerSpecElement,
+                                         JSONEventuallyBadPlayerSpecElement]]
+
 
 # Interpretation: One of a player's public methods
 JSONPlayerMethodName = Union[Literal["name", "proposeBoard0"], JSONBadMethodName]
 PlayerMethodName = Literal["setup", "take-turn", "win"]
+

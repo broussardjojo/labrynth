@@ -13,8 +13,9 @@ from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
     JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethodName, \
-    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice
-from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer
+    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
+    JSONEventuallyBadPlayerSpecElement, JSONEventuallyBadPlayerSpec
+from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer, EventuallyBadLocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Common.player_details import PlayerDetails
 from Maze.Players.move import Move, Pass
@@ -59,9 +60,11 @@ def get_tile_grid_from_json(board_dict: JSONBoard) -> List[List[Tile]]:
     {"connectors": List[List[Shape Characters]], "treasures": List[List[List[Gem Name Strings]]]
     :return: A Board object filled with all the tiles designated by the provided dictionary
     """
+    assert len(board_dict['connectors']) == len(board_dict['treasures'])
     tile_grid: List[List[Tile]] = []
     for row, json_tile_row in enumerate(board_dict['connectors']):
         tile_row: List[Tile] = []
+        assert len(json_tile_row) == len(board_dict['treasures'][row])
         for col, json_tile in enumerate(json_tile_row):
             tile_row.append(get_tile_from_json(json_tile, board_dict["treasures"][row][col]))
         tile_grid.append(tile_row)
@@ -184,7 +187,7 @@ def get_api_player_from_json(json_player_spec_el: JSONPlayerSpecElement) -> APIP
 def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecElement) -> APIPlayer:
     """
     Creates the bad API player represented by the JSON
-    :param json_bad_player_spec_el: a list with two elements: [name, strategy_designation, bad_method_name]
+    :param json_bad_player_spec_el: a list with three elements: [name, strategy_designation, bad_method_name]
     :return: an APIPlayer
     """
     name = cast(str, json_bad_player_spec_el[0])
@@ -201,7 +204,7 @@ def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecEleme
         assert_never(json_bad_method)
 
 
-def get_api_player_list_from_bad_player_spec_json(json_bad_player_spec: JSONBadPlayerSpec) -> List[APIPlayer]:
+def get_api_player_list_from_bad_player_spec_json(json_bad_player_spec: JSONEventuallyBadPlayerSpec) -> List[APIPlayer]:
     """
     Creates the list of API players (which can be good or bad) represented by JSON
     :param json_bad_player_spec: a list of Union[JSONBadPlayerSpecElement, JSONPlayerSpecElement]
@@ -211,8 +214,10 @@ def get_api_player_list_from_bad_player_spec_json(json_bad_player_spec: JSONBadP
     for json_ps in json_bad_player_spec:
         if len(json_ps) == 2:
             result.append(get_api_player_from_json(cast(JSONPlayerSpecElement, json_ps)))
-        else:
+        elif len(json_ps) == 3:
             result.append(get_bad_api_player_from_json(cast(JSONBadPlayerSpecElement, json_ps)))
+        else:
+            result.append(get_eventually_bad_api_player_from_json(cast(JSONEventuallyBadPlayerSpecElement, json_ps)))
     return result
 
 
@@ -237,3 +242,25 @@ def get_move_or_pass_from_json(json_choice: JSONChoice) -> Union[Move, Pass]:
     direction = get_direction_from_json(json_direction)
     cw_degrees = -ccw_degrees % 360
     return Move(index, direction, cw_degrees, get_position_from_json(coordinate))
+
+
+def get_eventually_bad_api_player_from_json(json_bad_player_spec_el: JSONEventuallyBadPlayerSpecElement) -> APIPlayer:
+    """
+    Creates the bad API player represented by the JSON
+    :param json_bad_player_spec_el: a list with four elements: [name, strategy_designation, bad_method_name,
+     num_valid_turns]
+    :return: an APIPlayer
+    """
+    name = cast(str, json_bad_player_spec_el[0])
+    strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
+    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
+    num_valid_turns = json_bad_player_spec_el[3]
+    strategy = get_strategy_from_json(strategy_designation)
+    if json_bad_method == "setUp":
+        return EventuallyBadLocalPlayer(name, strategy, "setup", num_valid_turns)
+    elif json_bad_method == "takeTurn":
+        return EventuallyBadLocalPlayer(name, strategy, "take_turn", num_valid_turns)
+    elif json_bad_method == "win":
+        return EventuallyBadLocalPlayer(name, strategy, "win", num_valid_turns)
+    else:
+        assert_never(json_bad_method)

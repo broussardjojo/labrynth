@@ -39,6 +39,7 @@ def main() -> str:
     json_referee_state = cast(JSONRefereeState, json_obj_list[1])
     players = get_api_player_list_from_bad_player_spec_json(json_bad_player_spec)
     state = get_state_from_json(json_referee_state)
+    assert len(players) == len(state.get_players())
     winners_names, cheaters_names = run_game(players, state)
     return json.dumps([winners_names, cheaters_names])
 

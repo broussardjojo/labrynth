@@ -1,3 +1,5 @@
+import atexit
+import time
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Union, cast
 
@@ -166,4 +168,56 @@ class BadLocalPlayer(LocalPlayer):
     def win(self, did_win: bool) -> Acknowledgement:
         if self.__bad_method_name == "win":
             return 1 // 0
+        return super().win(did_win)
+
+
+class EventuallyBadLocalPlayer(LocalPlayer):
+    """
+    A class that represents a client of the referee. It implements the logical interactions spec at
+    https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally, and runs correctly until one
+    'bad method' is called, at which point it raises an exception by attempting '1 // 0'
+    """
+    __method_calls: int
+    __bad_method_name: str
+    __num_valid_calls: int
+
+    def __init__(self, name: str, strategy: Strategy, bad_method_name: BadMethodName, num_valid_calls: int):
+        super().__init__(name, strategy)
+        if not 1 <= num_valid_calls <= 7:
+            raise ValueError("Invalid number of valid calls, must be in range [1, 7]")
+        self.__bad_method_name = bad_method_name
+        self.__method_calls = 0
+        self.__num_valid_calls = num_valid_calls
+
+    @staticmethod
+    def __sleep_forever():
+        is_alive = True
+
+        def die():
+            nonlocal is_alive
+            is_alive = False
+
+        atexit.register(die)
+        while is_alive:
+            time.sleep(0.01)
+
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
+        if self.__bad_method_name == "setup":
+            self.__method_calls += 1
+            if self.__method_calls >= self.__num_valid_calls:
+                self.__sleep_forever()
+        return super().setup(state, goal_position)
+
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
+        if self.__bad_method_name == "take_turn":
+            self.__method_calls += 1
+            if self.__method_calls >= self.__num_valid_calls:
+                self.__sleep_forever()
+        return super().take_turn(current_state)
+
+    def win(self, did_win: bool) -> Acknowledgement:
+        if self.__bad_method_name == "win":
+            self.__method_calls += 1
+            if self.__method_calls >= self.__num_valid_calls:
+                self.__sleep_forever()
         return super().win(did_win)
