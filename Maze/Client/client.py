@@ -67,7 +67,7 @@ def play_game_euclid(name: str) -> None:
 
 
 if __name__ == '__main__':
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         gather_protected(
             [executor.submit(play_game_euclid, "dylan"), executor.submit(play_game_euclid, "thomas")],
             timeout_seconds=60

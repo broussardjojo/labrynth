@@ -18,8 +18,8 @@ def run_game(players: List[APIPlayer], state: State) -> Tuple[List[str], List[st
     :return: A tuple of two lists of strings; the first represents winners, and the second represents cheaters. Both
     lists are sorted in alphabetical order
     """
-    referee = Referee()
-    winners, cheaters = referee.run_game_from_state(players, state)
+    with Referee() as referee:
+        winners, cheaters = referee.run_game_from_state(players, state)
     winners_names = [player.name() for player in winners]
     cheaters_names = [player.name() for player in cheaters]
     winners_names.sort()

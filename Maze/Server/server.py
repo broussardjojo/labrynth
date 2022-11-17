@@ -3,15 +3,15 @@ import socket
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Dict, List, Tuple, Iterator
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
+from typing import Dict, List, Tuple
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 
-from Maze.Referee.observer import Observer
 from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer
+from ..Referee.observer import Observer
 from ..Referee.referee import Referee
 from ..Remote.player import RemotePlayer
 
@@ -83,7 +83,7 @@ class Server:
         with self.__bind() as socket_server:
             self.__selector.register(socket_server, EVENT_READ)
             start_time = time.time()
-            with ThreadPoolExecutor() as executor:
+            with ThreadPoolExecutor(max_workers=32) as executor:
                 while True:
                     new_clients = self.__accept_connections(socket_server)
                     for tcp_connection in new_clients:
@@ -94,28 +94,13 @@ class Server:
                     maybe_players = self.__get_players_if_enough_players(elapsed_time)
                     # TODO: close all connections on game end
                     if maybe_players.is_present:
-                        referee = Referee()
-                        observers = []
-                        # for observer in observers:
-                        #     referee.add_observer(observer)
-                        game_outcome_future = executor.submit(referee.run_game, maybe_players.get())
-                        self.__run_observers(observers)
-                        winners, cheaters = game_outcome_future.result()
+                        referee = Referee(executor=executor)
+                        winners, cheaters = referee.run_game(maybe_players.get())
                         winners_names = [player.name() for player in winners]
                         cheaters_names = [player.name() for player in cheaters]
                         return winners_names, cheaters_names
                     if self.__waiting_period >= 2:
                         return [], []
-
-    def __run_observers(self, observers: List[Observer]) -> None:
-        live_observers = observers.copy()
-        while len(live_observers):
-            timer_start = time.time()
-            for observer in live_observers:
-                if not observer.display_gui():
-                    # Observer exited
-                    live_observers.remove(observer)
-            time.sleep(max(0.0, timer_start + 0.017 - time.time()))
 
     @staticmethod
     def __handshake(connection: socket.socket) -> str:

@@ -1,6 +1,6 @@
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
-from typing import List, Tuple, Set, Any, ClassVar
+from typing import List, Tuple, Set, Any, ClassVar, Optional
 
 from .observer import Observer
 from ..Common.board import Board
@@ -42,17 +42,35 @@ class Referee:
     __did_active_player_cheat: bool
 
     __observers: List[Observer]
+    __created_own_executor: bool
     __executor: Executor
     MAX_ROUNDS: ClassVar[int] = 1000
 
-    def __init__(self, timeout_seconds: float = DEFAULT_TIMEOUT):
+    def __init__(self, timeout_seconds: float = DEFAULT_TIMEOUT, executor: Optional[ThreadPoolExecutor] = None):
         """
         Creates an instance of a Referee given a game State
         """
         self.__observers = []
-        self.__executor = ThreadPoolExecutor()
+        self.__executor = executor if (executor is not None) else ThreadPoolExecutor(max_workers=32)
+        self.__created_own_executor = executor is None
         self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
+
+    def __enter__(self) -> "Referee":
+        """
+        Overrides the __enter__ method of Referees so that `with Referee() as ref: ...` works
+        :return: this Referee
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """
+        Overrides the __exit__ method of Referees so that in the case where this Referee made its own
+        ThreadPoolExecutor, a `with Referee() as ref: ...` block always ends by closing the executor
+        :return: None
+        """
+        if self.__created_own_executor:
+            self.__executor.shutdown(wait=False)
 
     def add_observer(self, observer: Observer) -> None:
         """

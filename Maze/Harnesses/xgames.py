@@ -11,6 +11,7 @@ from Maze.JSON.deserializers import get_api_player_list_from_player_spec_json, \
     get_state_from_json
 from Maze.Players.api_player import APIPlayer
 from Maze.Referee.observer import Observer
+from Maze.Referee.tk_observer import TkObserver
 from Maze.Referee.referee import Referee
 
 
@@ -22,19 +23,19 @@ def run_game(players: List[APIPlayer], state: State, observers: List[Observer]) 
     Uses a referee to compute the outcome of a game beginning with the given game state, involving the given APIPlayers.
     :param players: A list of APIPlayer instances
     :param state: A state for the referee to use
-    :param should_add_observer: True if the user wants to observe the game's intermediate states, False otherwise
+    :param observers: The observers to add to the referee
     :return: A lists of strings representing winners, which is sorted in alphabetical order
     """
-    referee = Referee()
-    for observer in observers:
-        referee.add_observer(observer)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        referee = Referee(executor=executor)
+        for observer in observers:
+            referee.add_observer(observer)
         game_outcome_future = executor.submit(referee.run_game_from_state, players, state)
         live_observers = observers.copy()
         while len(live_observers):
             timer_start = time.time()
             for observer in live_observers:
-                if not observer.display_gui():
+                if not observer.update_gui():
                     # Observer exited
                     live_observers.remove(observer)
             time.sleep(max(0.0, timer_start + TARGET_OBSERVER_UPDATE_SPEED - time.time()))
@@ -57,7 +58,7 @@ def main(should_add_observer: bool) -> str:
     json_referee_state = cast(JSONRefereeState, json_obj_list[1])
     players = get_api_player_list_from_player_spec_json(json_bad_player_spec)
     state = get_state_from_json(json_referee_state)
-    observers = [Observer()] if should_add_observer else []
+    observers = [TkObserver()] if should_add_observer else []
     winners_names = run_game(players, state, observers)
     return json.dumps(winners_names)
 

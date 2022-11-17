@@ -107,7 +107,8 @@ def player_six():
 
 @pytest.fixture
 def referee_no_observer():
-    return Referee(timeout_seconds=0.5)
+    with Referee(timeout_seconds=0.5) as referee:
+        yield referee
 
 
 @pytest.fixture
@@ -324,7 +325,7 @@ def test_run_game_all_valid_players(referee_no_observer, state_slow_riemann_win)
     #             else: real_observer.set_game_is_over()
     #         except queue.Empty:
     #             pass
-    #         real_observer.display_gui()
+    #         real_observer.update_gui()
     #     winning_players, cheating_players = outcome_future.result()
     winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, state_slow_riemann_win)
 
