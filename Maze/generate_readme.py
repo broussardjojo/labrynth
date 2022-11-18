@@ -1,4 +1,5 @@
 import itertools
+import os
 import re
 import subprocess
 import sys
@@ -48,8 +49,8 @@ class Parser:
 
 
 def files():
-    with subprocess.Popen(["git", "ls-files"], shell=True, stdout=subprocess.PIPE) as ls_proc:
-        ls_stdout, _ = ls_proc.communicate()
+    with subprocess.Popen(["/usr/bin/git", "ls-files"], cwd=os.getcwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE) as ls_proc:
+        ls_stdout, ls_stderr = ls_proc.communicate()
     for filename in ls_stdout.decode("utf-8").split("\n"):
         if filename.endswith(".py") and not filename.endswith("__init__.py") and not re.search(r"/test", filename):
             yield filename

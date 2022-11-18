@@ -31,6 +31,36 @@ crashing or timing out.
 
 # Code Files
 
+### Client/client.py
+
+```python
+class Client:
+    """
+    A class representing the server to run a game of Labyrinth
+    """
+
+    def play_game(self, player: APIPlayer) -> None:
+```
+
+### Common/abstract_state.py
+
+```python
+class AbstractState(ABC, Generic[TPlayer]):
+    """
+    Base class for a State, containing only methods that both players and referees should have
+    """
+
+    def get_board(self) -> Board:
+    def get_all_previous_non_passes(self) -> List[Tuple[int, Direction]]:
+    def get_players(self) -> List[TPlayer]:
+    def get_active_player_index(self) -> int:
+    def get_active_player_position(self) -> Position:
+    def get_active_player(self) -> TPlayer:
+    def rotate_spare_tile(self, degrees: int) -> None:
+    def slide_and_insert(self, index: int, direction: Direction) -> None:
+    def move_active_player_to(self, position_to_move_to: Position) -> None:
+```
+
 ### Common/board.py
 
 ```python
@@ -66,7 +96,7 @@ class Direction(Enum):
     """
 
     def get_offset_tuple(self) -> Tuple[int, int]:
-    def get_opposite_direction(self):
+    def get_opposite_direction(self) -> "Direction":
 ```
 
 ### Common/gem.py
@@ -78,19 +108,22 @@ class Gem:
     """
 
     def get_gem_filepath(self) -> Path:
+    def get_name(self) -> str:
 ```
 
-### Common/observableState.py
+### Common/player_details.py
 
 ```python
-class ObservableState:
+class PlayerDetails:
     """
-    Base class for a State which only exposes information to untrusted users of this class. It does not give access to
-    Player information or allow users to change the Board for this State.
+    A PlayerDetails is a representation of a player of a game of Labyrinth that has a home position, a
+    current position, and a color.
     """
 
-    def get_board(self) -> Board:
-    def get_all_previous_non_passes(self) -> List[Tuple[int, Direction]]:
+    def get_home_position(self) -> Position:
+    def get_current_position(self) -> Position:
+    def set_current_position(self, new_position: Position) -> None:
+    def get_color(self) -> str:
 ```
 
 ### Common/position.py
@@ -119,6 +152,38 @@ class PositionTransitionMap:
     inserted_position: Position
 ```
 
+### Common/redacted_state.py
+
+```python
+class RedactedState(AbstractState[PlayerDetails]):
+    """
+    A RedactedState is a representation of a Labyrinth game game-state. A RedactedState has a Board, list of Players,
+    and an active Player.
+    """
+
+    def from_current_state(cls, board: Board, players: List[PlayerDetails],
+                           previous_moves: List[Tuple[int, Direction]]) -> "RedactedState":
+    def from_board_and_players(cls, selected_board: Board, list_of_players: List[PlayerDetails]) -> "RedactedState":
+```
+
+### Common/referee_player_details.py
+
+```python
+class RefereePlayerDetails(PlayerDetails):
+    """
+    A RefereePlayerDetails is a representation of a player of a game of Labyrinth that has a goal position,
+    in addition to the home position, current position, and color from PlayerDetails
+    """
+
+    def from_home_goal_color(cls, home_position: Position, goal_position: Position,
+                             color: str) -> "RefereePlayerDetails":
+    def from_current_home_color(cls, current_position: Position, home_position: Position,
+                                color: str) -> "RefereePlayerDetails":
+    def get_goal_position(self) -> Position:
+    def set_goal_position(self, new_position: Position) -> None:
+    def copy_without_secrets(self) -> PlayerDetails:
+```
+
 ### Common/shapes.py
 
 ```python
@@ -126,11 +191,10 @@ class Shape(ABC):
     """
     A Shape is one of: Corner, Line, TShaped, or Cross and has four booleans representing paths that can be walked on
     """
-    
+
     def get_orientation_tuple(self) -> ShapeTuple:
     def rotate(self, rotations: int) -> "Shape":
     def has_path(self, path_direction: Direction) -> bool:
-
 
 class Corner(Shape):
     ...
@@ -151,34 +215,31 @@ class Cross(Shape):
 ### Common/state.py
 
 ```python
-class State(ObservableState):
+class State(AbstractState[RefereePlayerDetails]):
     """
     A State is a representation of a Labyrinth game game-state. A State has a Board, list of Players, and an active
     Player.
     """
 
-    def from_board_and_players(cls, selected_board: Board, list_of_players: List[Player]):
-    def rotate_spare_tile(self, degrees: int) -> None:
+    def from_current_state(cls, board: Board, players: List[RefereePlayerDetails],
+                           previous_moves: List[Tuple[int, Direction]]) -> "State":
+    def from_board_and_players(cls, selected_board: Board, list_of_players: List[RefereePlayerDetails]) -> "State":
     def kick_out_active_player(self) -> None:
     def is_active_player_at_goal(self) -> bool:
-    def did_active_player_win(self):
-    def slide_and_insert(self, index: int, direction: Direction) -> None:
-    def get_players(self) -> List[Player]:
+    def did_active_player_win(self) -> bool:
     def can_active_player_reach_position(self, target_position: Position) -> bool:
-    def get_active_player_index(self) -> int:
     def is_active_player_at_home(self) -> bool:
     def change_active_player_turn(self) -> None:
-    def move_active_player_to(self, position_to_move_to: Position) -> None:
     def active_player_has_reached_goal(self) -> bool:
-    def get_closest_players_to_victory(self) -> List[Player]:
-    def get_active_player_position(self) -> Position:
-    def get_active_player(self) -> Player:
+    def get_closest_players_to_victory(self) -> List[RefereePlayerDetails]:
+    def copy_redacted(self, active_player_index: Optional[int] = None) -> RedactedState:
 ```
 
 ### Common/thread_utils.py
 
 ```python
-def gather_protected(future_list: "List[Future[T]]", timeout_seconds=DEFAULT_TIMEOUT) -> List[Maybe[T]]:
+def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DEFAULT_TIMEOUT,
+                     debug: bool = False) -> List[Maybe[T]]:
 def await_protected(future: "Future[T]", timeout_seconds=DEFAULT_TIMEOUT) -> Maybe[T]:
 ```
 
@@ -190,7 +251,7 @@ class Tile:
     A Tile is a game piece to make the board and has a Shape and two Gems.
     """
 
-    def get_gems(self) -> List[Gem]:
+    def get_gems(self) -> Tuple[Gem, Gem]:
     def get_shape(self) -> Shape:
     def same_gems_on_tiles(self, gem1: Gem, gem2: Gem) -> bool:
     def has_path(self, path_direction: Direction) -> bool:
@@ -200,25 +261,28 @@ class Tile:
 ### Common/utils.py
 
 ```python
+def identity(x: T) -> T:
+def boxed(func: Callable[[T], R]) -> Callable[[Tuple[T]], Tuple[R]]:
 class Maybe(ABC, Generic[T]):
     """
     Represents a value that may or may not be present; these cases are implemented by Just and Nothing, respectively.
     """
-    is_present: bool
-    def get_or_throw(self, message: str = "Missing Value") -> T:
 
+    def get(self, message: str = "Missing Value") -> T:
 
 class Nothing(Maybe[T]):
     """
     Represents the case where a Maybe[T] is absent.
     """
 
+    def get(self, message: str = "Missing Value") -> NoReturn:
 
 class Just(Maybe[T]):
     """
     Represents the case where a Maybe[T] is present.
     """
 
+    def get(self, message: str = "Missing Value") -> T:
 
 def remove_gem_extension(filename: Path) -> str:
 def generate_gem_list() -> List[str]:
@@ -226,6 +290,7 @@ def get_json_obj_list(input_data) -> List[Union[dict, str, int]]:
 def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
 def get_euclidean_distance_between(position_one: Position, position_two: Position) -> int:
 def get_connector_from_shape(shape: Shape) -> JSONConnector:
+def is_valid_player_name(name: str) -> bool:
 ```
 
 ### JSON/deserializers.py
@@ -235,17 +300,19 @@ def get_position_from_json(json_coordinate: JSONCoordinate) -> Position:
 def get_gems_from_json(gem_name_list: JSONTreasure) -> Tuple[Gem, Gem]:
 def get_tile_from_json(tilekey: JSONConnector, treasure: JSONTreasure) -> Tile:
 def get_tile_grid_from_json(board_dict: JSONBoard) -> List[List[Tile]]:
-def get_player_details_from_json(json_player: JSONPlayer) -> Player:
+def get_player_details_from_json(json_player: JSONPlayer) -> PlayerDetails:
 def get_direction_from_json(direction_str: JSONDirection) -> Direction:
 def get_previous_move_from_json(json_action: JSONAction) -> Tuple[int, Direction]:
-def get_state_from_json_state(json_state: JSONState) -> State:
-def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> Player:
-def get_state_from_json_referee_state(json_state: JSONRefereeState) -> State:
+def get_redacted_state_from_json(json_state: JSONState) -> RedactedState:
+def get_referee_player_details_from_json(json_referee_player: JSONRefereePlayer) -> RefereePlayerDetails:
+def get_state_from_json(json_state: JSONRefereeState) -> State:
 def get_strategy_from_json(json_strategy_designation: JSONStrategyDesignation) -> Strategy:
 def get_api_player_from_json(json_player_spec_el: JSONPlayerSpecElement) -> APIPlayer:
 def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecElement) -> APIPlayer:
-def get_api_player_list_from_bad_player_spec_json(json_bad_player_spec: JSONBadPlayerSpec) -> List[APIPlayer]:
+def get_api_player_list_from_bad_player_spec_json(json_bad_player_spec: JSONEventuallyBadPlayerSpec) -> List[APIPlayer]:
 def get_api_player_list_from_player_spec_json(json_player_spec: JSONPlayerSpec) -> List[APIPlayer]:
+def get_move_or_pass_from_json(json_choice: JSONChoice) -> Union[Move, Pass]:
+def get_eventually_bad_api_player_from_json(json_bad_player_spec_el: JSONEventuallyBadPlayerSpecElement) -> APIPlayer:
 ```
 
 ### JSON/serializers.py
@@ -253,7 +320,15 @@ def get_api_player_list_from_player_spec_json(json_player_spec: JSONPlayerSpec) 
 ```python
 def direction_to_json(direction: Direction) -> JSONDirection:
 def position_to_json(position: Position) -> JSONCoordinate:
-def move_to_json(self: Move) -> JSONChoiceMove:
+def move_to_json(move: Move) -> JSONChoiceMove:
+def pass_to_json(pass_instance: Pass) -> JSONChoicePass:
+def board_to_json(board: Board) -> JSONBoard:
+def tile_to_spare_tile_json(tile: Tile) -> JSONTile:
+def referee_player_details_to_json(player: RefereePlayerDetails) -> JSONRefereePlayer:
+def player_details_to_json(player: PlayerDetails) -> JSONPlayer:
+def last_action_to_json(action_list: List[Tuple[int, Direction]]) -> OptionalJSONAction:
+def state_to_json(state: State) -> JSONRefereeState:
+def redacted_state_to_json(state: RedactedState) -> JSONState:
 ```
 
 ### Players/api_player.py
@@ -264,12 +339,12 @@ class APIPlayer(ABC):
     A class that represents a client of the referee. It implements the logical interactions spec at
     https://course.ccs.neu.edu/cs4500f22/local_protocol.html.
     """
-    def setup(self, state: Optional[State], goal_position: Position) -> Acknowledgement:
+
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
     def propose_board0(self, rows: int, columns: int) -> Board:
     def name(self) -> str:
-    def take_turn(self, current_state: State) -> Union[Move, Pass]:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
     def win(self, did_win: bool) -> Acknowledgement:
-    
 
 class LocalPlayer(APIPlayer):
     """
@@ -277,6 +352,11 @@ class LocalPlayer(APIPlayer):
     https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally.
     """
 
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
+    def propose_board0(self, rows: int, columns: int) -> Board:
+    def name(self) -> str:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
+    def win(self, did_win: bool) -> Acknowledgement:
 
 class BadLocalPlayer(LocalPlayer):
     """
@@ -284,6 +364,21 @@ class BadLocalPlayer(LocalPlayer):
     https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally, and runs correctly until one
     'bad method' is called, at which point it raises an exception by attempting '1 // 0'
     """
+
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
+    def win(self, did_win: bool) -> Acknowledgement:
+
+class EventuallyBadLocalPlayer(LocalPlayer):
+    """
+    A class that represents a client of the referee. It implements the logical interactions spec at
+    https://course.ccs.neu.edu/cs4500f22/local_protocol.html. It runs locally, and runs correctly until one
+    'bad method' is called, at which point it raises an exception by attempting '1 // 0'
+    """
+    
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
+    def win(self, did_win: bool) -> Acknowledgement:
 ```
 
 ### Players/base_strategy.py
@@ -296,7 +391,7 @@ class BaseStrategy(Strategy):
     more targets to try.
     """
 
-    def generate_move(self, current_state: ObservableState, current_position: Position,
+    def generate_move(self, current_state: AbstractState, current_position: Position,
                       target_position: Position) -> Union[Move, Pass]:
     def get_next_target_position(self, board: Board, original_target: Position) -> Position:
     def possible_next_target_positions(self, board: Board) -> bool:
@@ -326,7 +421,6 @@ class Pass:
 
     def return_if_move_perform_action_if_pass(if_pass_perform_action: Callable[[], Any]) -> Any:
     def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
-    
 
 class Move:
     """
@@ -338,27 +432,8 @@ class Move:
     def get_slide_direction(self) -> Direction:
     def get_spare_tile_rotation_degrees(self) -> int:
     def get_destination_position(self) -> Position:
-    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]):
+    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]) -> None:
     def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
-```
-
-### Players/player.py
-
-```python
-class Player:
-    """
-    A Player is a representation of a player of a game of Labyrinth. A Player has a home position, a goal position and a
-    current position, which defaults to their home position.
-    """
-
-    def from_home_goal_color(cls, home_position: Position, goal_position: Position, color: str):
-    def from_current_home_color(cls, current_position: Position, home_position: Position, color: str):
-    def get_home_position(self) -> Position:
-    def get_goal_position(self) -> Position:
-    def set_goal_position(self, new_position: Position) -> None:
-    def get_current_position(self) -> Position:
-    def set_current_position(self, new_position: Position) -> None:
-    def get_color(self) -> str:
 ```
 
 ### Players/riemann.py
@@ -383,7 +458,7 @@ class Strategy(ABC):
     implemented in any number of ways depending on the Player's AI of choice
     """
 
-    def generate_move(self, current_state: ObservableState,
+    def generate_move(self, current_state: AbstractState,
                       current_position: Position,
                       target_position: Position) -> Union[Move, Pass]:
 ```
@@ -391,14 +466,14 @@ class Strategy(ABC):
 ### Referee/observer.py
 
 ```python
-class Observer:
+class Observer(ABC):
     """
     Represents an Observer for a game of Labyrinth. An observer can display a given State of the game.
     """
 
     def receive_new_state(self, next_state: State) -> None:
     def set_game_is_over(self) -> None:
-    def display_gui(self) -> None:
+    def update_gui(self) -> bool:
 ```
 
 ### Referee/referee.py
@@ -427,6 +502,94 @@ class Referee:
     def send_state_updates_to_observers(self, game_state: State) -> None:
     def send_game_over_to_observers(self) -> None:
 ```
+
+### Referee/tk_observer.py
+
+```python
+class TkObserver(Observer):
+    """
+    Represents an Observer for a game of Labyrinth. An observer can display a given State of the game.
+    This observer uses Tkinter to show a GUI, and allows the user to click Next or Save.
+    """
+
+    def receive_new_state(self, next_state: State) -> None:
+    def set_game_is_over(self) -> None:
+    def update_gui(self) -> bool:
+```
+
+### Remote/player.py
+
+```python
+class RemotePlayer(APIPlayer):
+    """
+    A class that represents a client of the referee. It implements the logical interactions spec at
+    https://course.ccs.neu.edu/cs4500f22/local_protocol.html by interacting through a Messenger with a player
+    running elsewhere.
+    """
+
+    def from_socket(cls, name: str, connection: socket.socket) -> "RemotePlayer":
+    def setup(self, state: Optional[RedactedState], goal_position: Position) -> Acknowledgement:
+    def propose_board0(self, rows: int, columns: int) -> Board:
+    def name(self) -> str:
+    def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
+    def win(self, did_win: bool) -> Acknowledgement:
+```
+
+### Remote/referee.py
+
+```python
+class DispatchingReceiver:
+    """
+    A DispatchingReceiver handles a TCP connection which is expected to receive remote method call
+    instructions, dispatches them as Python method calls, and sends the results in response
+    """
+
+    def from_socket(cls, player: APIPlayer, connection: socket.socket) -> "DispatchingReceiver":
+    def listen_forever(self) -> None:
+```
+
+### Remote/remote_player_methods.py
+
+```python
+class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
+    """
+    A class that represents the steps required to either call a method or respond to a method call using
+    the [MName, [Arguments, ...]] format described in https://course.ccs.neu.edu/cs4500f22/remote.html.
+
+    The purpose of unifying the call and response code is a) to keep as much of our code using type hints as possible,
+    and b) to have serialization methods near their corresponding deserialization methods.
+    """
+
+    def call(self, args: TArgs, read_channel: Iterator[Any], write_channel: IO[bytes]) -> TResult:
+    def respond(self, player: APIPlayer, json_args: TJsonArgs, write_channel: IO[bytes]) -> None:
+
+
+class RemotePlayerMethods:
+    """
+    Convenience class to hold the 3 implemented RemotePlayerMethods. Should not be constructed.
+    """
+
+    def respond(cls, player: APIPlayer, method_name: PlayerMethodName, json_args: Any,
+                write_channel: IO[bytes]) -> None:
+```
+
+### Server/server.py
+
+```python
+class InvalidNameError(ValueError):
+    """
+    Represents an error caused by the player providing an invalid name in a server to player handshake
+    """
+
+class Server:
+    """
+    A class representing the server to run a game of Labyrinth
+    """
+
+    def conduct_game(self) -> Tuple[List[str], List[str]]:
+    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> Maybe[List[APIPlayer]]:
+```
+
 
 # Other Files
 
