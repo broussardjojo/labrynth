@@ -11,7 +11,6 @@ from pydantic import ValidationError, StrictStr, parse_obj_as
 
 from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer
-from ..Referee.observer import Observer
 from ..Referee.referee import Referee
 from ..Remote.player import RemotePlayer
 
@@ -33,7 +32,7 @@ class Server:
     __waiting_period: int
     HANDSHAKE_TIMEOUT_SECONDS = 2
     MAX_TO_START = 6
-    WAITING_PERIOD_SECONDS = 5
+    WAITING_PERIOD_SECONDS = 20
 
     def __init__(self, port_num: int):
         """
@@ -59,6 +58,9 @@ class Server:
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as socket_server:
             try:
+                # Allow the server to reuse an address within the OS's TIME_WAIT after the previous connection on it
+                # is closed, aids with testing
+                socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 socket_server.bind(("0.0.0.0", self.__port_num))
                 # listen takes a `backlog` argument for the number of unaccepted connections the server can have,
                 # anything beyond that is refused.
@@ -82,25 +84,37 @@ class Server:
         """
         with self.__bind() as socket_server:
             self.__selector.register(socket_server, EVENT_READ)
-            start_time = time.time()
             with ThreadPoolExecutor(max_workers=32) as executor:
-                while True:
-                    new_clients = self.__accept_connections(socket_server)
-                    for tcp_connection in new_clients:
-                        future = executor.submit(self.__handshake, tcp_connection)
-                        self.__pending_handshakes[future] = time.time(), tcp_connection
-                    self.__handle_handshake_timeouts()
-                    elapsed_time = time.time() - start_time
-                    maybe_players = self.__get_players_if_enough_players(elapsed_time)
-                    # TODO: close all connections on game end
-                    if maybe_players.is_present:
-                        referee = Referee(executor=executor)
-                        winners, cheaters = referee.run_game(maybe_players.get())
-                        winners_names = [player.name() for player in winners]
-                        cheaters_names = [player.name() for player in cheaters]
-                        return winners_names, cheaters_names
-                    if self.__waiting_period >= 2:
-                        return [], []
+                maybe_players = self.accept_players(socket_server, executor)
+                if maybe_players.is_present:
+                    winners, cheaters = self.__run_game(maybe_players.get(), executor)
+                    winners_names = [player.name() for player in winners]
+                    cheaters_names = [player.name() for player in cheaters]
+                    return winners_names, cheaters_names
+                if self.__waiting_period >= 2:
+                    return [], []
+
+    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> Maybe[List[APIPlayer]]:
+        """
+        Accepts players by listening on socket and runs handshakes until the game is ready to start or has waited for
+         two waiting periods
+        :param socket_server: a socket representing the server which is listening for connections
+        :param executor: a ThreadPoolExecutor to spawn handshake threads from
+        :return: a Just[List[APIPlayers]] if the game can begin, otherwise a Nothing
+        """
+        start_time = time.time()
+        while not self.__waiting_period >= 2:
+            new_clients = self.__accept_connections(socket_server)
+            for tcp_connection in new_clients:
+                future = executor.submit(self.__handshake, tcp_connection)
+                self.__pending_handshakes[future] = time.time(), tcp_connection
+            self.__handle_handshake_timeouts()
+            elapsed_time = time.time() - start_time
+            maybe_players = self.__get_players_if_enough_players(elapsed_time)
+            if maybe_players.is_present:
+                return maybe_players
+        return Nothing()
+
 
     @staticmethod
     def __handshake(connection: socket.socket) -> str:
@@ -196,6 +210,17 @@ class Server:
             connection.close()
         except OSError:
             pass
+
+    @staticmethod
+    def __run_game(players: List[APIPlayer], executor: ThreadPoolExecutor) -> Tuple[List[APIPlayer], List[APIPlayer]]:
+        """
+        Run a game of Labyrinth with the given list of players and executor
+        :param players: a List of APIPlayers representing the players to play in the game
+        :param executor: a ThreadPoolExecutor for the referee to spawn threads from
+        :return: The winners names followed by the cheaters names
+        """
+        referee = Referee(executor=executor)
+        return referee.run_game(players)
 
 
 if __name__ == '__main__':

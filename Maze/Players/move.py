@@ -47,16 +47,6 @@ class Pass:
         """
         perform_pass_action(self)
 
-    @staticmethod
-    def format_output() -> str:
-        """
-        Method on a pass which will return a string representing a Pass
-        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
-        by itself without breaking anything
-        :return: The string "PASS"
-        """
-        return "PASS"
-
 
 class Move:
     """

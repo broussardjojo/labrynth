@@ -1,22 +1,13 @@
 import json
 import socket
-import sys
-import time
-from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Dict, List, Tuple
-from selectors import BaseSelector, DefaultSelector, EVENT_READ
+from concurrent.futures import ThreadPoolExecutor
 
 import ijson
-from pydantic import ValidationError, StrictStr, parse_obj_as
 
 from Maze.Common.thread_utils import gather_protected
 from Maze.Players.euclid import Euclid
 from Maze.Remote.referee import DispatchingReceiver
-from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer, LocalPlayer
-from ..Referee.referee import Referee
-from ..Remote.messenger import Messenger
-from ..Remote.player import RemotePlayer
 
 
 class InvalidNameError(ValueError):
@@ -61,6 +52,11 @@ class Client:
 
 
 def play_game_euclid(name: str) -> None:
+    """
+    Method to play a game of Labyrinth with the Euclid strategy over the network with a provided name
+    :param name: A string representing the name of the LocalPlayer to use
+    :return: None
+    """
     client = Client("localhost", 9999)
     player = LocalPlayer(name, Euclid())
     client.play_game(player)

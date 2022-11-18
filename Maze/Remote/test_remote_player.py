@@ -5,10 +5,12 @@ from pathlib import Path
 from typing import Callable, Any, Tuple
 from unittest.mock import MagicMock
 
+import ijson
 import pytest
 from pydantic import ValidationError
 
 from ..Common.board import Board
+from ..Common.direction import Direction
 from ..Common.position import Position
 from ..Common.referee_player_details import RefereePlayerDetails
 from ..Common.state import State
@@ -17,6 +19,7 @@ from ..Common.utils import get_json_obj_list
 from ..JSON.deserializers import get_tile_grid_from_json
 from ..Players.api_player import LocalPlayer
 from ..Players.euclid import Euclid
+from ..Players.move import Move, Pass
 from ..Players.riemann import Riemann
 from ..Remote.referee import DispatchingReceiver
 from .remote_player_methods import RemotePlayerMethods
@@ -112,6 +115,25 @@ def test_remote_call_setup(socketpair: SocketPairType, seeded_game_state):
     assert setup_mock.call_args[0][1] == Position(3, 1)
 
 
+@pytest.mark.parametrize("did_win", [
+    True,
+    False
+])
+def test_remote_call_win(socketpair: SocketPairType, did_win):
+    server_conn, client_conn = socketpair
+
+    receiver, mock = dispatching_receiver_with_mock_player(client_conn, win=lambda w: "✓")
+    remote_player = RemotePlayer.from_socket("player1", server_conn)
+    with ThreadPoolExecutor() as executor:
+        with ensure_shutdown(server_conn):
+            client_task = executor.submit(receiver.listen_forever)
+            assert remote_player.win(did_win) == "void"
+        await_protected(client_task, timeout_seconds=1)
+    win_mock: MagicMock = mock.win
+    assert win_mock.call_count == 1
+    assert win_mock.call_args[0][0] is did_win
+
+
 @pytest.mark.parametrize("choice", [
     0,
     "pass",
@@ -137,6 +159,57 @@ def test_remote_call_take_turn_type_error(socketpair: SocketPairType, seeded_gam
             goal = seeded_game_state.get_players()[0].get_goal_position()
             assert remote_player.setup(seeded_game_state.copy_redacted(), goal) == "void"
             with pytest.raises(ValidationError):
+                remote_player.take_turn(seeded_game_state.copy_redacted())
+        await_protected(client_task, timeout_seconds=1)
+
+    take_turn_mock: MagicMock = mock.take_turn
+    assert take_turn_mock.call_count == 1
+
+
+@pytest.mark.parametrize("output", [
+    Move(0, Direction.UP, 90, Position(1, 2)),
+    Move(0, Direction.DOWN, 0, Position(5, 2)),
+    Move(1000, Direction.RIGHT, 180, Position(5555, 2)),
+    Move(1, Direction.LEFT, 270, Position(0, 0)),
+    Pass()
+])
+def test_remote_call_win(socketpair: SocketPairType, seeded_game_state, output):
+    server_conn, client_conn = socketpair
+
+    receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda w: output)
+    remote_player = RemotePlayer.from_socket("player1", server_conn)
+    with ThreadPoolExecutor() as executor:
+        with ensure_shutdown(server_conn):
+            client_task = executor.submit(receiver.listen_forever)
+            assert remote_player.take_turn(seeded_game_state.copy_redacted()) == output
+        await_protected(client_task, timeout_seconds=1)
+    take_turn_mock: MagicMock = mock.take_turn
+    assert take_turn_mock.call_count == 1
+    assert take_turn_mock.call_args[0][0].get_board().get_tile_grid() == seeded_game_state.get_board().get_tile_grid()
+
+
+@pytest.mark.parametrize("malformed", [
+    b'}',
+    b'{{',
+    b']',
+    b'////',
+    b'))o)',
+    b"[0, 'UP', -90, {'row#': 0, 'column#': 0}]",
+    b",",
+    b"&~`"
+])
+def test_remote_call_take_turn_malformed_json(socketpair: SocketPairType, seeded_game_state, monkeypatch, malformed):
+    server_conn, client_conn = socketpair
+    remote_player = RemotePlayer.from_socket("player1", server_conn)
+    receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda state: Pass())
+    write_channel = getattr(receiver, "_DispatchingReceiver__write_channel")
+    original_write = write_channel.write
+    monkeypatch.setattr(write_channel, "write", lambda *args: original_write(malformed))
+
+    with ThreadPoolExecutor() as executor:
+        with ensure_shutdown(server_conn):
+            client_task = executor.submit(receiver.listen_forever)
+            with pytest.raises(ijson.IncompleteJSONError):
                 remote_player.take_turn(seeded_game_state.copy_redacted())
         await_protected(client_task, timeout_seconds=1)
 

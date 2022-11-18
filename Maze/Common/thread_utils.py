@@ -1,3 +1,4 @@
+import sys
 from concurrent import futures
 from concurrent.futures import Future
 from typing import List, TypeVar
@@ -7,13 +8,15 @@ DEFAULT_TIMEOUT = 10
 T = TypeVar("T")
 
 
-def gather_protected(future_list: "List[Future[T]]", timeout_seconds=DEFAULT_TIMEOUT) -> List[Maybe[T]]:
+def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DEFAULT_TIMEOUT,
+                     debug: bool = False) -> List[Maybe[T]]:
     """
     Aggregates the results of attempting each given future. For the future at index `i`, the returned list will contain:
         - a Just(value) at index `i` if the task returns a value within the given time limit
         - a Nothing() otherwise (this includes the case where the future's task raises an exception)
     :param future_list: a list of concurrent.futures.Future instances, each of which are running on a ThreadPoolExecutor
     :param timeout_seconds: a number of seconds
+    :param debug: a bool representing whether or not to print errors caught
     :return: a Maybe, where Just(value) represents a success, and Nothing() represents a failure
     """
     results: List[Maybe[T]] = [Nothing() for _ in future_list]
@@ -25,12 +28,14 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds=DEFAULT_TIM
             # however, if the future's task raised an exception, `future.result()` will raise the same one
             try:
                 results[index] = Just(future.result())
-            except Exception:
+            except Exception as exc:
                 # The execution of the protected method raised an Exception
-                pass
-    except futures.TimeoutError:
+                if debug:
+                    print(exc, file=sys.stderr)
+    except futures.TimeoutError as exc:
         # The timeout of the `as_completed()` call was hit; we've received every result we can
-        pass
+        if debug:
+            print(exc, file=sys.stderr)
     return results
 
 

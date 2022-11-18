@@ -228,5 +228,11 @@ def get_connector_from_shape(shape: Shape) -> JSONConnector:
 
 
 def is_valid_player_name(name: str) -> bool:
+    """
+    Method to determine if the provided name matches the spec:
+    ^[a-zA-Z0-9]+$ and is between 1 and 20 characters
+    :param name: a string representing the potential name to validate
+    :return: True if the name is valid, otherwise False
+    """
     name_regex = re.compile("^[a-zA-Z0-9]{1,20}$")
     return bool(re.search(name_regex, name))
