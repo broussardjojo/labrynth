@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Tuple, TypeVar, Generic
+from typing import List, Tuple, TypeVar, Generic, Set, Optional
 
 from .board import Board
 from .direction import Direction
@@ -131,3 +131,38 @@ class AbstractState(ABC, Generic[TPlayer]):
         Side Effect: Mutates the currently active Player
         """
         self.get_active_player().set_current_position(position_to_move_to)
+
+    def get_legal_destinations(self) -> Set[Position]:
+        """
+        Returns a set of all possible destinations that are legal for the active player to end on.
+        Assumes that at this point, the slide has been performed, meaning this should return the set of Positions that
+        the active player is not on.
+        :returns: The set of Positions the current active player can legally move to.
+        """
+        current_player = self.get_active_player()
+        tiles = self._board.reachable_tiles(current_player.get_current_position())
+        tiles.discard(current_player.get_current_position())
+        return tiles
+
+    def is_legal_slide_action(self, slide: Tuple[int, Direction]) -> bool:
+        """
+        Returns whether a given slide is legal to perform for the active player.
+        :param slide: The slide to query if is legal or not.
+        :return: Whether the provided slide is legal for the active player to perform.
+        """
+        # Verify that the provided move doesn't undo the previous move
+        if self._previous_moves:
+            last_idx, last_direction = self._previous_moves[-1]
+            prohibited_move = (last_idx, last_direction.get_opposite_direction())
+            if slide == prohibited_move:
+                return False
+
+        # Verify that the provided move is legal
+        query_index, query_direction = slide
+        if query_direction in Direction.horizontal_directions():
+            return self._board.can_slide_horizontally(query_index)
+        elif query_direction in Direction.vertical_directions():
+            return self._board.can_slide_vertically(query_index)
+        else:
+            # This should never happen.
+            return False
