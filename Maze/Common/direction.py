@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, List
 
 from typing_extensions import assert_never
 
@@ -47,3 +47,11 @@ class Direction(Enum):
         if self is Direction.LEFT:
             return Direction.RIGHT
         assert_never(self)
+
+    @classmethod
+    def horizontal_directions(cls) -> 'List[Direction]':
+        return [Direction.LEFT, Direction.RIGHT]
+
+    @classmethod
+    def vertical_directions(cls) -> 'List[Direction]':
+        return [Direction.UP, Direction.DOWN]
