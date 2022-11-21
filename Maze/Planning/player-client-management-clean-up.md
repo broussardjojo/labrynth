@@ -19,10 +19,9 @@ care about at the moment.
 
 Ref's `List[APIPlayer]` and State's `List[Player]` in lockstep
 
-- Needs: `{Referee,State}.kick_out_player_at_index(int)`
+- Needs: `{Referee,State}.kick_out_player_at_indices(Set[int])`
 - Cons:
-    - Index math; if we have multiple players to kick out, we would need to call the method on the indices to kick in
-      descending order
+    - Still parallel
 
 ## Option 2
 

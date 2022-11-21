@@ -4,7 +4,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Iterator
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
@@ -50,7 +50,7 @@ class Server:
             raise ValueError("Invalid port number supplied")
 
     @contextlib.contextmanager
-    def __bind(self) -> socket.socket:
+    def __bind(self) -> Iterator[socket.socket]:
         """
         Binds a server socket to the configured port number, yields control to the main server logic block,
         then shuts down any connections that are still open

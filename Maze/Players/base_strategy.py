@@ -87,7 +87,7 @@ class BaseStrategy(Strategy):
         :param directions: The Directions to slide the rows/columns in
         :return: A Move representing either a valid Move to the target or a pass if no move is found
         """
-        for index in range(0, board.get_height(), 2):
+        for index in range(0, board.get_height(), 2):  # TODO: fix
             for slide_direction in directions:
                 if previous_moves:
                     previous_index, previous_direction = previous_moves[-1]

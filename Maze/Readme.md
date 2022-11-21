@@ -14,8 +14,10 @@ in this directory contains the latest versions of `pytest` and its dependencies 
 
 # Components and Roadmap
 
-The server side of Maze.com will use a `LoginManager` that authenticates TCP clients, creates
-associated `APIPlayer` instances via a remote proxy pattern, and assigns them to a game.
+The server side of Maze.com will use a `Server` that authenticates TCP clients, creates
+associated `APIPlayer` instances via the `RemotePlayer` proxy, and assigns them to a game.
+Clients will connect using a `Client` component, which performs the handshake (sending a
+name), and then responds to all incoming JSON using a `DispatchingReceiver`.
 
 When enough players have joined, the manager gives the players to a `Referee`, which then
 runs the game, and reports the winners and cheaters to the `LoginManager`.
@@ -26,7 +28,31 @@ crashing or timing out.
 
 - `Player`, `Referee`: milestone 5
 - `Observer`: milestone 6
-- `LoginManager`: future milestone
+- `Server`, `Client`: milestone 8
+
+
+# Server-Client Diagram
+
+```ascii
+    Server         RemotePlayer          ============RemotePlayerMethod===========      DispatchingReceiver   LocalPlayer
+    |              |                     |                                       |                        |             |
+    |  ->          |                     |crossing->                   ->crossing|                        |             |
+    |  python      |  ->                 |this                               this|    loops               |             |
+    |  call        |  select one of      |fence                             fence|    using               |             |
+    |              |  the remote         |does                               does|    read, then          |             |
+    |              |  methods            |`serialize_args      `deserialize_args`|    RemotePlayerMethods |             |
+    |              |                     |`write`                 `validate_args`|    .respond(Player)    |             |
+    |              |                     |                                       |                        |             |
+    |              |                     |                                       |                        |             |
+    |              |                     |                                       |                        |             |
+    |              |                     |crossing<-                   <-crossing|                        |             |
+    |              |  <-                 |this                               this|                        |             |
+    |   <-         |  JSONError          |fence                             fence|                        |             |
+    |   Maybe[     |  | ValidationError  |does                               does|                        |             |
+    |    TResult]  |  | TResult          |`deserialize_result` `serialize_result`|                        |             |
+    |              |                     |`validate_result`               `write`|                        |             |
+    |              |                     |                                       |                        |             |
+```
 
 
 # Code Files

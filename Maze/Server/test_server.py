@@ -12,6 +12,7 @@ import pytest
 from .server import Server
 from ..Common.test_thread_utils import delayed_identity
 from ..Common.thread_utils import gather_protected
+from ..Common.utils import is_valid_player_name
 
 
 def client(port_num: int, sends: Optional[bytes] = None, waits: float = 0) -> None:
@@ -23,6 +24,12 @@ def client(port_num: int, sends: Optional[bytes] = None, waits: float = 0) -> No
 
 
 def good(name: str, waits: float):
+    assert is_valid_player_name(name)
+    return functools.partial(client, sends=json.dumps(name).encode("utf-8"), waits=waits)
+
+
+def misnamed(name: str, waits: float):
+    assert not is_valid_player_name(name)
     return functools.partial(client, sends=json.dumps(name).encode("utf-8"), waits=waits)
 
 
@@ -50,7 +57,7 @@ class Game:
     ([good("dylan", 0), good("thomas", 0), good("adam", 0), good("bob", 0), good("charlie", 0), good("david", 0)],
      Game(0, 3, {"dylan", "thomas", "adam", "bob", "charlie", "david"})),
     # Some unresponsive, all join immediately
-    ([good("dylan", 0), unresp(0), good("adam", 0), good("bob", 0), unresp(0), good("david", 0)],
+    ([good("dylan", 0), unresp(0), good("adam", 0), good("bob", 0), misnamed(":)", 0), good("david", 0)],
      Game(20, 23, {"dylan", "adam", "bob", "david"})),
     # Some bad, all join in first waiting period, some not immediately
     ([good("dylan", 6), unresp(0), badjson(0), good("bob", 0), unresp(0), badtype(2)],
@@ -63,7 +70,7 @@ class Game:
       good("david", 35)],
      Game(34, 37, ["dylan", "bob", "thomas", "adam", "bob2", "charlie"])),
     # All bad, some join in first waiting period, some join in second waiting period
-    ([unresp(4), unresp(0), badjson(0), good("bob 2", 30), unresp(0), badtype(2)],
+    ([unresp(4), unresp(0), badjson(0), misnamed("bob 2", 30), unresp(0), badtype(2)],
      Game(40, 43, set())),
     # All but one bad, some join in first waiting period, some join in second waiting period
     ([unresp(4), unresp(0), badjson(0), good("bob", 30), unresp(0), badtype(2)],

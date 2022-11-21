@@ -1,3 +1,4 @@
+import functools
 import time
 from concurrent.futures import ThreadPoolExecutor
 import pytest
@@ -31,9 +32,10 @@ def delayed_identity(delay_seconds, arg):
     return arg
 
 
-def throw_if(should_throw):
+def throw_if(should_throw, return_supplier_or_val):
     if should_throw:
         raise ValueError()
+    return return_supplier_or_val() if callable(return_supplier_or_val) else return_supplier_or_val
 
 
 def test_empty_gather():
@@ -49,7 +51,7 @@ def test_empty_gather():
     (50, 0, 100)
 ])
 def test_gather_three_all_success(sleep1, sleep2, sleep3, executor):
-    future_list = [executor.submit(lambda: delayed_identity(millis / 1000, f"{idx + 1}"))
+    future_list = [executor.submit(delayed_identity, millis / 1000, f"{idx + 1}")
                    for idx, millis in enumerate([sleep1, sleep2, sleep3])]
     assert gather_protected(future_list) == [Just("1"), Just("2"), Just("3")]
 
@@ -60,7 +62,7 @@ def test_gather_three_all_success(sleep1, sleep2, sleep3, executor):
     (50, 50, 1000, [Just("1"), Just("2"), Nothing()]),
 ])
 def test_gather_three_one_timeout(sleep1, sleep2, sleep3, expected, executor):
-    future_list = [executor.submit(lambda: delayed_identity(millis / 1000, f"{idx + 1}"))
+    future_list = [executor.submit(delayed_identity, millis / 1000, f"{idx + 1}")
                    for idx, millis in enumerate([sleep1, sleep2, sleep3])]
     assert gather_protected(future_list, timeout_seconds=0.5) == expected
 
@@ -71,7 +73,7 @@ def test_gather_three_one_timeout(sleep1, sleep2, sleep3, expected, executor):
     (False, False, True, [Just("1"), Just("2"), Nothing()]),
 ])
 def test_gather_three_one_exception(raise1, raise2, raise3, expected, executor):
-    future_list = [executor.submit(lambda: throw_if(should_throw) or f"{idx + 1}")
+    future_list = [executor.submit(throw_if, should_throw, f"{idx + 1}")
                    for idx, should_throw in enumerate([raise1, raise2, raise3])]
     assert gather_protected(future_list, timeout_seconds=0.5) == expected
 
@@ -86,7 +88,7 @@ def test_gather_three_one_exception(raise1, raise2, raise3, expected, executor):
     (50, 1000, -1, [Just("1"), Nothing(), Nothing()]),
 ])
 def test_gather_three_one_timeout_one_exception(sleep1, sleep2, sleep3, expected, executor):
-    future_list = [executor.submit(lambda: delayed_identity(millis/1000, throw_if(millis < 0) or f"{idx + 1}"))
+    future_list = [executor.submit(throw_if, millis < 0, functools.partial(delayed_identity, millis / 1000, f"{idx + 1}"))
                    for idx, millis in enumerate([sleep1, sleep2, sleep3])]
     assert gather_protected(future_list, timeout_seconds=0.5) == expected
 

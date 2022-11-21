@@ -389,6 +389,7 @@ class Referee:
         :param game_state: represents the current state of the game
         :return: True if the player moves legally, otherwise False
         """
+        # TODO: 3-member Enum return (PASS, MOVE, KICK)?
         player_index = game_state.get_active_player_index()
         client = self.__current_players[player_index]
         response = await_protected(self.__executor.submit(client.take_turn, game_state.copy_redacted()),
