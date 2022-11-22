@@ -50,3 +50,5 @@ class DispatchingReceiver:
             assert len(method_instruction) == 2
             method_name, json_args = method_instruction
             RemotePlayerMethods.respond(self.__player, method_name, json_args, self.__write_channel)
+            if method_name == 'win':
+                break

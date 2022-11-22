@@ -1,6 +1,9 @@
 import json
 import socket
+import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Iterator
+from contextlib import contextmanager
 
 import ijson
 
@@ -8,6 +11,9 @@ from Maze.Common.thread_utils import gather_protected
 from Maze.Players.euclid import Euclid
 from Maze.Remote.referee import DispatchingReceiver
 from ..Players.api_player import APIPlayer, LocalPlayer
+
+# The number of seconds that the client should wait before shutting down if it starts before the Server has.
+WAIT_FOR_SERVER_DURATION = 15
 
 
 class InvalidNameError(ValueError):
@@ -35,6 +41,27 @@ class Client:
             self.__port_num = port_num
         else:
             raise ValueError("Invalid port number supplied")
+
+    @contextmanager
+    def connect(self) -> Iterator[socket.socket]:
+        """
+        Yields a connection to the server. This method is responsible for retrying connection for up to
+        WAIT_FOR_SERVER_DURATION seconds before raising an error.
+        :raises: socket.timeout if the final attempt in the allotted time period fails.
+        :return:
+        """
+        delay_end = time.time() + WAIT_FOR_SERVER_DURATION
+        delay_remaining = WAIT_FOR_SERVER_DURATION
+        while delay_remaining > 0:
+            try:
+                connection = socket.create_connection((self.__host_name, self.__port_num), timeout=min(delay_remaining, 4))
+            except socket.timeout as error:
+                delay_remaining = delay_end - time.time()
+                if delay_remaining <= 0:
+                    raise error
+            else:
+                yield connection
+        raise RuntimeError("Timeout error failed to raise with no time remaining")
 
     def play_game(self, player: APIPlayer) -> None:
         """
@@ -66,5 +93,5 @@ if __name__ == '__main__':
     with ThreadPoolExecutor(max_workers=2) as executor:
         gather_protected(
             [executor.submit(play_game_euclid, "dylan"), executor.submit(play_game_euclid, "thomas")],
-            timeout_seconds=60
+            timeout_seconds=60, debug=True
         )

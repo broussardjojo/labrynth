@@ -1,0 +1,5 @@
+#!/bin/bash
+# . venv/bin/activate
+export PYTHONIOENCODING="utf-8"
+cd ..
+python -m Maze.Harnesses.xclients $@

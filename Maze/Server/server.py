@@ -4,14 +4,14 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
-from typing import Dict, List, Tuple, Iterator
+from typing import Dict, List, Tuple, Iterator, Callable
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 
 from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer
-from ..Referee.referee import Referee
+from ..Referee.referee import Referee, GameOutcome
 from ..Remote.player import RemotePlayer
 
 
@@ -30,14 +30,18 @@ class Server:
     __port_num: int
     __selector: BaseSelector
     __waiting_period: int
+    __run_game_function: Callable[[Referee, List[APIPlayer]], GameOutcome]
     HANDSHAKE_TIMEOUT_SECONDS = 2
     MAX_TO_START = 6
     WAITING_PERIOD_SECONDS = 20
 
-    def __init__(self, port_num: int):
+    def __init__(self, port_num: int,
+                 run_game_function: Callable[[Referee, List[APIPlayer]], GameOutcome] = Referee.run_game):
         """
         Constructor for a Server which will use the provided port_num to listen for players
         :param port_num: an int representing the port that this server should expose to listen
+        :param run_game_function: A callable to run the game; this allows for custom starting states and other
+            configurations.
         :raises ValueError: if a port number less than 1 or greater than 65535
         """
         self.__players = {}
@@ -48,6 +52,7 @@ class Server:
             self.__port_num = port_num
         else:
             raise ValueError("Invalid port number supplied")
+        self.__run_game_function = run_game_function
 
     @contextlib.contextmanager
     def __bind(self) -> Iterator[socket.socket]:
@@ -115,7 +120,6 @@ class Server:
                 return maybe_players
         return Nothing()
 
-
     @staticmethod
     def __handshake(connection: socket.socket) -> str:
         """
@@ -147,6 +151,7 @@ class Server:
             if key.fileobj is socket_server:
                 socket_client, _ = socket_server.accept()
                 connection_list.append(socket_client)
+                print("New client")
         return connection_list
 
     def __handle_handshake_timeouts(self) -> None:
@@ -211,8 +216,7 @@ class Server:
         except OSError:
             pass
 
-    @staticmethod
-    def __run_game(players: List[APIPlayer], executor: ThreadPoolExecutor) -> Tuple[List[APIPlayer], List[APIPlayer]]:
+    def __run_game(self, players: List[APIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
         """
         Run a game of Labyrinth with the given list of players and executor
         :param players: a List of APIPlayers representing the players to play in the game
@@ -220,7 +224,7 @@ class Server:
         :return: The winners names followed by the cheaters names
         """
         referee = Referee(executor=executor)
-        return referee.run_game(players)
+        return self.__run_game_function(referee, players)
 
 
 if __name__ == '__main__':
