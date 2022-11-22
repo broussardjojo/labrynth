@@ -84,11 +84,30 @@ class BaseStrategy(Strategy):
 
         return result
 
+    def get_rotations(self) -> Iterator[int]:
+        """
+        Yield legal spare tile rotations to try.
+
+        The default implementation tries the four rotations in counterclockwise order.
+        :return: An iterator over rotations, each of which is a number of right angle clockwise rotations.
+        """
+        yield from [0, 3, 2, 1]
+
     def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+        """
+        Returns the first move found that the active player can legally make that satisfies their most preferable
+        reachable goal.
+
+        Moves are tested according to their destination's order in self.get_goals(), and for each destination,
+        self.get_legal_slides() determines the preference order for slides.
+        :param current_state: The
+        :param target_position:
+        :return:
+        """
         cache: Dict[RotateAndSlide, Set[Position]] = {}
         for goal in self.get_goals(current_state, target_position):
             for slide in self.get_legal_slides(current_state):
-                for rotation in range(FULL_ROTATION):
+                for rotation in self.get_rotations():
                     legal_destinations = self.get_legal_destinations_after_rotate_and_slide(
                         current_state, rotation, slide, cache
                     )

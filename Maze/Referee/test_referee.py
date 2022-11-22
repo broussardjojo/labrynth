@@ -144,8 +144,7 @@ def state_slow_riemann_win(board_slow_riemann_win, player_one, player_two, playe
 class ForeverStrategy(Strategy):
     __alive = True
 
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Move:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
         while self.__alive:
             time.sleep(1)
         return Move(0, Direction.UP, 0, Position(2, 0))
@@ -155,34 +154,29 @@ class ForeverStrategy(Strategy):
 
 
 class BadSlideIndexStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Move:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
         return Move(1, Direction.UP, 90, Position(2, 0))
 
 
 class BadMoveToStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Move:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
         return Move(0, Direction.UP, 90, Position(2, 0))
 
 
 class BadRotationStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Move:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
         return Move(0, Direction.UP, 14, Position(2, 0))
 
 
 class AlwaysPassStrategy(Strategy):
 
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Pass:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Pass:
         return Pass()
 
 
 class AlwaysRaiseStrategy(Strategy):
 
-    def generate_move(self, current_state: AbstractState, current_position: Position,
-                      target_position: Position) -> Pass:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Pass:
         a = 1 // 0
         return Pass()
 

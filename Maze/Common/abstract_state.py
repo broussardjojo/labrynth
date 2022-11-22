@@ -1,5 +1,6 @@
 from abc import ABC
-from typing import List, Tuple, TypeVar, Generic, Set, Optional
+from typing import List, Tuple, TypeVar, Generic, Set, Optional, Iterator
+from contextlib import contextmanager
 
 from .board import Board
 from .direction import Direction
@@ -166,3 +167,16 @@ class AbstractState(ABC, Generic[TPlayer]):
         else:
             # This should never happen.
             return False
+
+    @contextmanager
+    def exploration_context(self, degrees: int, slide: Tuple[int, Direction]) -> Iterator[None]:
+        prevmoves = self._previous_moves.copy()
+        # Perform the move and yield control to the with block
+        self.rotate_spare_tile(degrees)
+        self.slide_and_insert(*slide)
+        yield
+
+        # Undo the move we just did to keep our state consistent
+        self.slide_and_insert(slide[0], slide[1].get_opposite_direction())
+        self.rotate_spare_tile(360 - degrees)
+        self._previous_moves = prevmoves

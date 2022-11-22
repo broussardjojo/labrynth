@@ -8,12 +8,12 @@ class Pass:
     """
     A Class representing a Passed move, this means there is no sliding, inserting, rotating, or avatar moving
     """
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         Override the to string method for a Pass
         :return: The string "Pass"
         """
-        return "Pass"
+        return "Pass()"
 
     def __eq__(self, other: Any) -> bool:
         """
@@ -22,18 +22,6 @@ class Pass:
         :return: True if the given object is a Pass, False otherwise
         """
         return isinstance(other, Pass)
-
-    @staticmethod
-    def return_if_move_perform_action_if_pass(if_pass_perform_action: Callable[[], Any]) -> Any:
-        """
-        Method on a Pass which when called will return the result of calling the given function object
-        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
-        by itself without breaking anything
-        :param if_pass_perform_action: A function object which takes in no parameters and returns anything
-        NOTE: It is the caller's responsibility to ensure the return type of the function
-        :return: Any depending on what the user requests this Pass to do
-        """
-        return if_pass_perform_action()
 
     def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
         """
@@ -130,10 +118,10 @@ class Move:
                    and other.__destination_position == self.__destination_position
         return False
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         Override for string casting method to help with debugging and visualizing Move objects
         :return: A string representing important information about this Move
         """
-        return f"Index: {self.__slide_index}, Direction: {self.__slide_direction}, Spare Rotation: " \
-               f"{self.__spare_tile_rotation_degrees}, Destination: {self.__destination_position}"
+        return f"Move({self.__slide_index}, {self.__slide_direction}, " \
+               f"{self.__spare_tile_rotation_degrees}, {self.__destination_position})"
