@@ -12,15 +12,12 @@ class Strategy(ABC):
     implemented in any number of ways depending on the Player's AI of choice
     """
     @abstractmethod
-    def generate_move(self, current_state: AbstractState,
-                      current_position: Position,
-                      target_position: Position) -> Union[Move, Pass]:
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
         """
         A method to generate a move selected by the implemented strategy
         :param current_state: An ObservableState representing the current state of the game
         NOTE: the ObservableState provides access to a reference to the board due to Python's pass by reference
         therefore it is important for users to copy the board before making changes to air on the side of caution
-        :param current_position: The current Position of the Player (where the move should begin from)
         :param target_position: The target Position of the Player (where the goal/home is depending on implementation)
         :return: A Move representing a Slide/Insert, rotate, and destination or a Pass
         """

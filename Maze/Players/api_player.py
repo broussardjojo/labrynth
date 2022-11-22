@@ -125,7 +125,7 @@ class LocalPlayer(APIPlayer):
         """
         goal_pos = self.__goal_position.get("take_turn must not be called before setup")
         current_position = current_state.get_active_player_position()
-        return self.__strategy.generate_move(current_state, current_position, goal_pos)
+        return self.__strategy.generate_move(current_state, goal_pos)
 
     def win(self, did_win: bool) -> Acknowledgement:
         """
