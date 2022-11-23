@@ -1,3 +1,4 @@
+import io
 from socket import SocketIO
 from threading import RLock
 from types import TracebackType
@@ -61,7 +62,9 @@ class ReadableStreamWrapper(IO[bytes]):
         Return an empty bytes object at EOF.
         """
         if size < 0:
-            return self.__wrapped.read(size)
+            result = self.__wrapped.read(size)
+            assert result is not None, "ReadableStreamWrapper can not wrap a non-blocking IO object"
+            return result
         received = 0
         buffer = bytes(size)
         while size < 0 or received < size:
@@ -96,16 +99,16 @@ class ReadableStreamWrapper(IO[bytes]):
                     return readable[0].readinto(buffer)
         raise OSError("Can't read a closed file")
 
-    def readline(self, __limit: int = ...) -> bytes:
+    def readline(self, __limit: int = -1) -> bytes:
         raise ValueError("Line-based methods are not available on ReadableStreamWrapper")
 
-    def readlines(self, __hint: int = ...) -> List[bytes]:
+    def readlines(self, __hint: int = -1) -> List[bytes]:
         raise ValueError("Line-based methods are not available on ReadableStreamWrapper")
 
     def seekable(self) -> bool:
         return False
 
-    def seek(self, __offset: int, __whence: int = ...) -> int:
+    def seek(self, __offset: int, __whence: int = io.SEEK_CUR) -> int:
         raise ValueError("Cannot seek")
 
     def tell(self) -> int:

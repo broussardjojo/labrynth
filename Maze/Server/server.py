@@ -37,6 +37,12 @@ class PlayerConnection:
     connection: socket.socket
 
 
+
+# A run game function takes in a Referee and list of safe players, and
+# returns a GameOutcome (winners: List[APIPlayer], cheaters: List[APIPlayer]
+RunGameFn = Callable[[Referee, List[SafeAPIPlayer]], GameOutcome]
+
+
 class Server:
     """
     A class representing the server to run a game of Labyrinth
@@ -52,7 +58,7 @@ class Server:
     WAITING_PERIOD_SECONDS = 20
 
     def __init__(self, port_num: int,
-                 run_game_function: Callable[[Referee, List[SafeAPIPlayer]], GameOutcome] = Referee.run_game):
+                 run_game_function: RunGameFn = Referee.run_game_with_safe_players):
         """
         Constructor for a Server which will use the provided port_num to listen for players
         :param port_num: an int representing the port that this server should expose to listen
