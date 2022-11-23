@@ -1,7 +1,7 @@
 from typing import Any, Callable
 
-from ..Common.direction import Direction
-from ..Common.position import Position
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
 
 
 class Pass:

@@ -5,12 +5,12 @@ from typing import Optional, Any, Union, cast
 
 from typing_extensions import Literal
 
-from .move import Pass, Move
-from .strategy import Strategy
-from ..Common.board import Board
-from ..Common.position import Position
-from ..Common.redacted_state import RedactedState
-from ..Common.utils import Just, Maybe, Nothing
+from Maze.Players.move import Pass, Move
+from Maze.Players.strategy import Strategy
+from Maze.Common.board import Board
+from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
+from Maze.Common.utils import Just, Maybe, Nothing
 
 Acknowledgement = Any
 ACK_OBJECT = object()

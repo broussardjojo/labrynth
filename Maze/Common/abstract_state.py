@@ -2,10 +2,10 @@ from abc import ABC
 from typing import List, Tuple, TypeVar, Generic, Set, Optional, Iterator
 from contextlib import contextmanager
 
-from .board import Board
-from .direction import Direction
-from .position import Position
-from .position_transition_map import PositionTransitionMap
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
+from Maze.Common.position_transition_map import PositionTransitionMap
 from Maze.Common.player_details import PlayerDetails
 
 TPlayer = TypeVar("TPlayer", bound=PlayerDetails)

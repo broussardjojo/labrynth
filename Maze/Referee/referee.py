@@ -3,16 +3,17 @@ from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
 from typing import List, Tuple, Set, Any, ClassVar, Optional
 
-from .observer import Observer
-from ..Common.board import Board
-from ..Common.direction import Direction
-from ..Common.position import Position
-from ..Common.referee_player_details import RefereePlayerDetails
-from ..Common.state import State
-from ..Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
-from ..Common.utils import ALL_NAMED_COLORS, Maybe
-from ..Players.api_player import APIPlayer
-from ..Players.move import Move
+from Maze.Players.safe_api_player import SafeAPIPlayer
+from Maze.Referee.observer import Observer
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
+from Maze.Common.referee_player_details import RefereePlayerDetails
+from Maze.Common.state import State
+from Maze.Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
+from Maze.Common.utils import ALL_NAMED_COLORS, Maybe
+from Maze.Players.api_player import APIPlayer
+from Maze.Players.move import Move
 
 
 log = logging.getLogger(__name__)

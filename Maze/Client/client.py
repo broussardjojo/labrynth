@@ -10,7 +10,7 @@ import ijson
 from Maze.Common.thread_utils import gather_protected
 from Maze.Players.euclid import Euclid
 from Maze.Remote.referee import DispatchingReceiver
-from ..Players.api_player import APIPlayer, LocalPlayer
+from Maze.Players.api_player import APIPlayer, LocalPlayer
 
 # The number of seconds that the client should wait before shutting down if it starts before the Server has.
 WAIT_FOR_SERVER_DURATION = 15

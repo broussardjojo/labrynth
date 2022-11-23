@@ -1,5 +1,5 @@
 import pytest
-from .gem import Gem
+from Maze.Common.gem import Gem
 
 
 # ------ Tests for Gem Constructor -------

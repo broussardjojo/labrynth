@@ -9,21 +9,21 @@ import ijson
 import pytest
 from pydantic import ValidationError
 
-from ..Common.board import Board
-from ..Common.direction import Direction
-from ..Common.position import Position
-from ..Common.referee_player_details import RefereePlayerDetails
-from ..Common.state import State
-from ..Common.thread_utils import await_protected
-from ..Common.utils import get_json_obj_list
-from ..JSON.deserializers import get_tile_grid_from_json
-from ..Players.api_player import LocalPlayer
-from ..Players.euclid import Euclid
-from ..Players.move import Move, Pass
-from ..Players.riemann import Riemann
-from ..Remote.referee import DispatchingReceiver
-from .remote_player_methods import RemotePlayerMethods
-from ..Remote.player import RemotePlayer
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
+from Maze.Common.referee_player_details import RefereePlayerDetails
+from Maze.Common.state import State
+from Maze.Common.thread_utils import await_protected
+from Maze.Common.utils import get_json_obj_list
+from Maze.JSON.deserializers import get_tile_grid_from_json
+from Maze.Players.api_player import LocalPlayer
+from Maze.Players.euclid import Euclid
+from Maze.Players.move import Move, Pass
+from Maze.Players.riemann import Riemann
+from Maze.Remote.referee import DispatchingReceiver
+from Maze.Remote.remote_player_methods import RemotePlayerMethods
+from Maze.Remote.player import RemotePlayer
 
 
 # ----- Examples ------

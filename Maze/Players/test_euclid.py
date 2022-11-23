@@ -3,15 +3,15 @@ from pathlib import Path
 
 import pytest
 
-from .euclid import Euclid
-from .move import Move, Pass
-from ..Common.board import Board
-from ..Common.direction import Direction
-from ..Common.player_details import PlayerDetails
-from ..Common.position import Position
-from ..Common.redacted_state import RedactedState
-from ..Common.utils import get_json_obj_list, shape_dict
-from ..JSON.deserializers import get_tile_grid_from_json
+from Maze.Players.euclid import Euclid
+from Maze.Players.move import Move, Pass
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.player_details import PlayerDetails
+from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
+from Maze.Common.utils import get_json_obj_list, shape_dict
+from Maze.JSON.deserializers import get_tile_grid_from_json
 
 
 # ----- Examples ------

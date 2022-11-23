@@ -1,11 +1,11 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
 import pytest
 
-from .api_player import LocalPlayer
-from ..Common.abstract_state import AbstractState
-from ..Common.board import Board
-from .riemann import Riemann
-from .euclid import Euclid
+from Maze.Players.api_player import LocalPlayer
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.board import Board
+from Maze.Players.riemann import Riemann
+from Maze.Players.euclid import Euclid
 
 
 @pytest.fixture

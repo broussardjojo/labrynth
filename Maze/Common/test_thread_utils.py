@@ -3,10 +3,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import pytest
 
-from ..Players.api_player import LocalPlayer
-from ..Players.riemann import Riemann
-from .thread_utils import gather_protected
-from .utils import Just, Nothing
+from Maze.Players.api_player import LocalPlayer
+from Maze.Players.riemann import Riemann
+from Maze.Common.thread_utils import gather_protected
+from Maze.Common.utils import Just, Nothing
 
 
 @pytest.fixture

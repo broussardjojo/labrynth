@@ -1,12 +1,12 @@
 from typing import List, Set, Any, Optional, Callable, Tuple
-from .tile import Tile
-from .gem import Gem
-from .shapes import Shape, Line, Corner, TShaped, Cross
-from .utils import generate_gem_list
+from Maze.Common.tile import Tile
+from Maze.Common.gem import Gem
+from Maze.Common.shapes import Shape, Line, Corner, TShaped, Cross
+from Maze.Common.utils import generate_gem_list
 import random
-from .direction import Direction, RIGHT_OFFSET, LEFT_OFFSET, DOWN_OFFSET, UP_OFFSET
-from .position import Position
-from .position_transition_map import PositionTransitionMap
+from Maze.Common.direction import Direction, RIGHT_OFFSET, LEFT_OFFSET, DOWN_OFFSET, UP_OFFSET
+from Maze.Common.position import Position
+from Maze.Common.position_transition_map import PositionTransitionMap
 
 
 class Board:

@@ -2,13 +2,13 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import List, Union, Tuple, Iterator, Set, Dict
 
-from .move import Move, Pass
-from .strategy import Strategy
-from ..Common.board import Board
-from ..Common.direction import Direction
-from ..Common.abstract_state import AbstractState
-from ..Common.position import Position
-from ..Common.position_transition_map import PositionTransitionMap
+from Maze.Players.move import Move, Pass
+from Maze.Players.strategy import Strategy
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.position import Position
+from Maze.Common.position_transition_map import PositionTransitionMap
 
 FULL_ROTATION = 4
 RotateAndSlide = Tuple[int, int, Direction]

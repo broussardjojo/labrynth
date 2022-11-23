@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from ..Common.abstract_state import AbstractState
-from ..Common.position import Position
-from .move import Move, Pass
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.position import Position
+from Maze.Players.move import Move, Pass
 
 
 class Strategy(ABC):

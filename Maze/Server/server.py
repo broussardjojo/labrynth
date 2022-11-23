@@ -10,11 +10,12 @@ from typing import Dict, List, Tuple, Iterator, Callable
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 
-from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
-from ..Players.api_player import APIPlayer
-from ..Referee.referee import Referee, GameOutcome
-from ..Remote.player import RemotePlayer
-
+from Maze.Common.utils import Maybe, Nothing, Just, is_valid_player_name
+from Maze.Players.safe_api_player import SafeAPIPlayer
+from Maze.Referee.referee import Referee, GameOutcome
+from Maze.Remote.json_value_queue import JSONValueQueue
+from Maze.Remote.player import RemotePlayer
+from Maze.Remote.safe_remote_player import SafeRemotePlayer
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)

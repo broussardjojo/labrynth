@@ -4,12 +4,12 @@ from typing import Union, Optional, Iterator, Any, IO
 
 import ijson
 
-from .remote_player_methods import RemotePlayerMethods
-from ..Common.board import Board
-from ..Common.position import Position
-from ..Common.redacted_state import RedactedState
-from ..Players.api_player import APIPlayer, Acknowledgement
-from ..Players.move import Move, Pass
+from Maze.Remote.remote_player_methods import RemotePlayerMethods
+from Maze.Common.board import Board
+from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
+from Maze.Players.api_player import APIPlayer, Acknowledgement
+from Maze.Players.move import Move, Pass
 
 log = logging.getLogger(__name__)
 

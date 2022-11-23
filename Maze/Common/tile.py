@@ -1,8 +1,8 @@
 from typing import Tuple
 
-from .direction import Direction
-from .gem import Gem
-from .shapes import Shape
+from Maze.Common.direction import Direction
+from Maze.Common.gem import Gem
+from Maze.Common.shapes import Shape
 
 
 class Tile:

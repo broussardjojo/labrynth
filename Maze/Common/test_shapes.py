@@ -1,6 +1,6 @@
 import pytest
-from .shapes import TShaped, Cross, Corner, Line
-from .direction import Direction
+from Maze.Common.shapes import TShaped, Cross, Corner, Line
+from Maze.Common.direction import Direction
 
 
 # ----- Examples -----

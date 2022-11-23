@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Generic, List, Tuple, Union, Any, Callable, TypeVar
 from typing_extensions import Literal, NoReturn
 
-from .position import Position
-from .shapes import TShaped, Line, Corner, Cross, Shape
-from ..JSON.definitions import JSONConnector
+from Maze.Common.position import Position
+from Maze.Common.shapes import TShaped, Line, Corner, Cross, Shape
+from Maze.JSON.definitions import JSONConnector
 
 # Represents any type
 T = TypeVar("T")

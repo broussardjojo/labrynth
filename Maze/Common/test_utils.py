@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from .position import Position
-from .utils import remove_gem_extension, generate_gem_list, get_euclidean_distance_between
+from Maze.Common.position import Position
+from Maze.Common.utils import remove_gem_extension, generate_gem_list, get_euclidean_distance_between
 
 
 # test the remove_gem_extension function

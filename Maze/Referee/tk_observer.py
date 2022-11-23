@@ -9,14 +9,14 @@ from typing import Deque, Dict, Union
 from PIL import Image, ImageTk
 from typing_extensions import Literal, assert_never
 
-from .observer import Observer
-from ..Common.player_details import PlayerDetails
-from ..Common.direction import Direction
-from ..Common.gem import Gem
-from ..Common.position import Position
-from ..Common.state import State
-from ..Common.tile import Tile
-from ..JSON.serializers import state_to_json
+from Maze.Referee.observer import Observer
+from Maze.Common.player_details import PlayerDetails
+from Maze.Common.direction import Direction
+from Maze.Common.gem import Gem
+from Maze.Common.position import Position
+from Maze.Common.state import State
+from Maze.Common.tile import Tile
+from Maze.JSON.serializers import state_to_json
 
 
 class DisplayStageTag(Enum):

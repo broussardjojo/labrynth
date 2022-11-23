@@ -1,19 +1,20 @@
 import collections
 import json
+import threading
 from typing import Optional, Tuple, Union, IO, Iterator, Any, Callable, TypeVar, Generic
 
 from pydantic import parse_obj_as
 from typing_extensions import Literal, assert_never
 
-from ..Common.position import Position
-from ..Common.redacted_state import RedactedState
-from ..Common.utils import boxed, identity
-from ..JSON.definitions import JSONState, JSONCoordinate, JSONChoice, PlayerMethodName
-from ..JSON.deserializers import (get_redacted_state_from_json,
+from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
+from Maze.Common.utils import boxed, identity
+from Maze.JSON.definitions import JSONState, JSONCoordinate, JSONChoice, PlayerMethodName
+from Maze.JSON.deserializers import (get_redacted_state_from_json,
                                   get_position_from_json, get_move_or_pass_from_json)
-from ..JSON.serializers import move_to_json, pass_to_json, redacted_state_to_json, position_to_json
-from ..Players.api_player import APIPlayer
-from ..Players.move import Move, Pass
+from Maze.JSON.serializers import move_to_json, pass_to_json, redacted_state_to_json, position_to_json
+from Maze.Players.api_player import APIPlayer
+from Maze.Players.move import Move, Pass
 
 TJsonArgs = TypeVar("TJsonArgs")
 TArgs = TypeVar("TArgs")

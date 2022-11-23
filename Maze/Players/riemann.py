@@ -1,9 +1,9 @@
 from typing import Iterator
 
-from .base_strategy import BaseStrategy
-from ..Common.abstract_state import AbstractState
-from ..Common.board import Board
-from ..Common.position import Position
+from Maze.Players.base_strategy import BaseStrategy
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.board import Board
+from Maze.Common.position import Position
 
 
 class Riemann(BaseStrategy):

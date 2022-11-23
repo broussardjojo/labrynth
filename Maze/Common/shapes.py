@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Any
 
-from .direction import Direction
+from Maze.Common.direction import Direction
 
 
 ShapeTuple = Tuple[bool, bool, bool, bool]

@@ -6,21 +6,21 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ..Common.referee_player_details import RefereePlayerDetails
-from ..Common.test_thread_utils import delayed_identity
-from ..Players.euclid import Euclid
-from ..Players.move import Move, Pass
-from .referee import Referee
-from ..Players.riemann import Riemann
-from ..Players.strategy import Strategy
-from ..Common.board import Board
-from ..JSON.deserializers import get_tile_grid_from_json
-from ..Common.direction import Direction
-from ..Common.abstract_state import AbstractState
-from ..Common.position import Position
-from ..Common.utils import get_json_obj_list, shape_dict
-from ..Common.state import State
-from ..Players.api_player import LocalPlayer
+from Maze.Common.referee_player_details import RefereePlayerDetails
+from Maze.Common.test_thread_utils import delayed_identity
+from Maze.Players.euclid import Euclid
+from Maze.Players.move import Move, Pass
+from Maze.Referee.referee import Referee
+from Maze.Players.riemann import Riemann
+from Maze.Players.strategy import Strategy
+from Maze.Common.board import Board
+from Maze.JSON.deserializers import get_tile_grid_from_json
+from Maze.Common.direction import Direction
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.position import Position
+from Maze.Common.utils import get_json_obj_list, shape_dict
+from Maze.Common.state import State
+from Maze.Players.api_player import LocalPlayer
 
 
 # ----- Examples ------

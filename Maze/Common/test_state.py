@@ -1,14 +1,14 @@
 # pylint: disable=missing-function-docstring,redefined-outer-name
 import pytest
-from .board import Board
-from .referee_player_details import RefereePlayerDetails
-from .state import State
-from .tile import Tile
-from .shapes import Line
-from .gem import Gem
-from .direction import Direction
-from .position import Position
-from .utils import shape_dict
+from Maze.Common.board import Board
+from Maze.Common.referee_player_details import RefereePlayerDetails
+from Maze.Common.state import State
+from Maze.Common.tile import Tile
+from Maze.Common.shapes import Line
+from Maze.Common.gem import Gem
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
+from Maze.Common.utils import shape_dict
 
 
 @pytest.fixture

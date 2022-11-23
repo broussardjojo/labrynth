@@ -1,13 +1,13 @@
 from copy import deepcopy
 
 import pytest
-from .board import Board
-from .direction import Direction
-from .gem import Gem
-from .position import Position
-from .tile import Tile
-from .shapes import Corner, Cross
-from .utils import get_connector_from_shape
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.gem import Gem
+from Maze.Common.position import Position
+from Maze.Common.tile import Tile
+from Maze.Common.shapes import Corner, Cross
+from Maze.Common.utils import get_connector_from_shape
 
 
 def board_to_unicode(board):

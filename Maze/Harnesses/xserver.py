@@ -3,12 +3,12 @@ import sys
 from typing import cast, List, Tuple
 
 from Maze.Server.server import Server
-from ..Common.state import State
-from ..Common.utils import get_json_obj_list
-from ..JSON.definitions import JSONBadPlayerSpec, JSONRefereeState
-from ..JSON.deserializers import get_api_player_list_from_bad_player_spec_json, get_state_from_json
-from ..Players.api_player import APIPlayer
-from ..Referee.referee import Referee
+from Maze.Common.state import State
+from Maze.Common.utils import get_json_obj_list
+from Maze.JSON.definitions import JSONBadPlayerSpec, JSONRefereeState
+from Maze.JSON.deserializers import get_api_player_list_from_bad_player_spec_json, get_state_from_json
+from Maze.Players.api_player import APIPlayer
+from Maze.Referee.referee import Referee
 
 
 def run_game(players: List[APIPlayer], state: State) -> Tuple[List[str], List[str]]:

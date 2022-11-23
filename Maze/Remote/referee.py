@@ -3,8 +3,8 @@ from typing import IO, Iterator, Any
 
 import ijson
 
-from .remote_player_methods import RemotePlayerMethods
-from ..Players.api_player import APIPlayer
+from Maze.Remote.remote_player_methods import RemotePlayerMethods
+from Maze.Players.api_player import APIPlayer
 
 
 class DispatchingReceiver:

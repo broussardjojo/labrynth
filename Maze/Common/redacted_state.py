@@ -1,9 +1,9 @@
 from typing import List, Tuple
 
-from .abstract_state import AbstractState
-from .board import Board
-from .direction import Direction
-from .player_details import PlayerDetails
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.player_details import PlayerDetails
 
 
 class RedactedState(AbstractState[PlayerDetails]):

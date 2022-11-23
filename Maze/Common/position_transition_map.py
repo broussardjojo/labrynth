@@ -1,6 +1,6 @@
 from typing import Dict, Any
 
-from ..Common.position import Position
+from Maze.Common.position import Position
 
 
 class PositionTransitionMap:

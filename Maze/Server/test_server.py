@@ -9,10 +9,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from .server import Server
-from ..Common.test_thread_utils import delayed_identity
-from ..Common.thread_utils import gather_protected
-from ..Common.utils import is_valid_player_name
+from Maze.Server.server import Server
+from Maze.Common.test_thread_utils import delayed_identity
+from Maze.Common.thread_utils import gather_protected
+from Maze.Common.utils import is_valid_player_name
 
 
 def client(port_num: int, sends: Optional[bytes] = None, waits: float = 0) -> None:
