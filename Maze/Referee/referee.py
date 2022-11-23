@@ -39,9 +39,9 @@ class Referee:
     for game play)
     """
 
-    __cheater_players: List[APIPlayer]
-    __winning_players: List[APIPlayer]
-    __current_players: List[APIPlayer]
+    __cheater_players: List[SafeAPIPlayer]
+    __winning_players: List[SafeAPIPlayer]
+    __current_players: List[SafeAPIPlayer]
     __num_rounds: int
     __timeout_seconds: float
     __did_active_player_cheat: bool
@@ -95,42 +95,60 @@ class Referee:
         self.__current_players = []
         self.__did_active_player_cheat = False
 
-    def run_game(self, clients: List[APIPlayer]) -> GameOutcome:
+    def run_game(self, players: List[APIPlayer]) -> GameOutcome:
         """
-        Entry method that runs a game of Labyrinth when given a list of players. It creates a State from the given list
-        of players, sets up the game, and then runs the game.
-        :param clients: the list of players for a game of Labyrinth
+        Entry method that runs a game of Labyrinth when given a list of players. It creates a safe version of all
+        the players, then creates a State from the given list of players, sets up the game, and runs the game.
+        :param players: the list of players for a game of Labyrinth
         :return: A List of winning APIPlayers representing either the winner or all players who tied for the win and
         a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
         """
-        selected_board = self.get_proposed_board(clients)
-        players = self.__generate_players(selected_board, len(clients))
-        game_state = State.from_board_and_players(selected_board, players)
-        return self.run_game_from_state(clients, game_state)
+        safe_players = [SafeAPIPlayer(client, self.__executor) for client in players]
+        return self.run_game_with_safe_players(safe_players)
+
+    def run_game_with_safe_players(self, players: List[SafeAPIPlayer]) -> GameOutcome:
+        """
+        Entry method that runs a game of Labyrinth when given a list of players. It creates a State from the given list
+        of players, sets up the game, and then runs the game.
+        :param players: the list of players for a game of Labyrinth
+        :return: A List of winning APIPlayers representing either the winner or all players who tied for the win and
+        a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
+        """
+        selected_board = self.get_proposed_board(players)
+        player_details = self.__generate_players(selected_board, len(players))
+        game_state = State.from_board_and_players(selected_board, player_details)
+        return self.run_game_with_safe_players_from_state(players, game_state)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
         """
-        Entry method that runs a game of Labyrinth when given a game state. It sets up and then runs the game.
-        :param players:
+        Entry method that runs a game of Labyrinth when given a game state. It creates a safe version of all
+        the players, then sets up and runs the game.
+        :param players: the list of players for a game of Labyrinth
         :param game_state: the state for a game of Labyrinth
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating
+        """
+        safe_players = [SafeAPIPlayer(client, self.__executor) for client in players]
+        return self.run_game_with_safe_players_from_state(safe_players, game_state)
 
-        NOTE: In this method we create a new Thread which allows us to continue running the functionality necessary for
-        run_game in the referee while also displaying a GUI if this referee has an Observer. If we did not create this
-        new thread, when the Observer goes to view the state of the game, the GUI program would stop all background
-        computation and the Observer would stop receiving any new States from the Referee, even if the game is in
-        progress. By creating a new Thread, we can support both functionalities: the Referee running a game, and the
-        Observer viewing States from that game. Also note, the mainloop() function from the tkinter GUI library cannot
-        be run outside of the main Thread, which is why we create a separate one for running the game and not for
-        displaying the GUI.
+    def run_game_with_safe_players_from_state(self, players: List[SafeAPIPlayer], game_state: State) -> GameOutcome:
+        """
+        Entry method that runs a game of Labyrinth when given a game state and SafeAPIPlayer list. It sets up
+        players and runs the game.
+        :param players: the list of players for a game of Labyrinth
+        :param game_state: the state for a game of Labyrinth
+        :return: A List of winning Players representing either the winner or all players who tied for the win and
+        a List of cheating Players representing all Players who were kicked out for cheating
         """
         self.__reset_referee()
         self.__current_players = players.copy()
         self.__setup(game_state)
-        return self.__run_game_helper(game_state)
+        winners, cheaters = self.__run_game_helper(game_state)
+        unwrapped_winners = [safe_api_player.player for safe_api_player in winners]
+        unwrapped_cheaters = [safe_api_player.player for safe_api_player in cheaters]
+        return unwrapped_winners, unwrapped_cheaters
 
-    def __run_game_helper(self, game_state: State) -> GameOutcome:
+    def __run_game_helper(self, game_state: State) -> Tuple[List[SafeAPIPlayer], List[SafeAPIPlayer]]:
         """
         Method to run a game of Labyrinth, this method will run until the game is over, for each player in the list
         it will request a move, validate the move, perform the move or kick the player out, and check if the game is
@@ -150,7 +168,7 @@ class Referee:
         return self.__winning_players, self.__cheater_players
 
     @staticmethod
-    def get_proposed_board(clients: List[APIPlayer]) -> Board:
+    def get_proposed_board(clients: List[SafeAPIPlayer]) -> Board:
         """
         Gets a Board from APIPlayers' proposals
         NOTE: this method is mainly defined for testing at this point, we will implement it fully when it is required
@@ -176,14 +194,14 @@ class Referee:
             # TODO: parallel ds
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
-            future = self.__executor.submit(active_api_player.setup, None, active_game_state_player.get_home_position())
             log.info("Send:%s setup start", active_api_player.name())
-            response = await_protected(future, timeout_seconds=self.__timeout_seconds)
+            response = await_protected(active_api_player.setup(None, active_game_state_player.get_home_position()),
+                                       timeout_seconds=self.__timeout_seconds)
             log.info("Send:%s setup end", active_api_player.name())
             if not response.is_present:
                 self.__handle_cheater(active_api_player, game_state)
 
-    def __perform_move(self, proposed_move: Move, active_player: APIPlayer, game_state: State) -> None:
+    def __perform_move(self, proposed_move: Move, active_player: SafeAPIPlayer, game_state: State) -> None:
         """
         Validates the proposed Move by the active APIPlayer. If the move is valid, perform the move, otherwise, kick out
         the active player. If the player passes, add them to the list of passing players
@@ -196,7 +214,7 @@ class Referee:
         else:
             self.__handle_cheater(active_player, game_state)
 
-    def __handle_cheater(self, active_player: APIPlayer, game_state: State) -> None:
+    def __handle_cheater(self, active_player: SafeAPIPlayer, game_state: State) -> None:
         """
         Kicks the given player out of the game and adds them to a list of cheating players.
         :param active_player: the player found cheating
@@ -206,6 +224,7 @@ class Referee:
         self.__current_players.remove(active_player)
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
+        active_player.on_kicked()
         self.__did_active_player_cheat = True
 
     def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]], game_state: State) -> None:
@@ -238,7 +257,7 @@ class Referee:
         future_list: "List[Future[Any]]" = []
         for index, (client, player) in enumerate(zip(self.__current_players, game_state.get_players())):
             state_copy = game_state.copy_redacted(active_player_index=index)
-            future = self.__executor.submit(client.setup, state_copy, player.get_goal_position())
+            future = client.setup(state_copy, player.get_goal_position())
             future_list.append(future)
         log.info("Broadcast setup start")
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds, debug=True)
@@ -307,7 +326,7 @@ class Referee:
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
             did_win = player in winning_players
-            future = self.__executor.submit(client.win, did_win)
+            future = client.win(did_win)
             future_list.append(future)
         log.info("Broadcast win start")
         responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds, debug=True)
@@ -404,8 +423,7 @@ class Referee:
         player_index = game_state.get_active_player_index()
         client = self.__current_players[player_index]
         log.info("Send:%s take_turn start", client.name())
-        response = await_protected(self.__executor.submit(client.take_turn, game_state.copy_redacted()),
-                                   timeout_seconds=self.__timeout_seconds)
+        response = await_protected(client.take_turn(game_state.copy_redacted()), timeout_seconds=self.__timeout_seconds)
         log.info("Send:%s take_turn end", client.name())
         if not response.is_present:
             self.__handle_cheater(client, game_state)
