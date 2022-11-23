@@ -54,13 +54,20 @@ class Client:
         delay_remaining = WAIT_FOR_SERVER_DURATION
         while delay_remaining > 0:
             try:
-                connection = socket.create_connection((self.__host_name, self.__port_num), timeout=min(delay_remaining, 4))
+                connection = socket.create_connection((self.__host_name, self.__port_num),
+                                                      timeout=min(delay_remaining, 1))
             except socket.timeout as error:
                 delay_remaining = delay_end - time.time()
                 if delay_remaining <= 0:
                     raise error
             else:
-                yield connection
+                # Set infinite timeout; the client does not know how long the referee will take between
+                # method calls, and shouldn't care
+                connection.settimeout(None)
+                # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
+                # block
+                with connection:
+                    yield connection
         raise RuntimeError("Timeout error failed to raise with no time remaining")
 
     def play_game(self, player: APIPlayer) -> None:
@@ -69,7 +76,7 @@ class Client:
         details on the gameplay phase, see Maze.Remote.referee
         :return: A bool which is True if the player won, and False if they lost or were kicked out
         """
-        with socket.create_connection((self.__host_name, self.__port_num)) as connection:
+        with self.connect() as connection:
             binary_read_channel = connection.makefile("rb", buffering=0)
             read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
             write_channel = connection.makefile("wb", buffering=0)

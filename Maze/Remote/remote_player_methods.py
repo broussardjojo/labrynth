@@ -1,3 +1,4 @@
+import collections
 import json
 from typing import Optional, Tuple, Union, IO, Iterator, Any, Callable, TypeVar, Generic
 
@@ -19,6 +20,8 @@ TArgs = TypeVar("TArgs")
 TResult = TypeVar("TResult")
 TJsonResult = TypeVar("TJsonResult")
 
+
+debug_deque = collections.deque()
 
 class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
     """
@@ -67,12 +70,12 @@ class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
         :param write_channel: The byte channel on which to send a [MName, TJsonArgs] method call
         :return: The result of the remote call
         """
-        json_args = self.__serialize_args(args)
-        json_call = [self.name, json_args]
-        write_channel.write(json.dumps(json_call).encode("utf-8"))
-        json_result = next(read_channel)
-        self.__validate_result(json_result)
-        result = self.__deserialize_result(json_result)
+        json_args = self.__serialize_args(args); debug_deque.append("{}:73".format(self.name))
+        json_call = [self.name, json_args]; debug_deque.append("{}:74".format(self.name))
+        write_channel.write(json.dumps(json_call).encode("utf-8")); debug_deque.append("{}:75".format(self.name))
+        json_result = next(read_channel); debug_deque.append("{}:76".format(self.name))
+        self.__validate_result(json_result); debug_deque.append("{}:77".format(self.name))
+        result = self.__deserialize_result(json_result); debug_deque.append("{}:78".format(self.name))
         return result
 
     def respond(self, player: APIPlayer, json_args: TJsonArgs, write_channel: IO[bytes]) -> None:

@@ -1,3 +1,4 @@
+import logging
 import sys
 from concurrent import futures
 from concurrent.futures import Future
@@ -6,6 +7,7 @@ from .utils import Nothing, Maybe, Just
 
 DEFAULT_TIMEOUT = 10
 T = TypeVar("T")
+log = logging.getLogger(__name__)
 
 
 def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DEFAULT_TIMEOUT,
@@ -31,11 +33,11 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DE
             except Exception as exc:
                 # The execution of the protected method raised an Exception
                 if debug:
-                    print(exc, file=sys.stderr)
+                    log.error("Future #{} of {}: Exception".format(index, len(future_list)), exc_info=exc)
     except futures.TimeoutError as exc:
         # The timeout of the `as_completed()` call was hit; we've received every result we can
         if debug:
-            print(exc, file=sys.stderr)
+            log.error("TimeoutError", exc_info=exc)
     return results
 
 

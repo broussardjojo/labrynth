@@ -40,7 +40,7 @@ crashing or timing out.
     |  python      |  ->                 |this                               this|    loops               |             |
     |  call        |  select one of      |fence                             fence|    using               |             |
     |              |  the remote         |does                               does|    read, then          |             |
-    |              |  methods            |`serialize_args      `deserialize_args`|    RemotePlayerMethods |             |
+    |              |  methods            |`serialize_args`     `deserialize_args`|    RemotePlayerMethods |             |
     |              |                     |`write`                 `validate_args`|    .respond(Player)    |             |
     |              |                     |                                       |                        |             |
     |              |                     |                                       |                        |             |

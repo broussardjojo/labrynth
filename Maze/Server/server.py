@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import socket
 import sys
 import time
@@ -13,6 +14,10 @@ from ..Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from ..Players.api_player import APIPlayer
 from ..Referee.referee import Referee, GameOutcome
 from ..Remote.player import RemotePlayer
+
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 class InvalidNameError(ValueError):
@@ -60,6 +65,7 @@ class Server:
         Binds a server socket to the configured port number, yields control to the main server logic block,
         then shuts down any connections that are still open
         :return: None
+        side effect: registers the EVENT_READ of the server socket with self.__selector
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as socket_server:
             try:
@@ -70,6 +76,7 @@ class Server:
                 # listen takes a `backlog` argument for the number of unaccepted connections the server can have,
                 # anything beyond that is refused.
                 socket_server.listen(8)
+                self.__selector.register(socket_server, EVENT_READ)
                 yield socket_server
             finally:
                 players = list(self.__players.keys())
@@ -87,14 +94,14 @@ class Server:
         successfully registered players
         :return: Two lists of strings representing the names of the winning and cheating players
         """
-        with self.__bind() as socket_server:
-            self.__selector.register(socket_server, EVENT_READ)
-            with ThreadPoolExecutor(max_workers=32) as executor:
+        with ThreadPoolExecutor(max_workers=32) as executor:
+            with self.__bind() as socket_server:
                 maybe_players = self.accept_players(socket_server, executor)
                 if maybe_players.is_present:
                     winners, cheaters = self.__run_game(maybe_players.get(), executor)
                     winners_names = [player.name() for player in winners]
                     cheaters_names = [player.name() for player in cheaters]
+                    print(executor._threads, file=sys.stderr)
                     return winners_names, cheaters_names
                 if self.__waiting_period >= 2:
                     return [], []
@@ -151,7 +158,7 @@ class Server:
             if key.fileobj is socket_server:
                 socket_client, _ = socket_server.accept()
                 connection_list.append(socket_client)
-                print("New client")
+                log.info("Opening %s", socket_client)
         return connection_list
 
     def __handle_handshake_timeouts(self) -> None:
@@ -188,7 +195,7 @@ class Server:
         :return: a List of APIPlayers if there are enough players to start a game, a Nothing if there aren't
         side effect: Mutates __waiting_period
         """
-        min_to_start = 6
+        min_to_start = self.MAX_TO_START
         new_waiting_period = int(elapsed_time // self.WAITING_PERIOD_SECONDS)
         if new_waiting_period > self.__waiting_period:
             self.__waiting_period = new_waiting_period
@@ -198,8 +205,7 @@ class Server:
             items: List[Tuple[RemotePlayer, socket.socket]] = list(self.__players.items())
             for messenger, connection in items[self.MAX_TO_START:]:
                 self.__players.pop(messenger)
-                connection.shutdown(socket.SHUT_RDWR)
-                connection.close()
+                self.__shutdown_if_needed(connection)
             return Just([player for player, _ in items[:self.MAX_TO_START]])
         return Nothing()
 
@@ -210,11 +216,13 @@ class Server:
         :param connection: a socket representing the desired socket to close
         :return: None
         """
+        log.info("Closing %s", connection)
         try:
             connection.shutdown(socket.SHUT_RDWR)
             connection.close()
+            log.info("Closing %s success", connection)
         except OSError:
-            pass
+            log.error("Closing %s failed", exc_info=True)
 
     def __run_game(self, players: List[APIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
         """

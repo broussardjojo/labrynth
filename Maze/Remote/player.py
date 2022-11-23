@@ -1,3 +1,4 @@
+import logging
 import socket
 from typing import Union, Optional, Iterator, Any, IO
 
@@ -9,6 +10,8 @@ from ..Common.position import Position
 from ..Common.redacted_state import RedactedState
 from ..Players.api_player import APIPlayer, Acknowledgement
 from ..Players.move import Move, Pass
+
+log = logging.getLogger(__name__)
 
 
 class RemotePlayer(APIPlayer):
@@ -75,7 +78,9 @@ class RemotePlayer(APIPlayer):
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """
-        return RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
+        choice = RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
+        log.info("choice:%s: %s", self.__name, choice)
+        return choice
 
     def win(self, did_win: bool) -> Acknowledgement:
         """

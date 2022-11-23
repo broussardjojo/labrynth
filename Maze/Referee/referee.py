@@ -1,3 +1,4 @@
+import logging
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
 from typing import List, Tuple, Set, Any, ClassVar, Optional
@@ -12,6 +13,9 @@ from ..Common.thread_utils import gather_protected, await_protected, DEFAULT_TIM
 from ..Common.utils import ALL_NAMED_COLORS, Maybe
 from ..Players.api_player import APIPlayer
 from ..Players.move import Move
+
+
+log = logging.getLogger(__name__)
 
 # A pair of lists of APIPlayers; the first list represents all winners,
 # the second represents all ejected players
@@ -172,7 +176,9 @@ class Referee:
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
             future = self.__executor.submit(active_api_player.setup, None, active_game_state_player.get_home_position())
+            log.info("Send:%s setup start", active_api_player.name())
             response = await_protected(future, timeout_seconds=self.__timeout_seconds)
+            log.info("Send:%s setup end", active_api_player.name())
             if not response.is_present:
                 self.__handle_cheater(active_api_player, game_state)
 
@@ -233,7 +239,9 @@ class Referee:
             state_copy = game_state.copy_redacted(active_player_index=index)
             future = self.__executor.submit(client.setup, state_copy, player.get_goal_position())
             future_list.append(future)
-        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
+        log.info("Broadcast setup start")
+        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds, debug=True)
+        log.info("Broadcast setup end")
         self.__handle_broadcast_acknowledgements(responses, game_state)
 
     def __generate_players(self, board: Board, count: int) -> List[RefereePlayerDetails]:
@@ -300,7 +308,9 @@ class Referee:
             did_win = player in winning_players
             future = self.__executor.submit(client.win, did_win)
             future_list.append(future)
-        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
+        log.info("Broadcast win start")
+        responses = gather_protected(future_list, timeout_seconds=self.__timeout_seconds, debug=True)
+        log.info("Broadcast win end")
         # clients that fail to acknowledge will be moved from current players to cheater players by this method
         # clients which are still in current_players are the only candidates for the GameOutcome winners
         self.__handle_broadcast_acknowledgements(responses, game_state)
@@ -392,8 +402,10 @@ class Referee:
         # TODO: 3-member Enum return (PASS, MOVE, KICK)?
         player_index = game_state.get_active_player_index()
         client = self.__current_players[player_index]
+        log.info("Send:%s take_turn start", client.name())
         response = await_protected(self.__executor.submit(client.take_turn, game_state.copy_redacted()),
                                    timeout_seconds=self.__timeout_seconds)
+        log.info("Send:%s take_turn end", client.name())
         if not response.is_present:
             self.__handle_cheater(client, game_state)
             return False
