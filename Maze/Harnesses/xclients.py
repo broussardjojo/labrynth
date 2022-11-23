@@ -9,10 +9,16 @@ from Maze.JSON.definitions import JSONEventuallyBadPlayerSpec
 from Maze.JSON.deserializers import get_api_player_list_from_bad_player_spec_json
 from Maze.Players.api_player import LocalPlayer, APIPlayer
 from Maze.Players.euclid import Euclid
+from Maze.Remote.referee import DispatchingReceiver
 
 # A timeout for the period of the game running.
 # Given our 6 player 1000 turn limit, this should never be hit.
 GAME_TIME_LIMIT_SECONDS = 100000
+
+def play_game_thread(client: Client, dispatching_receiver: DispatchingReceiver) -> None:
+    with client:
+        dispatching_receiver.listen_forever()
+
 
 def play_game(players: List[APIPlayer], host: str, port: int) -> None:
     with ThreadPoolExecutor(max_workers=32) as executor:
@@ -20,7 +26,8 @@ def play_game(players: List[APIPlayer], host: str, port: int) -> None:
 
         for player in players:
             client = Client(host, port)
-            future_list.append(executor.submit(client.play_game, player))
+            dispatching_receiver = client.register_for_game(player)
+            future_list.append(executor.submit(play_game_thread, client, dispatching_receiver))
 
         gather_protected(
             future_list,

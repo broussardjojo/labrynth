@@ -48,7 +48,7 @@ class Referee:
 
     __observers: List[Observer]
     __created_own_executor: bool
-    __executor: Executor
+    executor: Executor
     MAX_ROUNDS: ClassVar[int] = 1000
 
     def __init__(self, timeout_seconds: float = DEFAULT_TIMEOUT, executor: Optional[ThreadPoolExecutor] = None):
@@ -56,7 +56,7 @@ class Referee:
         Creates an instance of a Referee given a game State
         """
         self.__observers = []
-        self.__executor = executor if (executor is not None) else ThreadPoolExecutor(max_workers=32)
+        self.executor = executor if (executor is not None) else ThreadPoolExecutor(max_workers=32)
         self.__created_own_executor = executor is None
         self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
@@ -75,7 +75,7 @@ class Referee:
         :return: None
         """
         if self.__created_own_executor:
-            self.__executor.shutdown(wait=False)
+            self.executor.shutdown(wait=False)
 
     def add_observer(self, observer: Observer) -> None:
         """
@@ -103,7 +103,7 @@ class Referee:
         :return: A List of winning APIPlayers representing either the winner or all players who tied for the win and
         a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
         """
-        safe_players = [SafeAPIPlayer(client, self.__executor) for client in players]
+        safe_players = [SafeAPIPlayer(client, self.executor) for client in players]
         return self.run_game_with_safe_players(safe_players)
 
     def run_game_with_safe_players(self, players: List[SafeAPIPlayer]) -> GameOutcome:
@@ -128,7 +128,7 @@ class Referee:
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating
         """
-        safe_players = [SafeAPIPlayer(client, self.__executor) for client in players]
+        safe_players = [SafeAPIPlayer(client, self.executor) for client in players]
         return self.run_game_with_safe_players_from_state(safe_players, game_state)
 
     def run_game_with_safe_players_from_state(self, players: List[SafeAPIPlayer], game_state: State) -> GameOutcome:
@@ -441,7 +441,7 @@ class Referee:
         :return: None
         """
         future_list = [
-            self.__executor.submit(observer.receive_new_state, deepcopy(game_state))
+            self.executor.submit(observer.receive_new_state, deepcopy(game_state))
             for observer in self.__observers
         ]
         gather_protected(future_list, timeout_seconds=self.__timeout_seconds)
@@ -453,7 +453,7 @@ class Referee:
         :return: None
         """
         future_list = [
-            self.__executor.submit(observer.set_game_is_over)
+            self.executor.submit(observer.set_game_is_over)
             for observer in self.__observers
         ]
         gather_protected(future_list, timeout_seconds=self.__timeout_seconds)

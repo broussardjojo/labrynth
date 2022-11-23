@@ -22,12 +22,41 @@ class InvalidNameError(ValueError):
     """
 
 
+def create_connection(host: str, port: int, retry_seconds: float = 0) -> socket.socket:
+    """
+    Yields a connection to the server. This method is responsible for retrying connection for up to
+    a given number seconds before raising an error.
+    :raises: socket.timeout if the final attempt in the allotted time period fails.
+    :return: An iterator for a with block
+    """
+    delay_end = time.time() + retry_seconds
+    delay_remaining: float = retry_seconds
+    while delay_remaining >= 0:
+        try:
+            connection = socket.create_connection((host, port), timeout=min(delay_remaining, 1))
+        except socket.timeout as error:
+            delay_remaining = delay_end - time.time()
+            if delay_remaining <= 0:
+                raise error
+        else:
+            # Set infinite timeout; the client does not know how long the referee will take between
+            # method calls, and shouldn't care
+            connection.settimeout(None)
+            # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
+            # block
+            return connection
+    raise RuntimeError("Timeout error failed to raise with no time remaining")
+
+
 class Client:
     """
-    A class representing the server to run a game of Labyrinth
+    A class representing the client to register for a game of Labyrinth. Usage should look like this:
+
+        with Client(host, port) as client:
+            player_service = client.register_for_game(LocalPlayer(...))
+            player_service.listen_forever()
     """
-    __host_name: str
-    __port_num: int
+    __connection: socket.socket
 
     def __init__(self, host_name: str, port_num: int):
         """
@@ -36,69 +65,29 @@ class Client:
         :param port_num: an int representing the port that the client will connect to
         :raises ValueError: if a port number less than 1 or greater than 65535
         """
-        self.__host_name = host_name
-        if 0 < port_num < 65536:
-            self.__port_num = port_num
-        else:
+        if not 0 < port_num < 65536:
             raise ValueError("Invalid port number supplied")
+        self.__connection = create_connection(host_name, port_num, retry_seconds=WAIT_FOR_SERVER_DURATION)
 
-    @contextmanager
-    def connect(self) -> Iterator[socket.socket]:
+    def __enter__(self) -> "Client":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        try:
+            self.__connection.close()
+        except OSError:
+            pass
+
+    def register_for_game(self, player: APIPlayer) -> DispatchingReceiver:
         """
-        Yields a connection to the server. This method is responsible for retrying connection for up to
-        WAIT_FOR_SERVER_DURATION seconds before raising an error.
-        :raises: socket.timeout if the final attempt in the allotted time period fails.
-        :return:
+        Registers for the game being managed by the server connected to this client, then creates a
+        DispatchingReceiver for it.
+        :return: A DispatchingReceiver connected to the game
         """
-        delay_end = time.time() + WAIT_FOR_SERVER_DURATION
-        delay_remaining = WAIT_FOR_SERVER_DURATION
-        while delay_remaining > 0:
-            try:
-                connection = socket.create_connection((self.__host_name, self.__port_num),
-                                                      timeout=min(delay_remaining, 1))
-            except socket.timeout as error:
-                delay_remaining = delay_end - time.time()
-                if delay_remaining <= 0:
-                    raise error
-            else:
-                # Set infinite timeout; the client does not know how long the referee will take between
-                # method calls, and shouldn't care
-                connection.settimeout(None)
-                # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
-                # block
-                with connection:
-                    yield connection
-        raise RuntimeError("Timeout error failed to raise with no time remaining")
+        binary_read_channel = self.__connection.makefile("rb", buffering=0)
+        read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
+        write_channel = self.__connection.makefile("wb", buffering=0)
+        write_channel.write(json.dumps(player.name()).encode("utf-8"))
+        dispatcher = DispatchingReceiver(player, read_channel, write_channel)
+        return dispatcher
 
-    def play_game(self, player: APIPlayer) -> None:
-        """
-        Connects to the game server, joins the game by sending the given player's name, and begins playing. For more
-        details on the gameplay phase, see Maze.Remote.referee
-        :return: A bool which is True if the player won, and False if they lost or were kicked out
-        """
-        with self.connect() as connection:
-            binary_read_channel = connection.makefile("rb", buffering=0)
-            read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
-            write_channel = connection.makefile("wb", buffering=0)
-            write_channel.write(json.dumps(player.name()).encode("utf-8"))
-            dispatcher = DispatchingReceiver(player, read_channel, write_channel)
-            dispatcher.listen_forever()
-
-
-def play_game_euclid(name: str) -> None:
-    """
-    Method to play a game of Labyrinth with the Euclid strategy over the network with a provided name
-    :param name: A string representing the name of the LocalPlayer to use
-    :return: None
-    """
-    client = Client("localhost", 9999)
-    player = LocalPlayer(name, Euclid())
-    client.play_game(player)
-
-
-if __name__ == '__main__':
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        gather_protected(
-            [executor.submit(play_game_euclid, "dylan"), executor.submit(play_game_euclid, "thomas")],
-            timeout_seconds=60, debug=True
-        )

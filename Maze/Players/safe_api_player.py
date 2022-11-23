@@ -71,7 +71,7 @@ class SafeAPIPlayer:
 
     def on_kicked(self) -> None:
         """
-        A method to tear down any resources used in the construction of this SafeAPIPlayer. This does not trigger
+        A method to tear down any resources used in the construction of this SafeAPIPlayer. This must not trigger
         any interaction with the wrapped APIPlayer, no matter if it is local or remote.
         :return: None
         """

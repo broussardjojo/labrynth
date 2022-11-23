@@ -4,6 +4,7 @@ import socket
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
+from dataclasses import dataclass
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
 from typing import Dict, List, Tuple, Iterator, Callable
 
@@ -13,11 +14,11 @@ from pydantic import ValidationError, StrictStr, parse_obj_as
 from Maze.Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
-from Maze.Remote.json_value_queue import JSONValueQueue
 from Maze.Remote.player import RemotePlayer
+from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 
 
@@ -27,22 +28,31 @@ class InvalidNameError(ValueError):
     """
 
 
+@dataclass
+class PlayerConnection:
+    """
+    Represents a Player across the network and its connection
+    """
+    safe_api_player: SafeAPIPlayer
+    connection: socket.socket
+
+
 class Server:
     """
     A class representing the server to run a game of Labyrinth
     """
-    __players: Dict[RemotePlayer, socket.socket]
+    __player_connections: Dict[socket.socket, PlayerConnection]
     __pending_handshakes: "Dict[Future[str], Tuple[float, socket.socket]]"
     __port_num: int
     __selector: BaseSelector
     __waiting_period: int
-    __run_game_function: Callable[[Referee, List[APIPlayer]], GameOutcome]
+    __run_game_function: Callable[[Referee, List[SafeAPIPlayer]], GameOutcome]
     HANDSHAKE_TIMEOUT_SECONDS = 2
     MAX_TO_START = 6
     WAITING_PERIOD_SECONDS = 20
 
     def __init__(self, port_num: int,
-                 run_game_function: Callable[[Referee, List[APIPlayer]], GameOutcome] = Referee.run_game):
+                 run_game_function: Callable[[Referee, List[SafeAPIPlayer]], GameOutcome] = Referee.run_game):
         """
         Constructor for a Server which will use the provided port_num to listen for players
         :param port_num: an int representing the port that this server should expose to listen
@@ -50,7 +60,7 @@ class Server:
             configurations.
         :raises ValueError: if a port number less than 1 or greater than 65535
         """
-        self.__players = {}
+        self.__player_connections = {}
         self.__pending_handshakes = {}
         self.__selector = DefaultSelector()
         self.__waiting_period = 0
@@ -80,10 +90,10 @@ class Server:
                 self.__selector.register(socket_server, EVENT_READ)
                 yield socket_server
             finally:
-                players = list(self.__players.keys())
-                for player in players:
-                    conn = self.__players.pop(player)
-                    self.__shutdown_if_needed(conn)
+                keys = list(self.__player_connections.keys())
+                for key in keys:
+                    player_conn = self.__player_connections.pop(key)
+                    self.__shutdown_if_needed(player_conn.connection)
                 future_list = list(self.__pending_handshakes.keys())
                 for future in future_list:
                     _, conn = self.__pending_handshakes.pop(future)
@@ -102,12 +112,11 @@ class Server:
                     winners, cheaters = self.__run_game(maybe_players.get(), executor)
                     winners_names = [player.name() for player in winners]
                     cheaters_names = [player.name() for player in cheaters]
-                    print(executor._threads, file=sys.stderr)
                     return winners_names, cheaters_names
-                if self.__waiting_period >= 2:
+                else:
                     return [], []
 
-    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> Maybe[List[APIPlayer]]:
+    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> Maybe[List[SafeAPIPlayer]]:
         """
         Accepts players by listening on socket and runs handshakes until the game is ready to start or has waited for
          two waiting periods
@@ -121,7 +130,7 @@ class Server:
             for tcp_connection in new_clients:
                 future = executor.submit(self.__handshake, tcp_connection)
                 self.__pending_handshakes[future] = time.time(), tcp_connection
-            self.__handle_handshake_timeouts()
+            self.__handle_handshake_timeouts(executor)
             elapsed_time = time.time() - start_time
             maybe_players = self.__get_players_if_enough_players(elapsed_time)
             if maybe_players.is_present:
@@ -162,7 +171,7 @@ class Server:
                 log.info("Opening %s", socket_client)
         return connection_list
 
-    def __handle_handshake_timeouts(self) -> None:
+    def __handle_handshake_timeouts(self, executor: ThreadPoolExecutor) -> None:
         """
         A method to update the current set of pending handshakes. Messengers with successful handshakes are added to
         __messengers and messengers with timeouts or failed handshakes are closed and deleted from __pending_handshakes
@@ -178,10 +187,17 @@ class Server:
                 self.__pending_handshakes.pop(future)
                 try:
                     name = future.result()
-                    remote_player = RemotePlayer.from_socket(future.result(), connection)
-                    self.__players[remote_player] = connection
+                    raw_binary_read_channel = connection.makefile("rb", buffering=0)
+                    binary_read_channel = ReadableStreamWrapper(raw_binary_read_channel)
+                    read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
+                    write_channel = connection.makefile("wb", buffering=0)
+                    remote_player = RemotePlayer(name, read_channel, write_channel)
+                    safe_remote_player = SafeRemotePlayer(remote_player, executor, binary_read_channel)
+                    self.__player_connections[connection] = PlayerConnection(safe_remote_player, connection)
                     print("handshake complete, name={}".format(name), file=sys.stderr)
-                except (ValidationError, ijson.IncompleteJSONError, InvalidNameError) as exc:
+                except (ijson.IncompleteJSONError, ValidationError, InvalidNameError) as exc:
+                    # catch the errors that future.result() can raise; handshake could have gotten malformed JSON,
+                    # the wrong type of JSON, or a JSON string which isn't a valid name
                     self.__shutdown_if_needed(connection)
                     print("handshake failed, exception={}".format(exc), file=sys.stderr)
             elif current_time - start_time >= self.HANDSHAKE_TIMEOUT_SECONDS:
@@ -189,7 +205,7 @@ class Server:
                 self.__shutdown_if_needed(connection)
                 print("handshake timed out", file=sys.stderr)
 
-    def __get_players_if_enough_players(self, elapsed_time: float) -> Maybe[List[APIPlayer]]:
+    def __get_players_if_enough_players(self, elapsed_time: float) -> Maybe[List[SafeAPIPlayer]]:
         """
         Method to get the list of APIPlayers if there are enough registered at the given time
         :param elapsed_time: a float representing the amount of time that has passed since the waiting periods began
@@ -201,13 +217,13 @@ class Server:
         if new_waiting_period > self.__waiting_period:
             self.__waiting_period = new_waiting_period
             min_to_start = 2
-        if len(self.__players) >= min_to_start:
+        if len(self.__player_connections) >= min_to_start:
             # noinspection PyTypeChecker
-            items: List[Tuple[RemotePlayer, socket.socket]] = list(self.__players.items())
-            for messenger, connection in items[self.MAX_TO_START:]:
-                self.__players.pop(messenger)
-                self.__shutdown_if_needed(connection)
-            return Just([player for player, _ in items[:self.MAX_TO_START]])
+            keys = list(self.__player_connections.keys())
+            for key in keys[self.MAX_TO_START:]:
+                player_conn = self.__player_connections.pop(key)
+                self.__shutdown_if_needed(player_conn.connection)
+            return Just([player_conn.safe_api_player for player_conn in self.__player_connections.values()])
         return Nothing()
 
     @staticmethod
@@ -225,7 +241,7 @@ class Server:
         except OSError:
             log.error("Closing %s failed", exc_info=True)
 
-    def __run_game(self, players: List[APIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
+    def __run_game(self, players: List[SafeAPIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
         """
         Run a game of Labyrinth with the given list of players and executor
         :param players: a List of APIPlayers representing the players to play in the game
@@ -234,8 +250,3 @@ class Server:
         """
         referee = Referee(executor=executor)
         return self.__run_game_function(referee, players)
-
-
-if __name__ == '__main__':
-    server = Server(9999)
-    print(server.conduct_game())
