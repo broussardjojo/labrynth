@@ -34,11 +34,11 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DE
             except Exception as exc:
                 # The execution of the protected method raised an Exception
                 if debug:
-                    log.error("Future #{} of {}: Exception".format(index, len(future_list)), exc_info=exc)
+                    log.info("Future #{} of {}: Exception".format(index, len(future_list)), exc_info=exc)
     except futures.TimeoutError as exc:
         # The timeout of the `as_completed()` call was hit; we've received every result we can
         if debug:
-            log.error("TimeoutError", exc_info=exc)
+            log.info("TimeoutError", exc_info=exc)
     return results
 
 

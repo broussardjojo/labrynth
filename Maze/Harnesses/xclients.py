@@ -27,7 +27,7 @@ def play_game(players: List[APIPlayer], host: str, port: int) -> None:
         future_list: List[Future[None]] = []
 
         for join_index, player in enumerate(reversed(players)):
-            delay = join_index * CONFIG.client_start_interval
+            delay = (join_index + 1) * CONFIG.client_start_interval
             future_list.append(executor.submit(play_game_thread, player, host, port, delay))
 
         gather_protected(

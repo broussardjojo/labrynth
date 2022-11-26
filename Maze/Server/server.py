@@ -174,7 +174,7 @@ class Server:
             if key.fileobj is socket_server:
                 socket_client, _ = socket_server.accept()
                 connection_list.append(socket_client)
-                log.info("Opening %s", socket_client)
+                log.info("Accepted %s", socket_client.getpeername())
         return connection_list
 
     def __handle_handshake_timeouts(self, executor: ThreadPoolExecutor) -> None:
@@ -200,16 +200,16 @@ class Server:
                     remote_player = RemotePlayer(name, read_channel, write_channel)
                     safe_remote_player = SafeRemotePlayer(remote_player, executor, binary_read_channel)
                     self.__player_connections[connection] = PlayerConnection(safe_remote_player, connection)
-                    print("handshake complete, name={}".format(name), file=sys.stderr)
+                    log.info("handshake complete, name=%s", name)
                 except (ijson.IncompleteJSONError, ValidationError, InvalidNameError) as exc:
                     # catch the errors that future.result() can raise; handshake could have gotten malformed JSON,
                     # the wrong type of JSON, or a JSON string which isn't a valid name
                     self.__shutdown_if_needed(connection)
-                    print("handshake failed, exception={}".format(exc), file=sys.stderr)
+                    log.info("handshake failed", exc_info=exc)
             elif current_time - start_time >= CONFIG.server_handshake_timeout:
                 self.__pending_handshakes.pop(future)
                 self.__shutdown_if_needed(connection)
-                print("handshake timed out", file=sys.stderr)
+                log.info("handshake timed out")
 
     def __get_players_if_enough_players(self, elapsed_time: float) -> Maybe[List[SafeAPIPlayer]]:
         """
@@ -241,13 +241,13 @@ class Server:
         :param connection: a socket representing the desired socket to close
         :return: None
         """
-        log.info("Closing %s", connection)
+        log.info("Closing %s", connection.getpeername())
         try:
             connection.shutdown(socket.SHUT_RDWR)
             connection.close()
-            log.info("Closing %s success", connection)
+            log.info("Closing success")
         except OSError:
-            log.error("Closing %s failed", exc_info=True)
+            log.error("Closing failed", exc_info=True)
 
     def __run_game(self, players: List[SafeAPIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
         """

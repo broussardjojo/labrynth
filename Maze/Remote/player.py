@@ -78,9 +78,7 @@ class RemotePlayer(APIPlayer):
         :param current_state: a State representing the current state of the game
         :return: A Move or Pass representing the player's selection action on its turn
         """
-        choice = RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
-        log.info("choice:%s: %s", self.__name, choice)
-        return choice
+        return RemotePlayerMethods.take_turn.call((current_state,), self.__read_channel, self.__write_channel)
 
     def win(self, did_win: bool) -> Acknowledgement:
         """

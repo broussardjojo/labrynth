@@ -1,6 +1,7 @@
 import json
 import sys
 import time
+from functools import partial
 from typing import cast, List, Tuple
 
 from Maze.Common.state import State
@@ -15,27 +16,30 @@ from Maze.Referee.tk_observer import TkObserver
 from Maze.Server.server import Server
 
 
-def run_game(players: List[APIPlayer], state: State) -> Tuple[List[str], List[str]]:
+def run_game(state: State, referee: Referee, players: List[SafeAPIPlayer]) -> GameOutcome:
     """
-    Uses a referee to compute the outcome of a game beginning with the given game state, involving the given APIPlayers.
-    :param players: A list of APIPlayer instances
+    Uses a referee to compute the outcome of a game beginning with the given game state,
+    involving the given SafeAPIPlayers.
     :param state: A state for the referee to use
-    :return: A tuple of two lists of strings; the first represents winners, and the second represents cheaters. Both
-    lists are sorted in alphabetical order
+    :param referee: A referee
+    :param players: A list of SafeAPIPlayer instances
+    :return: The outcome of the game: (winners, cheaters)
     """
-    with Referee() as referee:
-        winners, cheaters = referee.run_game_from_state(players, state)
-    winners_names = [player.name() for player in winners]
-    cheaters_names = [player.name() for player in cheaters]
-    winners_names.sort()
-    cheaters_names.sort()
-    return winners_names, cheaters_names
+    return referee.run_game_with_safe_players_from_state(players, state)
 
 
-def run_with_observers(state: State, ref: Referee, players: List[SafeAPIPlayer]) -> GameOutcome:
+def run_with_observer(state: State, referee: Referee, players: List[SafeAPIPlayer]) -> GameOutcome:
+    """
+    Uses a referee to compute the outcome of a game beginning with the given game state, involving the given
+    SafeAPIPlayers, and using an observer.
+    :param state: A state for the referee to use
+    :param referee: A referee
+    :param players: A list of SafeAPIPlayer instances
+    :return: The outcome of the game: (winners, cheaters)
+    """
     observers = [TkObserver()]
-    ref.add_observer(observers[0])
-    game_task = ref.executor.submit(ref.run_game_with_safe_players_from_state, players, state)
+    referee.add_observer(observers[0])
+    game_task = referee.executor.submit(referee.run_game_with_safe_players_from_state, players, state)
     live_observers = observers.copy()
     while len(live_observers):
         timer_start = time.time()
@@ -57,9 +61,12 @@ def main(port: str) -> Tuple[List[str], List[str]]:
     assert len(json_obj_list) == 1
     json_referee_state = cast(JSONRefereeState, json_obj_list[0])
     state = get_state_from_json(json_referee_state)
-    server = Server(int(port), lambda ref, players: ref.run_game_with_safe_players_from_state(players, state))
     # server = Server(int(port), partial(run_with_observers, state))
-    return server.conduct_game()
+    server = Server(int(port), partial(run_game, state))
+    winner_names, cheater_names = server.conduct_game()
+    winner_names.sort()
+    cheater_names.sort()
+    return winner_names, cheater_names
 
 
 # Entry point main method
