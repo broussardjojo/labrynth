@@ -3,19 +3,19 @@ import random
 from collections import deque
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
-from typing import List, Tuple, Set, Any, ClassVar, Optional, Deque
+from enum import Enum
+from typing import List, Tuple, Any, ClassVar, Optional, Deque
 
-from Maze.Players.safe_api_player import SafeAPIPlayer
-from Maze.Referee.observer import Observer
 from Maze.Common.board import Board
-from Maze.Common.direction import Direction
 from Maze.Common.position import Position
 from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
-from Maze.Common.thread_utils import gather_protected, await_protected, DEFAULT_TIMEOUT
+from Maze.Common.thread_utils import gather_protected, await_protected
 from Maze.Common.utils import ALL_NAMED_COLORS, Maybe
 from Maze.Players.api_player import APIPlayer
-from Maze.Players.move import Move
+from Maze.Players.move import Move, Pass
+from Maze.Players.safe_api_player import SafeAPIPlayer
+from Maze.Referee.observer import Observer
 from Maze.config import CONFIG
 
 log = logging.getLogger(__name__)
@@ -23,6 +23,17 @@ log = logging.getLogger(__name__)
 # A pair of lists of APIPlayers; the first list represents all winners,
 # the second represents all ejected players
 GameOutcome = Tuple[List[APIPlayer], List[APIPlayer]]
+
+
+class MoveReturnType(Enum):
+    """
+    An enumeration to represent the various outcomes of a player's turn.
+    Ejections are performed by the caller when the run turn method returns `KICK`, but moves and passes are performed
+    within the run turn method.
+    """
+    PASSED = "PASSED"
+    MOVED = "MOVED"
+    KICK = "KICK"
 
 
 class Referee:
@@ -45,14 +56,13 @@ class Referee:
     __winning_players: List[SafeAPIPlayer]
     __current_players: List[SafeAPIPlayer]
     __num_rounds: int
-    __did_active_player_cheat: bool
     __additional_goals: Deque[Position]
 
     __random: random.Random
     __observers: List[Observer]
     __created_own_executor: bool
     executor: Executor
-    __timeout_seconds: float = CONFIG.referee_method_call_timeout
+    __timeout_seconds: float
     MAX_ROUNDS: ClassVar[int] = 1000
 
     def __init__(self, executor: Optional[ThreadPoolExecutor] = None, random_seed: Optional[int] = None):
@@ -65,6 +75,7 @@ class Referee:
         self.__observers = []
         self.executor = executor if (executor is not None) else ThreadPoolExecutor(max_workers=32)
         self.__created_own_executor = executor is None
+        self.__timeout_seconds = CONFIG.referee_method_call_timeout
         self.__reset_referee()
 
     def __enter__(self) -> "Referee":
@@ -99,7 +110,6 @@ class Referee:
         self.__cheater_players = []
         self.__winning_players = []
         self.__current_players = []
-        self.__did_active_player_cheat = False
         self.__additional_goals = deque()
 
     def run_game(self, players: List[APIPlayer]) -> GameOutcome:
@@ -124,7 +134,7 @@ class Referee:
         selected_board = self.get_proposed_board(players)
         player_details, additional_goals = self.__generate_players(selected_board, len(players))
         game_state = State.from_board_and_players(selected_board, player_details)
-        return self.run_game_with_safe_players_from_state(players, game_state, additional_goals)
+        return self.__run_game_helper(players, game_state, additional_goals)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
         """
@@ -175,7 +185,6 @@ class Referee:
         unwrapped_cheaters = [safe_api_player.player for safe_api_player in cheaters]
         return unwrapped_winners, unwrapped_cheaters
 
-
     def __run_rounds_until_game_over(self, game_state: State) -> Tuple[List[SafeAPIPlayer], List[SafeAPIPlayer]]:
         """
         Method to run a game of Labyrinth, this method will run until the game is over, for each player in the list
@@ -205,43 +214,6 @@ class Referee:
         """
         return Board.from_random_board(seed=3)
 
-    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> None:
-        """
-        Perform a validated move by rotating, sliding and inserting, and moving. Also resets the list of passed APIPlayers
-        because this player is not passing.
-        :param proposed_move: The Move to make
-        :param game_state: The game state from which to make the move
-        :return: None
-        """
-        game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
-        game_state.slide_and_insert(proposed_move.get_slide_index(),
-                                    proposed_move.get_slide_direction())
-        game_state.move_active_player_to(proposed_move.get_destination_position())
-        at_any_goal = game_state.is_active_player_at_goal()
-        if at_any_goal and not game_state.did_active_player_win():
-            # TODO: parallel ds
-            active_api_player = self.__current_players[game_state.get_active_player_index()]
-            active_game_state_player = game_state.get_active_player()
-            log.info("Send:%s setup start", active_api_player.name())
-            response = await_protected(active_api_player.setup(None, active_game_state_player.get_home_position()),
-                                       timeout_seconds=self.__timeout_seconds)
-            log.info("Send:%s setup end", active_api_player.name())
-            if not response.is_present:
-                self.__handle_cheater(active_api_player, game_state)
-
-    def __perform_move(self, proposed_move: Move, active_player: SafeAPIPlayer, game_state: State) -> None:
-        """
-        Validates the proposed Move by the active APIPlayer. If the move is valid, perform the move, otherwise, kick out
-        the active player. If the player passes, add them to the list of passing players
-        :param proposed_move: a Move representing the proposed Move to make
-        :param active_player: a APIPlayer representing the active player to make this Move
-        :return: None
-        """
-        if self.__is_valid_move(proposed_move, game_state):
-            self.__perform_valid_move(proposed_move, game_state)
-        else:
-            self.__handle_cheater(active_player, game_state)
-
     def __handle_cheater(self, active_player: SafeAPIPlayer, game_state: State) -> None:
         """
         Kicks the given player out of the game and adds them to a list of cheating players.
@@ -253,7 +225,6 @@ class Referee:
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
         active_player.on_kicked()
-        self.__did_active_player_cheat = True
 
     def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]], game_state: State) -> None:
         """
@@ -401,59 +372,43 @@ class Referee:
 
     def __is_valid_move(self, proposed_move: Move, game_state: State) -> bool:
         """
-        A method to validate the proposed move is a valid rotation, valid slide and insert, and valid player move
+        A method to validate the proposed move has a valid slide and insert for the current game state, and has a
+        valid destination position for the active player in the game state after performing the given move.
         :param proposed_move: The proposed Move to perform
+        :param game_state: The game state to check the provided Move
         :return: True if the move is valid, False otherwise
         """
-        return self.__check_rotation(proposed_move.get_spare_tile_rotation_degrees()) \
-               and self.__check_slide_and_insert(proposed_move.get_slide_index(),
-                                                 proposed_move.get_slide_direction(), game_state) \
-               and self.__check_player_move(proposed_move, game_state)
+        slide_action = (proposed_move.get_slide_index(), proposed_move.get_slide_direction())
+        if proposed_move.get_spare_tile_rotation_degrees() % 90 != 0:
+            return False
+        if not game_state.is_legal_slide_action(slide_action):
+            return False
+        with game_state.exploration_context(proposed_move.get_spare_tile_rotation_degrees(), slide_action):
+            return proposed_move.get_destination_position() in game_state.get_legal_destinations()
 
-    @staticmethod
-    def __check_rotation(rotation_degrees: int) -> bool:
+    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> None:
         """
-        A method to validate the rotation of the spare Tile is a multiple of 90 degrees
-        :param rotation_degrees: the suggested rotation for the spare Tile
-        :return: True if the rotation is a multiple of 90, False otherwise
-        """
-        return rotation_degrees % 90 == 0
-
-    @staticmethod
-    def __check_slide_and_insert(slide_index: int, slide_direction: Direction, game_state: State) -> bool:
-        """
-        A method to validate the slide is a slideable row and not undoing the previous slide
-        :param slide_index: The suggested index to slide on
-        :param slide_direction: The suggested Direction to slide in
-        :return: True if the suggest slide and insert is valid, False if not
-        """
-        previous_moves = game_state.get_all_previous_non_passes()
-        if previous_moves:
-            last_index, last_direction = previous_moves[-1]
-            if last_index == slide_index and last_direction == slide_direction.get_opposite_direction():
-                return False
-        if slide_direction is Direction.UP or slide_direction is Direction.DOWN:
-            return game_state.get_board().can_slide_vertically(slide_index)
-        return game_state.get_board().can_slide_horizontally(slide_index)
-
-    @staticmethod
-    def __check_player_move(proposed_move: Move, game_state: State) -> bool:
-        """
-        A method to check the player move is to a tile that is on the Board and to a destination they can reach after
-        sliding and inserting
-        :param proposed_move: The proposed rotation, slide, and player move
-        :return: True if the player move is valid, False otherwise
-        """
-        state_copy = deepcopy(game_state)
-        state_copy.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
-        state_copy.slide_and_insert(proposed_move.get_slide_index(), proposed_move.get_slide_direction())
-        return state_copy.can_active_player_reach_position(proposed_move.get_destination_position())
-
-    def __perform_pass(self) -> None:
-        """
-        A helper method to perform a Pass move
+        Perform a validated move by rotating, sliding and inserting, and moving. Also resets the list of passed APIPlayers
+        because this player is not passing.
+        :param proposed_move: The Move to make
+        :param game_state: The game state from which to make the move
         :return: None
         """
+        game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
+        game_state.slide_and_insert(proposed_move.get_slide_index(),
+                                    proposed_move.get_slide_direction())
+        game_state.move_active_player_to(proposed_move.get_destination_position())
+        at_any_goal = game_state.is_active_player_at_goal()
+        if at_any_goal and not game_state.did_active_player_win():
+            # TODO: parallel ds
+            active_api_player = self.__current_players[game_state.get_active_player_index()]
+            active_game_state_player = game_state.get_active_player()
+            log.info("Send:%s setup start", active_api_player.name())
+            response = await_protected(active_api_player.setup(None, active_game_state_player.get_home_position()),
+                                       timeout_seconds=self.__timeout_seconds)
+            log.info("Send:%s setup end", active_api_player.name())
+            if not response.is_present:
+                self.__handle_cheater(active_api_player, game_state)
 
     def __run_round(self, game_state: State) -> bool:
         """
@@ -464,18 +419,20 @@ class Referee:
         any_player_moved = False
         num_players = len(self.__current_players)
         for _ in range(num_players):
-            self.__did_active_player_cheat = False
-            any_player_moved |= self.__run_active_player_turn(game_state)
+            move_outcome = self.__run_active_player_turn(game_state)
+            any_player_moved |= move_outcome is MoveReturnType.MOVED
+            if move_outcome is MoveReturnType.KICK:
+                self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)
             self.send_state_updates_to_observers(game_state)
             if not self.__current_players:
                 return True
             if game_state.did_active_player_win():
                 return True
-            if not self.__did_active_player_cheat:
+            if move_outcome is not MoveReturnType.KICK:
                 game_state.change_active_player_turn()
         return not any_player_moved
 
-    def __run_active_player_turn(self, game_state: State) -> bool:
+    def __run_active_player_turn(self, game_state: State) -> MoveReturnType:
         """
         Runs a single player turn within a game given the current game state
         :param game_state: represents the current state of the game
@@ -488,13 +445,16 @@ class Referee:
         response = await_protected(client.take_turn(game_state.copy_redacted()), timeout_seconds=self.__timeout_seconds)
         log.info("Send:%s take_turn end", client.name())
         if not response.is_present:
-            self.__handle_cheater(client, game_state)
-            return False
+            return MoveReturnType.KICK
         proposed_move = response.get()
-        proposed_move.perform_move_or_pass(lambda move: self.__perform_move(move, client, game_state),
-                                           lambda _: self.__perform_pass())
-        # TODO: Fix dynamic dispatch so we can validate moves here and remove use of isinstance
-        return isinstance(proposed_move, Move) and not self.__did_active_player_cheat
+
+        if isinstance(proposed_move, Pass):
+            return MoveReturnType.PASSED
+        if not self.__is_valid_move(proposed_move, game_state):
+            return MoveReturnType.KICK
+
+        self.__perform_valid_move(proposed_move, game_state)
+        return MoveReturnType.MOVED
 
     def send_state_updates_to_observers(self, game_state: State) -> None:
         """

@@ -8,6 +8,7 @@ class Pass:
     """
     A Class representing a Passed move, this means there is no sliding, inserting, rotating, or avatar moving
     """
+
     def __repr__(self) -> str:
         """
         Override the to string method for a Pass
@@ -23,24 +24,13 @@ class Pass:
         """
         return isinstance(other, Pass)
 
-    def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
-        """
-        Method on a Pass which will perform a given void action, when supplied with two void methods a Pass object
-        calls the second one.
-        NOTE: This method is intended to be used in tandem with the same method in a Move but could be used
-        by itself without breaking anything
-        :param perform_move_action: An unused argument describing the action to perform if this were a Move object
-        :param perform_pass_action: A function object representing the action to perform from this pass
-        :return: None
-        """
-        perform_pass_action(self)
-
 
 class Move:
     """
     A Class representing a Move which is valid move consisting of a slide index, slide Direction,
      spare tile rotation (in degrees), and a Position for the avatar to move to
     """
+
     def __init__(self, slide_index: int, slide_direction: Direction, spare_tile_rotation_degrees: int,
                  destination_position: Position):
         """
@@ -82,28 +72,6 @@ class Move:
         :return: a Position representing the position the Player should move to after sliding and inserting
         """
         return self.__destination_position
-
-    def return_if_move_perform_action_if_pass(self, if_pass_perform_action: Callable[[], Any]) -> None:
-        """
-        Acts as a getter for this Move object
-        NOTE: This method is intended to be used in tandem with the same method in a Pass but could be used
-        by itself without breaking anything
-        :param if_pass_perform_action: an unused function object which is relevant for use in dynamic dispatch
-        :return: This Move
-        """
-        return self
-
-    def perform_move_or_pass(self, perform_move_action: "Callable[[Move], None]", perform_pass_action: "Callable[[Pass], None]") -> None:
-        """
-        Method on a Move which will perform a given void action, when supplied with two void methods a Move object
-        calls the first one.
-        NOTE: This method is intended to be used in tandem with the same method in a Pass but could be used
-        by itself without breaking anything
-        :param perform_move_action: A function object representing the action to perform from this Move
-        :param perform_pass_action: An unused argument describing the action to perform if this were a Pass object
-        :return: None
-        """
-        perform_move_action(self)
 
     def __eq__(self, other: Any) -> bool:
         """
