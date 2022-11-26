@@ -17,6 +17,7 @@ from Maze.Referee.referee import Referee, GameOutcome
 from Maze.Remote.player import RemotePlayer
 from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
+from Maze.config import CONFIG
 
 logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
@@ -53,8 +54,6 @@ class Server:
     __selector: BaseSelector
     __waiting_period: int
     __run_game_function: Callable[[Referee, List[SafeAPIPlayer]], GameOutcome]
-    HANDSHAKE_TIMEOUT_SECONDS = 2
-    MAX_TO_START = 6
     WAITING_PERIOD_SECONDS = 20
 
     def __init__(self, port_num: int,
@@ -115,7 +114,9 @@ class Server:
             with self.__bind() as socket_server:
                 maybe_players = self.accept_players(socket_server, executor)
                 if maybe_players.is_present:
-                    winners, cheaters = self.__run_game(maybe_players.get(), executor)
+                    # These players come in Oldest -> Youngest order, which is the opposite order from what the Referee
+                    # expects. As a result, we reverse the list given from the server in maybe_players.
+                    winners, cheaters = self.__run_game(maybe_players.get()[::-1], executor)
                     winners_names = [player.name() for player in winners]
                     cheaters_names = [player.name() for player in cheaters]
                     return winners_names, cheaters_names
@@ -128,7 +129,7 @@ class Server:
          two waiting periods
         :param socket_server: a socket representing the server which is listening for connections
         :param executor: a ThreadPoolExecutor to spawn handshake threads from
-        :return: a Just[List[APIPlayers]] if the game can begin, otherwise a Nothing
+        :return: a Just[List[APIPlayers]] ordered from oldest to youngest if the game can begin, otherwise a Nothing
         """
         start_time = time.time()
         while not self.__waiting_period >= 2:
@@ -206,7 +207,7 @@ class Server:
                     # the wrong type of JSON, or a JSON string which isn't a valid name
                     self.__shutdown_if_needed(connection)
                     print("handshake failed, exception={}".format(exc), file=sys.stderr)
-            elif current_time - start_time >= self.HANDSHAKE_TIMEOUT_SECONDS:
+            elif current_time - start_time >= CONFIG.server_handshake_timeout:
                 self.__pending_handshakes.pop(future)
                 self.__shutdown_if_needed(connection)
                 print("handshake timed out", file=sys.stderr)
@@ -218,15 +219,17 @@ class Server:
         :return: a List of APIPlayers if there are enough players to start a game, a Nothing if there aren't
         side effect: Mutates __waiting_period
         """
-        min_to_start = self.MAX_TO_START
+        max_to_start = CONFIG.server_maximum_players_to_start
+        min_to_start = max_to_start
         new_waiting_period = int(elapsed_time // self.WAITING_PERIOD_SECONDS)
         if new_waiting_period > self.__waiting_period:
+            # Reached the end of one waiting period - we can run a game with 2+ players
             self.__waiting_period = new_waiting_period
-            min_to_start = 2
+            min_to_start = CONFIG.server_minimum_players_to_start
         if len(self.__player_connections) >= min_to_start:
             # noinspection PyTypeChecker
             keys = list(self.__player_connections.keys())
-            for key in keys[self.MAX_TO_START:]:
+            for key in keys[max_to_start:]:
                 player_conn = self.__player_connections.pop(key)
                 self.__shutdown_if_needed(player_conn.connection)
             return Just([player_conn.safe_api_player for player_conn in self.__player_connections.values()])

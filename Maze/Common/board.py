@@ -219,6 +219,19 @@ class Board:
         return self.__valid_tile_location(row, col) and not (self.can_slide_vertically(row)
                                                              or self.can_slide_vertically(col))
 
+    def get_all_stationary_positions(self) -> List[Position]:
+        """
+        Returns a list of all stationary positions on this board in row-column order.
+        :return: a list of Positions.
+        """
+        result: List[Position] = []
+        for row in range(self.get_height()):
+            for col in range(self.get_width()):
+                if self.check_stationary_position(row, col):
+                    result.append(Position(row, col))
+
+        return result
+
     def __get_slide_row_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
         """
         Gets the PositionTransitionMap for a given slide index and Direction

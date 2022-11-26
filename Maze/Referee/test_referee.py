@@ -21,6 +21,7 @@ from Maze.Common.position import Position
 from Maze.Common.utils import get_json_obj_list, shape_dict
 from Maze.Common.state import State
 from Maze.Players.api_player import LocalPlayer
+from Maze.config import CONFIG
 
 
 # ----- Examples ------
@@ -106,8 +107,9 @@ def player_six():
 
 
 @pytest.fixture
-def referee_no_observer():
-    with Referee(timeout_seconds=0.5) as referee:
+def referee_no_observer(monkeypatch):
+    monkeypatch.setattr(CONFIG, "referee_method_call_timeout", 0.5)
+    with Referee() as referee:
         yield referee
 
 

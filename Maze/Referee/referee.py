@@ -1,7 +1,9 @@
 import logging
+import random
+from collections import deque
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
-from typing import List, Tuple, Set, Any, ClassVar, Optional
+from typing import List, Tuple, Set, Any, ClassVar, Optional, Deque
 
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.observer import Observer
@@ -14,7 +16,7 @@ from Maze.Common.thread_utils import gather_protected, await_protected, DEFAULT_
 from Maze.Common.utils import ALL_NAMED_COLORS, Maybe
 from Maze.Players.api_player import APIPlayer
 from Maze.Players.move import Move
-
+from Maze.config import CONFIG
 
 log = logging.getLogger(__name__)
 
@@ -43,22 +45,26 @@ class Referee:
     __winning_players: List[SafeAPIPlayer]
     __current_players: List[SafeAPIPlayer]
     __num_rounds: int
-    __timeout_seconds: float
     __did_active_player_cheat: bool
+    __additional_goals: Deque[Position]
 
+    __random: random.Random
     __observers: List[Observer]
     __created_own_executor: bool
     executor: Executor
+    __timeout_seconds: float = CONFIG.referee_method_call_timeout
     MAX_ROUNDS: ClassVar[int] = 1000
 
-    def __init__(self, timeout_seconds: float = DEFAULT_TIMEOUT, executor: Optional[ThreadPoolExecutor] = None):
+    def __init__(self, executor: Optional[ThreadPoolExecutor] = None, random_seed: Optional[int] = None):
         """
         Creates an instance of a Referee given a game State
         """
+        self.__random = random.Random()
+        if random_seed is not None:
+            self.__random.seed(random_seed)
         self.__observers = []
         self.executor = executor if (executor is not None) else ThreadPoolExecutor(max_workers=32)
         self.__created_own_executor = executor is None
-        self.__timeout_seconds = timeout_seconds
         self.__reset_referee()
 
     def __enter__(self) -> "Referee":
@@ -94,6 +100,7 @@ class Referee:
         self.__winning_players = []
         self.__current_players = []
         self.__did_active_player_cheat = False
+        self.__additional_goals = deque()
 
     def run_game(self, players: List[APIPlayer]) -> GameOutcome:
         """
@@ -115,9 +122,9 @@ class Referee:
         a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
         """
         selected_board = self.get_proposed_board(players)
-        player_details = self.__generate_players(selected_board, len(players))
+        player_details, additional_goals = self.__generate_players(selected_board, len(players))
         game_state = State.from_board_and_players(selected_board, player_details)
-        return self.run_game_with_safe_players_from_state(players, game_state)
+        return self.run_game_with_safe_players_from_state(players, game_state, additional_goals)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
         """
@@ -127,6 +134,7 @@ class Referee:
         :param game_state: the state for a game of Labyrinth
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating
+        :raises: ValueError if the number of APIPlayers does not match the amount of players in the game state.
         """
         safe_players = [SafeAPIPlayer(client, self.executor) for client in players]
         return self.run_game_with_safe_players_from_state(safe_players, game_state)
@@ -139,16 +147,36 @@ class Referee:
         :param game_state: the state for a game of Labyrinth
         :return: A List of winning Players representing either the winner or all players who tied for the win and
         a List of cheating Players representing all Players who were kicked out for cheating
+        :raises: ValueError if the number of SafeAPIPlayers does not match the amount of players in the game state.
+        """
+        if len(players) != len(game_state.get_players()):
+            raise ValueError(f"Number of APIPlayers ({len(players)}) does not match number of players "
+                             f"in game state ({len(game_state.get_players())})")
+
+        additional_goals = self.__generate_additional_goals_from_state(game_state)
+        return self.__run_game_helper(players, game_state, additional_goals)
+
+    def __run_game_helper(self, players: List[SafeAPIPlayer], game_state: State,
+                          additional_goals: List[Position]) -> GameOutcome:
+        """
+        Entry method that runs a game of Labyrinth when given a game state and SafeAPIPlayer list. It sets up
+        players and runs the game.
+        :param players: the list of players for a game of Labyrinth
+        :param game_state: the state for a game of Labyrinth
+        :return: A List of winning Players representing either the winner or all players who tied for the win and
+        a List of cheating Players representing all Players who were kicked out for cheating
         """
         self.__reset_referee()
+        self.__additional_goals = deque(additional_goals)
         self.__current_players = players.copy()
         self.__setup(game_state)
-        winners, cheaters = self.__run_game_helper(game_state)
+        winners, cheaters = self.__run_rounds_until_game_over(game_state)
         unwrapped_winners = [safe_api_player.player for safe_api_player in winners]
         unwrapped_cheaters = [safe_api_player.player for safe_api_player in cheaters]
         return unwrapped_winners, unwrapped_cheaters
 
-    def __run_game_helper(self, game_state: State) -> Tuple[List[SafeAPIPlayer], List[SafeAPIPlayer]]:
+
+    def __run_rounds_until_game_over(self, game_state: State) -> Tuple[List[SafeAPIPlayer], List[SafeAPIPlayer]]:
         """
         Method to run a game of Labyrinth, this method will run until the game is over, for each player in the list
         it will request a move, validate the move, perform the move or kick the player out, and check if the game is
@@ -264,58 +292,92 @@ class Referee:
         log.info("Broadcast setup end")
         self.__handle_broadcast_acknowledgements(responses, game_state)
 
-    def __generate_players(self, board: Board, count: int) -> List[RefereePlayerDetails]:
+    def __generate_players(self, board: Board, count: int) -> Tuple[List[RefereePlayerDetails], List[Position]]:
         """
-        Generates the initial info (home, goal, current, color) for a given number of players on a given board
+        Generates the initial info (home, goal, current, color) for a given number of players on a given board, and
+        returns it with the list of positions NOT used as initial goals for the players.
         :param board: The Board to prepare players for
         :param count: The number of player information pieces to create
-        :return: A list of Player instances with unique homes
+        :return: A tuple with the first element a list of Player instances with unique homes, and the second element
+            a list of Positions not used as goals for the created players.
         """
         players: List[RefereePlayerDetails] = []
-        homes: Set[Position] = set()
-        for idx in range(count):
-            # Make a unique color
-            color = ALL_NAMED_COLORS[idx] if idx < len(ALL_NAMED_COLORS) else str(idx).zfill(6)
-            player = RefereePlayerDetails.from_home_goal_color(
-                self.__generate_unique_home(board, homes),
-                self.__generate_goal(board),
-                color
-            )
+
+        homes = self.__generate_homes(board, count)
+        initial_goals, additional_goals = self.__generate_initial_and_additional_goals(board, count)
+        colors = self.__generate_colors(count)
+
+        for home, initial_goal, color in zip(homes, initial_goals, colors):
+            player = RefereePlayerDetails.from_home_goal_color(home, initial_goal, color)
             players.append(player)
-            homes.add(player.get_home_position())
-        return players
+
+        return players, additional_goals
 
     @staticmethod
-    def __generate_unique_home(board: Board, prohibited_homes: Set[Position]) -> Position:
+    def __generate_colors(count: int) -> List[str]:
         """
-        Method to generate a unique home Position for a player in the game
+        Generate a unique color for each player in the game.
+        :param count: The number of players to generate colors for.
+        :return: A list of strings representing the colors of each player in the game.
+        """
+        result = ALL_NAMED_COLORS.copy()
+        while len(result) < count:
+            result.append(str(len(result)).zfill(6))
+        return result[:count]
+
+    def __generate_homes(self, board: Board, count: int) -> List[Position]:
+        """
+        Method to generate a unique home Position for all players in the game
         :param board: The Board on which the player's home should be placed
-        :param prohibited_homes: A Set of Positions which are already taken as home positions of other players
-        :return: A Position representing the unique home Position for a player to use
-        :raises: ValueError if there are no unique home tiles remaining, it is the job of whoever creates the referee
-        to only permit the maximum number of players to avoid this error being raised.
+        :param count: The number of Positions to generate as homes.
+        :return: A list of Positions representing the unique home Position for each player to use
+        :raises: ValueError if there are not enough unique home tiles.
         TODO: Test this
         """
-        for row in range(board.get_height()):
-            for col in range(board.get_width()):
-                if board.check_stationary_position(row, col):
-                    potential_position = Position(row, col)
-                    if potential_position not in prohibited_homes:
-                        return potential_position
-        raise ValueError("No Unique Homes Left")
+        stationary_positions = board.get_all_stationary_positions()
 
-    @staticmethod
-    def __generate_goal(board: Board) -> Position:
+        if count > len(stationary_positions):
+            raise ValueError(f"Not enough stationary positions ({len(stationary_positions)}) to assign unique homes"
+                             f"to all players ({count})")
+        self.__random.shuffle(stationary_positions)
+        return stationary_positions[:count]
+
+    def __generate_initial_and_additional_goals(self, board: Board,
+                                                count: int) -> Tuple[List[Position], List[Position]]:
         """
-        Method to generate a goal Position for a player in the game
-        :param board: The Board on which the player's goal should be placed
-        :return: A Position representing the goal Position for a player to use
+        Method to generate sequences of both the initial goals and additional goals.
+        If the referee is not configured to use additional goals, return a tuple whose first element is a list of count
+        non-unique positions to assign as player goals, and an empty list to be used as additional goals.
+        :param board: The Board of which to generate goals for.
+        :return: A tuple of Lists of Positions - the first element of the tuple is the positions to be assigned as
+            initial goals, and the second is the positions to be assigned as additional goals.
         """
-        for row in range(board.get_height()):
-            for col in range(board.get_width()):
-                if board.check_stationary_position(row, col):
-                    return Position(row, col)
-        raise ValueError("Board did not have any stationary positions")
+        stationary_positions = board.get_all_stationary_positions()
+
+        if CONFIG.referee_use_additional_goals:
+            if count > len(stationary_positions):
+                raise ValueError(f"Not enough stationary positions ({len(stationary_positions)}) to assign unique goals"
+                                 f"to all players ({count})")
+            self.__random.shuffle(stationary_positions)
+            return stationary_positions[:count], stationary_positions[count:]
+        else:
+            return self.__random.choices(stationary_positions, k=count), []
+
+    def __generate_additional_goals_from_state(self, game_state: State) -> List[Position]:
+        """
+        Method to generate a list of additional goals from a game state that already has assigned players initial goals.
+        If the referee is not configured to use additional goals, return an empty list.
+        :param game_state: The State for which to generate additional goals for.
+        :return: A list of Positions to be used as additional goals.
+        """
+        if CONFIG.referee_use_additional_goals:
+            initial_goals = {player.get_goal_position() for player in game_state.get_players()}
+            additional_goals = [position for position in game_state.get_board().get_all_stationary_positions()
+                                if position not in initial_goals]
+            self.__random.shuffle(additional_goals)
+            return additional_goals
+        else:
+            return []
 
     def __inform_winning_players(self, game_state: State) -> None:
         """
