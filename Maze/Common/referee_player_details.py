@@ -12,6 +12,7 @@ class RefereePlayerDetails(PlayerDetails):
     _goal_position: Position
     _current_position: Position
     _color: str
+    _is_goal_ultimate: bool
 
     def __init__(self, home_position: Position, goal_position: Position,
                  current_position: Position, color: str):
@@ -24,6 +25,7 @@ class RefereePlayerDetails(PlayerDetails):
         """
         super().__init__(home_position, current_position, color)
         self._goal_position = goal_position
+        self._is_goal_ultimate = False
 
     @classmethod
     def from_home_goal_color(cls, home_position: Position, goal_position: Position,
@@ -59,12 +61,24 @@ class RefereePlayerDetails(PlayerDetails):
         """
         return self._goal_position
 
-    def set_goal_position(self, new_position: Position) -> None:
+    def is_goal_ultimate(self) -> bool:
         """
-        Setter for __goal_position
+        Returns if the player's goal will not be followed by subsequent assignments.
+        :return: True if the player's goal is their last one they will be assigned.
+        """
+        return self._is_goal_ultimate
+
+    def set_goal_position(self, new_position: Position, is_ultimate: bool = False) -> None:
+        """
+        Setter for __goal_position.
+        :param new_position: The position the player should now move towards.
+        :param is_ultimate: A boolean flag to determine if there will not be another goal assigned after reaching this
+            one.
         :return: None
         """
         self._goal_position = new_position
+        self._is_goal_ultimate = is_ultimate
+
 
     def copy_without_secrets(self) -> PlayerDetails:
         """

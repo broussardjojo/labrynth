@@ -67,31 +67,33 @@ class State(AbstractState[RefereePlayerDetails]):
         Checks if the active player for this State is at their goal Position.
         :return: True if the active player is at their goal Position, otherwise False
         :raises: ValueError if there are no players in this State
-        side effect: adds 1 to the player's __player_to_goals_reached value if they are at their goal
         """
         if self._players:
             active_player = self.get_active_player()
-            current_goals_reached = self.__player_to_goals_reached[active_player]
-            next_goal_position = (active_player.get_home_position()
-                                  if current_goals_reached > 0
-                                  else active_player.get_goal_position())
-            if active_player.get_current_position() == next_goal_position:
-                self.__player_to_goals_reached[active_player] += 1
-                return True
-            return False
+            next_goal_position = (active_player.get_goal_position())
+            return active_player.get_current_position() == next_goal_position
         raise ValueError("No players to check")
 
-    def did_active_player_win(self) -> bool:
+    def update_active_player_goals_reached(self) -> bool:
+        """
+        adds 1 to the player's __player_to_goals_reached value if they are at their goal
+        :return: True if the active player is at their goal Position, otherwise False
+        """
+        if self.is_active_player_at_goal():
+            self.__player_to_goals_reached[self.get_active_player()] += 1
+            return True
+        return False
+
+    def did_active_player_end_game(self) -> bool:
         """
         Checks if the active player for this State is has won (i.e. has reached two goals, their treasure
         Position followed by their home Position).
-        TODO: Don't hardcode 2 goals
         :return: True if the active player has won, otherwise False
         :raises: ValueError if there are no players in this State
         """
         if self._players:
             active_player = self.get_active_player()
-            return self.__player_to_goals_reached[active_player] >= 2
+            return active_player.is_goal_ultimate() and self.is_active_player_at_goal()
         raise ValueError("No players to check")
 
     def can_active_player_reach_position(self, target_position: Position) -> bool:
@@ -172,11 +174,7 @@ class State(AbstractState[RefereePlayerDetails]):
                                                               Position(self._board.get_height(),
                                                                        self._board.get_width()))
         for player in possible_winners:
-            current_goals_reached = self.__player_to_goals_reached[player]
-            next_goal_position = (player.get_home_position()
-                                  if current_goals_reached > 0
-                                  else player.get_goal_position())
-            player_distance = get_euclidean_distance_between(player.get_current_position(), next_goal_position)
+            player_distance = get_euclidean_distance_between(player.get_current_position(), player.get_goal_position())
             if player_distance < current_min_distance:
                 current_min_distance = player_distance
                 closest_players = [player]

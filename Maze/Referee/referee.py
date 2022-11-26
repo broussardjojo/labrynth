@@ -398,17 +398,32 @@ class Referee:
         game_state.slide_and_insert(proposed_move.get_slide_index(),
                                     proposed_move.get_slide_direction())
         game_state.move_active_player_to(proposed_move.get_destination_position())
-        at_any_goal = game_state.is_active_player_at_goal()
-        if at_any_goal and not game_state.did_active_player_win():
+        at_any_goal = game_state.update_active_player_goals_reached()
+        if at_any_goal and not game_state.did_active_player_end_game():
             # TODO: parallel ds
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
+            self.__assign_next_goal_position(active_game_state_player)
             log.info("Send:%s setup start", active_api_player.name())
-            response = await_protected(active_api_player.setup(None, active_game_state_player.get_home_position()),
-                                       timeout_seconds=self.__timeout_seconds)
+            response = await_protected(
+                active_api_player.setup(None, active_game_state_player.get_goal_position()),
+                timeout_seconds=self.__timeout_seconds
+            )
             log.info("Send:%s setup end", active_api_player.name())
             if not response.is_present:
                 self.__handle_cheater(active_api_player, game_state)
+
+    def __assign_next_goal_position(self, player_details: RefereePlayerDetails) -> None:
+        """
+        Assigns the position of the next goal assignment for the given player.
+        This can be the position of another treasure or of the player's home if there are no more additional goals.
+        :param player_details: The player to return a goal assignment for.
+        Side effect: If there are remaining goals in the referee's additional goals, this method removes the leftmost.
+        """
+        if len(self.__additional_goals) > 0:
+            player_details.set_goal_position(self.__additional_goals.popleft())
+        else:
+            player_details.set_goal_position(player_details.get_home_position(), is_ultimate=True)
 
     def __run_round(self, game_state: State) -> bool:
         """
@@ -426,7 +441,7 @@ class Referee:
             self.send_state_updates_to_observers(game_state)
             if not self.__current_players:
                 return True
-            if game_state.did_active_player_win():
+            if game_state.did_active_player_end_game():
                 return True
             if move_outcome is not MoveReturnType.KICK:
                 game_state.change_active_player_turn()
