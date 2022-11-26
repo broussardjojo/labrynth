@@ -1,11 +1,10 @@
 import functools
-import time
 from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from Maze.Players.api_player import LocalPlayer
 from Maze.Players.riemann import Riemann
-from Maze.Common.thread_utils import gather_protected
+from Maze.Common.thread_utils import gather_protected, sleep_interruptibly
 from Maze.Common.utils import Just, Nothing
 
 
@@ -24,11 +23,7 @@ def sample_api_player():
 
 
 def delayed_identity(delay_seconds, arg):
-    delay_end = time.time() + delay_seconds
-    delay_remaining = delay_seconds
-    while delay_remaining > 0:
-        time.sleep(min(delay_remaining, 0.1))
-        delay_remaining = delay_end - time.time()
+    sleep_interruptibly(delay_seconds)
     return arg
 
 

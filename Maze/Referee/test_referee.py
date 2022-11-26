@@ -6,21 +6,21 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from Maze.Common.abstract_state import AbstractState
+from Maze.Common.board import Board
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
 from Maze.Common.referee_player_details import RefereePlayerDetails
-from Maze.Common.test_thread_utils import delayed_identity
+from Maze.Common.state import State
+from Maze.Common.thread_utils import sleep_interruptibly
+from Maze.Common.utils import get_json_obj_list, shape_dict
+from Maze.JSON.deserializers import get_tile_grid_from_json
+from Maze.Players.api_player import LocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Players.move import Move, Pass
-from Maze.Referee.referee import Referee
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy
-from Maze.Common.board import Board
-from Maze.JSON.deserializers import get_tile_grid_from_json
-from Maze.Common.direction import Direction
-from Maze.Common.abstract_state import AbstractState
-from Maze.Common.position import Position
-from Maze.Common.utils import get_json_obj_list, shape_dict
-from Maze.Common.state import State
-from Maze.Players.api_player import LocalPlayer
+from Maze.Referee.referee import Referee
 from Maze.config import CONFIG
 
 
@@ -286,7 +286,7 @@ def test_run_game_one_timeout_setup(referee_no_observer, seeded_game_state_three
         api_player, mock = api_player_with_mock(f"player{i}",
                                                 AlwaysPassStrategy(),
                                                 "setup",
-                                                (lambda *args: delayed_identity(1, None)) if i == 0 else None)
+                                                (lambda *args: sleep_interruptibly(1)) if i == 0 else None)
         api_players.append(api_player)
         mocks.append(mock)
     winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, seeded_game_state_three)

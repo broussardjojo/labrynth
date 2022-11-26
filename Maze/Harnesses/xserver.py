@@ -1,19 +1,18 @@
 import json
 import sys
 import time
-from functools import partial
 from typing import cast, List, Tuple
 
-from Maze.Harnesses.xgames import TARGET_OBSERVER_UPDATE_SPEED
-from Maze.Players.safe_api_player import SafeAPIPlayer
-from Maze.Referee.tk_observer import TkObserver
-from Maze.Server.server import Server
 from Maze.Common.state import State
 from Maze.Common.utils import get_json_obj_list
-from Maze.JSON.definitions import JSONBadPlayerSpec, JSONRefereeState
-from Maze.JSON.deserializers import get_api_player_list_from_bad_player_spec_json, get_state_from_json
+from Maze.Harnesses.xgames import TARGET_OBSERVER_UPDATE_SPEED
+from Maze.JSON.definitions import JSONRefereeState
+from Maze.JSON.deserializers import get_state_from_json
 from Maze.Players.api_player import APIPlayer
+from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
+from Maze.Referee.tk_observer import TkObserver
+from Maze.Server.server import Server
 
 
 def run_game(players: List[APIPlayer], state: State) -> Tuple[List[str], List[str]]:

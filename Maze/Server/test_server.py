@@ -10,13 +10,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from Maze.Server.server import Server
-from Maze.Common.test_thread_utils import delayed_identity
-from Maze.Common.thread_utils import gather_protected
+from Maze.Common.thread_utils import gather_protected, sleep_interruptibly
 from Maze.Common.utils import is_valid_player_name
 
 
 def client(port_num: int, sends: Optional[bytes] = None, waits: float = 0) -> None:
-    delayed_identity(waits + 0.5, None)
+    sleep_interruptibly(waits + 0.5)
     with socket.create_connection(("127.0.0.1", port_num)) as connection:
         if sends:
             connection.send(sends)
@@ -61,14 +60,14 @@ class Game:
      Game(20, 23, {"dylan", "adam", "bob", "david"})),
     # Some bad, all join in first waiting period, some not immediately
     ([good("dylan", 6), unresp(0), badjson(0), good("bob", 0), unresp(0), badtype(2)],
-     Game(20, 23, ["bob", "dylan"])),
+     Game(20, 23, ["dylan", "bob"])),
     # Some bad, some join in first waiting period, some join in second waiting period
     ([good("dylan", 6), unresp(0), badjson(0), good("bob", 30), unresp(0), badtype(2)],
-     Game(40, 43, ["dylan", "bob"])),
+     Game(40, 43, ["bob", "dylan"])),
     # All good, some join in first waiting period, some join in second waiting period
     ([good("dylan", 6), good("bob", 30), good("thomas", 31), good("adam", 32), good("bob2", 33), good("charlie", 34),
       good("david", 35)],
-     Game(34, 37, ["dylan", "bob", "thomas", "adam", "bob2", "charlie"])),
+     Game(34, 37, ["charlie", "bob2", "adam", "thomas", "bob", "dylan"])),
     # All bad, some join in first waiting period, some join in second waiting period
     ([unresp(4), unresp(0), badjson(0), misnamed("bob 2", 30), unresp(0), badtype(2)],
      Game(40, 43, set())),

@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 from concurrent import futures
 from concurrent.futures import Future
 from typing import List, TypeVar
@@ -50,3 +51,19 @@ def await_protected(future: "Future[T]", timeout_seconds=DEFAULT_TIMEOUT) -> May
     :return: a Maybe, where Just(value) represents a success, and Nothing() represents a failure
     """
     return gather_protected([future], timeout_seconds=timeout_seconds)[0]
+
+
+def sleep_interruptibly(delay_seconds: float, loop_interval: float = 0.1) -> None:
+    """
+    Sleeps for the given duration in seconds, using a loop so that the GIL does not block on a single `time.sleep`
+    call.
+    :param delay_seconds: The intended duration for sleep
+    :param loop_interval: The maximum time to spend in one `time.sleep` call
+    :return: None
+    :raises: ValueError if loop_interval is negative
+    """
+    delay_end = time.time() + delay_seconds
+    delay_remaining = delay_seconds
+    while delay_remaining > 0:
+        time.sleep(min(delay_remaining, loop_interval))
+        delay_remaining = delay_end - time.time()
