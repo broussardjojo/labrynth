@@ -1,4 +1,18 @@
+import logging
+import os
 from dataclasses import dataclass
+
+_log_levels = {
+    'CRITICAL': logging.CRITICAL,
+    'FATAL': logging.FATAL,
+    'ERROR': logging.ERROR,
+    'WARN': logging.WARNING,
+    'WARNING': logging.WARNING,
+    'INFO': logging.INFO,
+    'DEBUG': logging.DEBUG,
+}
+
+logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL"), logging.WARNING))
 
 
 @dataclass

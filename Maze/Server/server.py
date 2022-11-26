@@ -19,7 +19,6 @@ from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
 from Maze.config import CONFIG
 
-logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 
 

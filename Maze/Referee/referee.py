@@ -29,10 +29,12 @@ class MoveReturnType(Enum):
     """
     An enumeration to represent the various outcomes of a player's turn.
     Ejections are performed by the caller when the run turn method returns `KICK`, but moves and passes are performed
-    within the run turn method.
+    within the run turn method. ENDED_GAME implies that the player moved onto their ultimate goal -
+    the other completion criteria must be checked by the caller of the run turn method.
     """
     PASSED = "PASSED"
     MOVED = "MOVED"
+    ENDED_GAME = "ENDED_GAME"
     KICK = "KICK"
 
 
@@ -116,6 +118,12 @@ class Referee:
         """
         Entry method that runs a game of Labyrinth when given a list of players. It creates a safe version of all
         the players, then creates a State from the given list of players, sets up the game, and runs the game.
+
+        A game consists of rounds (each remaining player taking a turn), until one of the completion criteria is met:
+        1. a player reaches its home (also refereed to as its ultimate goal) after visiting its all of its goal tiles;
+        2. all players that survive a round opt to pass
+        3. the referee has run 1000 rounds
+
         :param players: the list of players for a game of Labyrinth
         :return: A List of winning APIPlayers representing either the winner or all players who tied for the win and
         a List of cheating APIPlayers representing all APIPlayers who were kicked out for cheating.
@@ -203,6 +211,28 @@ class Referee:
         self.__inform_winning_players(game_state)
         self.send_game_over_to_observers()
         return self.__winning_players, self.__cheater_players
+
+    def __run_round(self, game_state: State) -> bool:
+        """
+        Runs a round of a game. A round is considered complete when all players have taken a turn.
+        :param game_state: represents the current state of the game
+        :return: True if the game is over, otherwise False
+        """
+        any_player_moved = False
+        num_players = len(self.__current_players)
+        for _ in range(num_players):
+            move_outcome = self.__run_active_player_turn(game_state)
+            any_player_moved |= (move_outcome is MoveReturnType.MOVED or move_outcome is MoveReturnType.ENDED_GAME)
+            if move_outcome is MoveReturnType.KICK:
+                self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)
+            self.send_state_updates_to_observers(game_state)
+            if not self.__current_players:
+                return True
+            if move_outcome is MoveReturnType.ENDED_GAME:
+                return True
+            if move_outcome is not MoveReturnType.KICK:
+                game_state.change_active_player_turn()
+        return not any_player_moved
 
     @staticmethod
     def get_proposed_board(clients: List[SafeAPIPlayer]) -> Board:
@@ -386,20 +416,22 @@ class Referee:
         with game_state.exploration_context(proposed_move.get_spare_tile_rotation_degrees(), slide_action):
             return proposed_move.get_destination_position() in game_state.get_legal_destinations()
 
-    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> None:
+    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> MoveReturnType:
         """
-        Perform a validated move by rotating, sliding and inserting, and moving. Also resets the list of passed APIPlayers
-        because this player is not passing.
+        Perform a validated move by rotating, sliding and inserting, and moving.
         :param proposed_move: The Move to make
         :param game_state: The game state from which to make the move
-        :return: None
+        :return: ENDED_GAME if the player ended the game with this move; KICK if the move triggered a setup call and
+            the player behaved badly; MOVED otherwise. See the docstring of `run_game` for more on ending a game
         """
         game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
         game_state.slide_and_insert(proposed_move.get_slide_index(),
                                     proposed_move.get_slide_direction())
         game_state.move_active_player_to(proposed_move.get_destination_position())
         at_any_goal = game_state.update_active_player_goals_reached()
-        if at_any_goal and not game_state.did_active_player_end_game():
+        if game_state.did_active_player_end_game():
+            return MoveReturnType.ENDED_GAME
+        if at_any_goal:
             # TODO: parallel ds
             active_api_player = self.__current_players[game_state.get_active_player_index()]
             active_game_state_player = game_state.get_active_player()
@@ -411,7 +443,8 @@ class Referee:
             )
             log.info("Send:%s setup end", active_api_player.name())
             if not response.is_present:
-                self.__handle_cheater(active_api_player, game_state)
+                return MoveReturnType.KICK
+        return MoveReturnType.MOVED
 
     def __assign_next_goal_position(self, player_details: RefereePlayerDetails) -> None:
         """
@@ -425,40 +458,17 @@ class Referee:
         else:
             player_details.set_goal_position(player_details.get_home_position(), is_ultimate=True)
 
-    def __run_round(self, game_state: State) -> bool:
-        """
-        Runs a round of a game. A round is considered complete when all players have taken a turn.
-        :param game_state: represents the current state of the game
-        :return: True if the game is over, otherwise False
-        """
-        any_player_moved = False
-        num_players = len(self.__current_players)
-        for _ in range(num_players):
-            move_outcome = self.__run_active_player_turn(game_state)
-            any_player_moved |= move_outcome is MoveReturnType.MOVED
-            if move_outcome is MoveReturnType.KICK:
-                self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)
-            self.send_state_updates_to_observers(game_state)
-            if not self.__current_players:
-                return True
-            if game_state.did_active_player_end_game():
-                return True
-            if move_outcome is not MoveReturnType.KICK:
-                game_state.change_active_player_turn()
-        return not any_player_moved
-
     def __run_active_player_turn(self, game_state: State) -> MoveReturnType:
         """
         Runs a single player turn within a game given the current game state
         :param game_state: represents the current state of the game
         :return: True if the player moves legally, otherwise False
         """
-        # TODO: 3-member Enum return (PASS, MOVE, KICK)?
         player_index = game_state.get_active_player_index()
         client = self.__current_players[player_index]
         log.info("Send:%s take_turn start", client.name())
         response = await_protected(client.take_turn(game_state.copy_redacted()), timeout_seconds=self.__timeout_seconds)
-        log.info("Send:%s take_turn end", client.name())
+        log.info("Send:%s take_turn end %r", client.name(), response)
         if not response.is_present:
             return MoveReturnType.KICK
         proposed_move = response.get()
@@ -467,9 +477,7 @@ class Referee:
             return MoveReturnType.PASSED
         if not self.__is_valid_move(proposed_move, game_state):
             return MoveReturnType.KICK
-
-        self.__perform_valid_move(proposed_move, game_state)
-        return MoveReturnType.MOVED
+        return self.__perform_valid_move(proposed_move, game_state)
 
     def send_state_updates_to_observers(self, game_state: State) -> None:
         """
