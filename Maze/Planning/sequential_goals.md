@@ -24,12 +24,13 @@ Things to implement:
   - Includes boolean flag for "assign_additional_goals"
   - Include timeouts / etc for remote communication so we don't just keep changing default values
   - Consider overwriting default `__init__` for field verification
+  - Consider including server waiting room durations
 - Refactoring assigned/additional goals for the Referee
   - ~~See `referee\referee.py:198` - change get_home_position to a helper to get next goal position `referee.get_next_goal_position`, which takes in a referee_player_details~~
   - ~~Class field to store additional goals in Referee~~
-  - Make sure we update the number of goals a player reaches
+  - ~~Make sure we update the number of goals a player reaches~~
   - ? Make sure that if a setup call fails we do remove the goal
     - Currently working with belief that if the goal is sent from the Referee with setup it is no longer eligible [(source)](https://piazza.com/class/l7g9e46cc2l4d3/post/224)
   - 
-- Make sure we do turn order youngest -> oldest (last player connected to server -> first player connected to server)
-- xclients should wait 3 seconds between launching clients to avoid nondeterminism
+- ~~Make sure we do turn order youngest -> oldest (last player connected to server -> first player connected to server)~~
+- ~~xclients should wait 3 seconds between launching clients to avoid nondeterminism~~
