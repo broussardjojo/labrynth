@@ -1,5 +1,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
 import time
+from functools import wraps
 from pathlib import Path
 from typing import Tuple, Optional, Callable, Any
 from unittest.mock import MagicMock
@@ -77,6 +78,21 @@ def board_slow_riemann_win():
 
 
 @pytest.fixture
+def board_fully_connected():
+    connector_rows = [
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+        "┼┼┼┼┼┼┼",
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["┬"])
+
+
+@pytest.fixture
 def player_one():
     return RefereePlayerDetails.from_home_goal_color(Position(5, 1), Position(3, 1), "pink")
 
@@ -114,6 +130,13 @@ def referee_no_observer(monkeypatch):
 
 
 @pytest.fixture
+def seeded_referee_no_observer(monkeypatch):
+    monkeypatch.setattr(CONFIG, "referee_method_call_timeout", 0.5)
+    with Referee(random_seed=9) as referee:
+        yield referee
+
+
+@pytest.fixture
 def seeded_game_state(seeded_board, player_one, player_two, player_three):
     return State.from_board_and_players(seeded_board, [player_one, player_two, player_three])
 
@@ -132,6 +155,7 @@ def seeded_game_state_three(basic_seeded_board_two, player_one, player_two, play
 def seeded_game_state_four(basic_seeded_board_two, player_one, player_three, player_five):
     return State.from_board_and_players(basic_seeded_board_two, [player_one, player_three, player_five])
 
+
 @pytest.fixture
 def state_slow_riemann_win(board_slow_riemann_win, player_one, player_two, player_six):
     player_one.set_current_position(Position(0, 3))
@@ -141,6 +165,45 @@ def state_slow_riemann_win(board_slow_riemann_win, player_one, player_two, playe
                  [(0, Direction.LEFT)],
                  [player_one, player_two, player_six],
                  active_player_index=0)
+
+
+@pytest.fixture
+def state_fully_connected(board_fully_connected):
+    return State.from_board_and_players(
+        board_fully_connected,
+        [
+            RefereePlayerDetails.from_home_goal_color(Position(1, 1), Position(1, 1), "red"),
+            RefereePlayerDetails.from_home_goal_color(Position(5, 5), Position(5, 1), "blue")
+        ]
+    )
+
+
+@pytest.fixture
+def state_fully_connected_headstart(board_fully_connected):
+    return State.from_board_and_players(
+        board_fully_connected,
+        [
+            # arg order is home, goal, current
+            RefereePlayerDetails(Position(1, 1), Position(1, 1), Position(1, 2), "red"),
+            RefereePlayerDetails(Position(5, 5), Position(5, 1), Position(5, 5), "blue")
+        ]
+    )
+
+
+# def with_config_overrides(**config_overrides):
+#     def decorator(fn):
+#         @wraps(fn)
+#         def wrapper(*args, **kwargs):
+#             config_originals = {}
+#             for config_key, override_config_value in config_overrides.items():
+#                 config_originals[config_key] = getattr(CONFIG, config_key)
+#                 setattr(CONFIG, config_key, override_config_value)
+#             result = fn(*args, **kwargs)
+#             for config_key, original_config_value in config_originals.items():
+#                 setattr(CONFIG, config_key, original_config_value)
+#             return result
+#         return wrapper
+#     return decorator
 
 
 class ForeverStrategy(Strategy):
@@ -303,26 +366,6 @@ def test_run_game_all_valid_players(referee_no_observer, state_slow_riemann_win)
         api_players.append(api_player)
         mocks.append(mock)
 
-    ###### uncomment to use oberserver ######
-    # with ThreadPoolExecutor() as executor:
-    #     event_queue = queue.Queue()
-    #     observer_proxy = MagicMock()
-    #     observer_proxy.receive_new_state = lambda st: event_queue.put((0, st))
-    #     observer_proxy.set_game_is_over = lambda st: event_queue.put((1, None))
-    #     referee_no_observer.add_observer(observer_proxy)
-    #     outcome_future = executor.submit(
-    #         lambda: referee_no_observer.run_game_from_state(api_players, state_slow_riemann_win)
-    #     )
-    #     real_observer = Observer()
-    #     while True:
-    #         try:
-    #             typ, arg = event_queue.get(timeout=1 / 60)
-    #             if typ == 0: real_observer.receive_new_state(arg)
-    #             else: real_observer.set_game_is_over()
-    #         except queue.Empty:
-    #             pass
-    #         real_observer.update_gui()
-    #     winning_players, cheating_players = outcome_future.result()
     winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, state_slow_riemann_win)
 
     # tee gets inserted on turn 0 into (row 0, col 6) then moves left once per turn
@@ -336,3 +379,44 @@ def test_run_game_all_valid_players(referee_no_observer, state_slow_riemann_win)
     assert mocks[0].call_count == 6
     assert mocks[1].call_count == 6
     assert mocks[2].call_count == 6
+
+
+def test_run_game_all_valid_players_player_one_goal_on_player_one_home(referee_no_observer, state_fully_connected):
+    api_players, mocks = [], []
+    for i in range(2):
+        api_player, mock = api_player_with_mock(f"player{i}", Euclid(), "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players, state_fully_connected)
+
+    # player1 can win in 4 moves: (1,1) -> (0,1) -> goal(1,1) -> (0,1) -> home(1,1)
+    # player2 should win in 2: (5,5) -> goal(5,1) -> home(5,5)
+    assert winning_players == [api_players[1]]
+    assert cheating_players == []
+    assert mocks[0].call_count == 2
+    assert mocks[1].call_count == 2
+    assert state_fully_connected.get_players()[0].get_current_position() == Position(1, 1)
+    assert state_fully_connected.get_players()[1].get_current_position() == Position(5, 5)
+
+
+def test_run_game_all_valid_players_player_one_goal_on_player_one_home_variant(referee_no_observer,
+                                                                               state_fully_connected_headstart):
+    api_players, mocks = [], []
+    for i in range(2):
+        api_player, mock = api_player_with_mock(f"player{i}", Euclid(), "take_turn")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = referee_no_observer.run_game_from_state(api_players,
+                                                                                state_fully_connected_headstart)
+
+    # player1 can win in 3 moves: (1,2) -> goal(1,1) -> (0,1) -> home(1,1)
+    # player2 should win in 2: (5,5) -> goal(5,1) -> home(5,5)
+    assert winning_players == [api_players[1]]
+    assert cheating_players == []
+    assert mocks[0].call_count == 2
+    assert mocks[1].call_count == 2
+    # player1 moved to (0,1) but was shifted left by player2
+    assert state_fully_connected_headstart.get_players()[0].get_current_position() == Position(0, 0)
+    assert state_fully_connected_headstart.get_players()[1].get_current_position() == Position(5, 5)

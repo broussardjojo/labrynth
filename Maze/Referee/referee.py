@@ -29,12 +29,10 @@ class MoveReturnType(Enum):
     """
     An enumeration to represent the various outcomes of a player's turn.
     Ejections are performed by the caller when the run turn method returns `KICK`, but moves and passes are performed
-    within the run turn method. ENDED_GAME implies that the player moved onto their ultimate goal -
-    the other completion criteria must be checked by the caller of the run turn method.
+    within the run turn method.
     """
     PASSED = "PASSED"
     MOVED = "MOVED"
-    ENDED_GAME = "ENDED_GAME"
     KICK = "KICK"
 
 
@@ -222,16 +220,28 @@ class Referee:
         num_players = len(self.__current_players)
         for _ in range(num_players):
             move_outcome = self.__run_active_player_turn(game_state)
-            any_player_moved |= (move_outcome is MoveReturnType.MOVED or move_outcome is MoveReturnType.ENDED_GAME)
+            any_player_moved |= move_outcome is MoveReturnType.MOVED
+            if move_outcome is MoveReturnType.MOVED:
+                goal_reached = game_state.update_active_player_goals_reached()
+                if game_state.did_active_player_end_game():
+                    self.send_state_updates_to_observers(game_state)
+                    return True
+                if goal_reached:
+                    setup_response = self.__inform_player_of_new_goal(game_state)
+                    if not setup_response:
+                        move_outcome = MoveReturnType.KICK
+
             if move_outcome is MoveReturnType.KICK:
                 self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)
-            self.send_state_updates_to_observers(game_state)
-            if not self.__current_players:
-                return True
-            if move_outcome is MoveReturnType.ENDED_GAME:
-                return True
-            if move_outcome is not MoveReturnType.KICK:
+            else:
                 game_state.change_active_player_turn()
+
+            self.send_state_updates_to_observers(game_state)
+            if len(self.__current_players) == 0:
+                # last player was kicked out
+                return True
+
+        # round completed normally, game is only over if no players moved
         return not any_player_moved
 
     @staticmethod
@@ -380,6 +390,23 @@ class Referee:
         else:
             return []
 
+    def __inform_player_of_new_goal(self, game_state: State) -> bool:
+        """
+        Assigns the active game state player a new goal and informs the active API player of that goal
+        :param game_state: The game state _after_ the active player's move.
+        :return: True if the setup call succeeded, False otherwise
+        """
+        active_api_player = self.__current_players[game_state.get_active_player_index()]
+        active_game_state_player = game_state.get_active_player()
+        self.__assign_next_goal_position(active_game_state_player)
+        log.info("Send:%s setup start", active_api_player.name())
+        response = await_protected(
+            active_api_player.setup(None, active_game_state_player.get_goal_position()),
+            timeout_seconds=self.__timeout_seconds
+        )
+        log.info("Send:%s setup end", active_api_player.name())
+        return response.is_present
+
     def __inform_winning_players(self, game_state: State) -> None:
         """
         Tells all winning players they have won the game
@@ -416,35 +443,17 @@ class Referee:
         with game_state.exploration_context(proposed_move.get_spare_tile_rotation_degrees(), slide_action):
             return proposed_move.get_destination_position() in game_state.get_legal_destinations()
 
-    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> MoveReturnType:
+    def __perform_valid_move(self, proposed_move: Move, game_state: State) -> None:
         """
         Perform a validated move by rotating, sliding and inserting, and moving.
         :param proposed_move: The Move to make
         :param game_state: The game state from which to make the move
-        :return: ENDED_GAME if the player ended the game with this move; KICK if the move triggered a setup call and
-            the player behaved badly; MOVED otherwise. See the docstring of `run_game` for more on ending a game
+        :return: None
         """
         game_state.rotate_spare_tile(proposed_move.get_spare_tile_rotation_degrees())
         game_state.slide_and_insert(proposed_move.get_slide_index(),
                                     proposed_move.get_slide_direction())
         game_state.move_active_player_to(proposed_move.get_destination_position())
-        at_any_goal = game_state.update_active_player_goals_reached()
-        if game_state.did_active_player_end_game():
-            return MoveReturnType.ENDED_GAME
-        if at_any_goal:
-            # TODO: parallel ds
-            active_api_player = self.__current_players[game_state.get_active_player_index()]
-            active_game_state_player = game_state.get_active_player()
-            self.__assign_next_goal_position(active_game_state_player)
-            log.info("Send:%s setup start", active_api_player.name())
-            response = await_protected(
-                active_api_player.setup(None, active_game_state_player.get_goal_position()),
-                timeout_seconds=self.__timeout_seconds
-            )
-            log.info("Send:%s setup end", active_api_player.name())
-            if not response.is_present:
-                return MoveReturnType.KICK
-        return MoveReturnType.MOVED
 
     def __assign_next_goal_position(self, player_details: RefereePlayerDetails) -> None:
         """
@@ -477,7 +486,8 @@ class Referee:
             return MoveReturnType.PASSED
         if not self.__is_valid_move(proposed_move, game_state):
             return MoveReturnType.KICK
-        return self.__perform_valid_move(proposed_move, game_state)
+        self.__perform_valid_move(proposed_move, game_state)
+        return MoveReturnType.MOVED
 
     def send_state_updates_to_observers(self, game_state: State) -> None:
         """
