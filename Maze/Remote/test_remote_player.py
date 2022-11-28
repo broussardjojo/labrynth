@@ -11,10 +11,13 @@ from pydantic import ValidationError
 
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
+from Maze.Common.gem import Gem
 from Maze.Common.position import Position
 from Maze.Common.referee_player_details import RefereePlayerDetails
+from Maze.Common.shapes import TShaped
 from Maze.Common.state import State
 from Maze.Common.thread_utils import await_protected
+from Maze.Common.tile import Tile
 from Maze.Common.utils import get_json_obj_list
 from Maze.JSON.deserializers import get_tile_grid_from_json
 from Maze.Players.api_player import LocalPlayer
@@ -42,7 +45,8 @@ def seeded_board():
     with path.open(encoding="utf-8") as board_file:
         board_data = board_file.read()
         json_obj_list = get_json_obj_list(board_data)
-        return Board.from_list_of_tiles(get_tile_grid_from_json(json_obj_list[0]), seed=30)
+        return Board(get_tile_grid_from_json(json_obj_list[0]),
+                     Tile(TShaped(0), Gem("red-spinel-square-emerald-cut"), Gem("amethyst")))
 
 
 @pytest.fixture
