@@ -1,3 +1,4 @@
+import itertools
 import logging
 import random
 from collections import deque
@@ -244,15 +245,17 @@ class Referee:
         # round completed normally, game is only over if no players moved
         return not any_player_moved
 
-    @staticmethod
-    def get_proposed_board(clients: List[SafeAPIPlayer]) -> Board:
+    def get_proposed_board(self, clients: List[SafeAPIPlayer]) -> Board:
         """
         Gets a Board from APIPlayers' proposals
         NOTE: this method is mainly defined for testing at this point, we will implement it fully when it is required
         :param clients: the list of APIPlayers allowed to propose a Board
         :return: a randomly selected Board from the list of proposed Boards
         """
-        return Board.from_random_board(seed=3)
+        for dimension in itertools.count(start=7, step=2):
+            if Board.number_of_stationary_positions(dimension, dimension) >= len(clients):
+                return Board.from_random_board(dimension, dimension, rand=self.__random)
+        raise RuntimeError("This line should be unreachable")
 
     def __handle_cheater(self, active_player: SafeAPIPlayer, game_state: State) -> None:
         """
@@ -349,7 +352,7 @@ class Referee:
 
         if count > len(stationary_positions):
             raise ValueError(f"Not enough stationary positions ({len(stationary_positions)}) to assign unique homes"
-                             f"to all players ({count})")
+                             f" to all players ({count})")
         self.__random.shuffle(stationary_positions)
         return stationary_positions[:count]
 

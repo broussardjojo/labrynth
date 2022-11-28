@@ -42,11 +42,15 @@ class Config:
     client_start_interval: float
     """ The amount of time in seconds xclients should wait between connecting successive clients. """
 
+    observer_update_interval: float
+    """ The desired amount of time in between observer updates (recommended value: 1/60th of a second). """
+
 
 CONFIG = Config(referee_use_additional_goals=False,
                 referee_method_call_timeout=4,
                 server_handshake_timeout=2,
                 server_minimum_players_to_start=2,
                 server_maximum_players_to_start=6,
-                client_start_interval=3
+                client_start_interval=3,
+                observer_update_interval=1.0 / 60,
                 )

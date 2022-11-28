@@ -1,4 +1,5 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
+import random
 import time
 from functools import wraps
 from pathlib import Path
@@ -12,9 +13,11 @@ from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
 from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.shapes import TShaped
 from Maze.Common.state import State
+from Maze.Common.test_board import board_to_unicode
 from Maze.Common.thread_utils import sleep_interruptibly
 from Maze.Common.tile import Tile
 from Maze.Common.utils import get_json_obj_list, shape_dict
@@ -94,7 +97,7 @@ def board_fully_connected():
         "┼┼┼┼┼┼┼",
     ]
     shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
-    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["┬"])
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["┼"])
 
 
 @pytest.fixture
@@ -191,6 +194,17 @@ def state_fully_connected_headstart(board_fully_connected):
             # arg order is home, goal, current
             RefereePlayerDetails(Position(1, 1), Position(1, 1), Position(1, 2), "red"),
             RefereePlayerDetails(Position(5, 5), Position(5, 1), Position(5, 5), "blue")
+        ]
+    )
+
+
+@pytest.fixture
+def state_fully_connected_two(board_fully_connected):
+    return State.from_board_and_players(
+        board_fully_connected,
+        [
+            RefereePlayerDetails.from_home_goal_color(Position(1, 1), Position(1, 5), "red"),
+            RefereePlayerDetails.from_home_goal_color(Position(5, 5), Position(5, 1), "blue")
         ]
     )
 
@@ -425,3 +439,151 @@ def test_run_game_all_valid_players_player_one_goal_on_player_one_home_variant(r
     # player1 moved to (0,1) but was shifted left by player2
     assert state_fully_connected_headstart.get_players()[0].get_current_position() == Position(0, 0)
     assert state_fully_connected_headstart.get_players()[1].get_current_position() == Position(5, 5)
+
+
+def test_run_game_referee_constructs_state_large_board(referee_no_observer):
+    api_players, mocks = [], []
+    for i in range(17):
+        api_player, mock = api_player_with_mock(f"player{i}", AlwaysPassStrategy(), "setup")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    referee_no_observer.run_game(api_players)
+    for mock in mocks:
+        assert mock.call_count == 1
+        state: RedactedState = mock.call_args_list[0].args[0]
+        assert state.get_board().get_height() == 11
+        assert state.get_board().get_width() == 11
+
+
+def test_run_game_referee_constructs_state_overly_large_board(referee_no_observer):
+    api_players, mocks = [], []
+    for i in range(1250):
+        api_player, mock = api_player_with_mock(f"player{i}", AlwaysPassStrategy(), "setup")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    with pytest.raises(ValueError) as err:
+        referee_no_observer.run_game(api_players)
+    assert "there are only enough gems to create a board with" in str(err.value)
+
+    for mock in mocks:
+        assert mock.call_count == 0
+
+
+def test_run_game_referee_constructs_state(monkeypatch, board_fully_connected, seeded_referee_no_observer):
+    monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
+    board_mock = MagicMock(return_value=board_fully_connected)
+    monkeypatch.setattr(Board, "from_random_board", board_mock)
+
+    api_players, mocks = [], []
+    for i in range(2):
+        api_player, mock = api_player_with_mock(f"player{i}", Euclid(), "setup")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = seeded_referee_no_observer.run_game(api_players)
+    initial_state: RedactedState = mocks[0].call_args_list[0].args[0]
+    assert board_to_unicode(initial_state.get_board()) == (
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼"
+    )
+
+    # Players trade off reaching goals
+    # player2 is told to return home after round 4, turn 2 (turn 8 overall)
+    # player1 is told to return home after round 5, turn 1
+    # player2 ends the game by returning home on round 5, turn 2
+    # Score: (5 goals, positive distance to next) vs. (5 goals, zero distance to next)
+    assert winning_players == [api_players[1]]
+    assert mocks[0].call_count == 6
+    assert mocks[1].call_count == 5
+
+    # Other than homes, all assigned treasures should be unique
+    player1_assigned_treasures = [setup_call.args[1] for setup_call in mocks[0].call_args_list[:-1]]
+    player2_assigned_treasures = [setup_call.args[1] for setup_call in mocks[1].call_args_list[:-1]]
+    all_assigned_treasures = player1_assigned_treasures + player2_assigned_treasures
+    assert len(all_assigned_treasures) == 9
+    assert len(set(all_assigned_treasures)) == 9
+
+
+def test_run_game_from_state_more_api_players_than_state_players(state_fully_connected, referee_no_observer):
+    api_players = [LocalPlayer("a", AlwaysRaiseStrategy()),
+                   LocalPlayer("b", AlwaysRaiseStrategy()),
+                   LocalPlayer("c", AlwaysRaiseStrategy()),
+                   ]
+    with pytest.raises(ValueError) as err:
+        referee_no_observer.run_game_from_state(api_players, state_fully_connected)
+    assert "Number of APIPlayers (3) does not match number of players" in str(err.value)
+
+
+def test_run_game_from_state_fewer_api_players_than_state_players(state_fully_connected, referee_no_observer):
+    with pytest.raises(ValueError) as err:
+        referee_no_observer.run_game_from_state([LocalPlayer("a", AlwaysRaiseStrategy())], state_fully_connected)
+    assert "Number of APIPlayers (1) does not match number of players" in str(err.value)
+
+
+def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_connected,
+                                                       state_fully_connected_two, seeded_referee_no_observer):
+    monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
+    board_mock = MagicMock(return_value=board_fully_connected)
+    monkeypatch.setattr(Board, "from_random_board", board_mock)
+
+    additional_goals = set(board_fully_connected.get_all_stationary_positions()) - {Position(1, 5), Position(5, 1)}
+
+    random_instance = getattr(seeded_referee_no_observer, "_Referee__random")
+    shuffle = random_instance.shuffle
+    def shuffle_mock_impl(lst):
+        shuffle(lst)
+        if set(lst) == additional_goals:
+            # If the last overall goal is (1,1) player 1 should be ON their home when player 2 ends the game
+            lst.remove(Position(1, 1))
+            lst.append(Position(1, 1))
+
+    shuffle_mock = MagicMock(wraps=shuffle_mock_impl)
+    monkeypatch.setattr(random_instance, "shuffle", shuffle_mock)
+
+    api_players, mocks = [], []
+    for i in range(2):
+        api_player, mock = api_player_with_mock(f"player{i}", Euclid(), "setup")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = seeded_referee_no_observer.run_game_from_state(api_players,
+                                                                                       state_fully_connected_two)
+    # from Maze.Referee.tk_observer import TkObserver
+    # observer = TkObserver()
+    # seeded_referee_no_observer.add_observer(observer)
+    # game_outcome_future = seeded_referee_no_observer.executor.submit(seeded_referee_no_observer.run_game_from_state, api_players, state_fully_connected_two)
+    # live_observers = [observer]
+    # while len(live_observers):
+    #     timer_start = time.time()
+    #     for observer in live_observers:
+    #         if not observer.update_gui():
+    #             # Observer exited
+    #             live_observers.remove(observer)
+    #     time.sleep(max(0.0, timer_start + CONFIG.observer_update_interval - time.time()))
+    # winning_players, cheating_players = game_outcome_future.result()
+    initial_state: RedactedState = mocks[0].call_args_list[0].args[0]
+    assert board_to_unicode(initial_state.get_board()) == (
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼"
+    )
+
+    # Players trade off reaching goals
+    # player2 is told to return home after round 4, turn 2 (turn 8 overall)
+    # player1 is told to return home after round 5, turn 1
+    # player2 ends the game by returning home on round 5, turn 2
+    # Score: (5 goals, zero distance to next) vs. (5 goals, zero distance to next)
+    assert winning_players == [api_players[0], api_players[1]]
+    assert mocks[0].call_count == 6
+    assert mocks[1].call_count == 5

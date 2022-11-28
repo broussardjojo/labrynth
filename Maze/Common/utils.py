@@ -167,6 +167,8 @@ inverse_shape_dict = {
     for connector, shape in shape_dict.items()
 }
 
+ALL_SHAPES = list(inverse_shape_dict.keys())
+
 ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
 
 

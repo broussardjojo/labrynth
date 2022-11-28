@@ -1,3 +1,4 @@
+import random
 from copy import deepcopy
 
 import pytest
@@ -7,7 +8,7 @@ from Maze.Common.gem import Gem
 from Maze.Common.position import Position
 from Maze.Common.tile import Tile
 from Maze.Common.shapes import Corner, Cross
-from Maze.Common.utils import get_connector_from_shape
+from Maze.Common.utils import get_connector_from_shape, shape_dict
 
 
 def board_to_unicode(board):
@@ -16,9 +17,9 @@ def board_to_unicode(board):
         if result:
             result += "\n"
         result += "".join([get_connector_from_shape(tile.get_shape()) for tile in tiles])
-        if row == 0:
-            result += " "
-            result += get_connector_from_shape(board.get_next_tile().get_shape())
+        # if row == 0:
+        #     result += " "
+        #     result += get_connector_from_shape(board.get_next_tile().get_shape())
     return result
 
 
@@ -29,18 +30,29 @@ def basic_board():
 
 
 @pytest.fixture
+def small_board():
+    board_connectors = [
+        "┤┤┤",
+        "├┤┤",
+        "┤┤┤",
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in board_connectors]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["┤"])
+
+
+@pytest.fixture
 def seeded_small_board():
-    return Board.from_random_board(3, 3, seed=10)
+    return Board.from_random_board(3, 3, rand=random.Random(10))
 
 
 @pytest.fixture
 def seeded_wide_board():
-    return Board.from_random_board(3, 10, seed=10)
+    return Board.from_random_board(3, 10, rand=random.Random(10))
 
 
 @pytest.fixture
 def seeded_narrow_board():
-    return Board.from_random_board(10, 3, seed=10)
+    return Board.from_random_board(10, 3, rand=random.Random(10))
 
 
 @pytest.fixture
@@ -191,13 +203,13 @@ def test_slide_generates_gap_left(basic_board):
 
 
 # ----- Test reachable_tiles method ------
-def test_reachable_tiles_seeded_board(seeded_small_board):
-    reachable_tiles = seeded_small_board.reachable_tiles(Position(1, 1))
+def test_reachable_tiles_small_board(small_board):
+    reachable_tiles = small_board.reachable_tiles(Position(1, 1))
     assert Position(0, 1) in reachable_tiles
 
 
-def test_reachable_tiles_not_reachable_seeded_board(seeded_small_board):
-    reachable_tiles = seeded_small_board.reachable_tiles(Position(1, 1))
+def test_reachable_tiles_not_reachable_small_board(small_board):
+    reachable_tiles = small_board.reachable_tiles(Position(1, 1))
     assert Position(1, 2) not in reachable_tiles
 
 

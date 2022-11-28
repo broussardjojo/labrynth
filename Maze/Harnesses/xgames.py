@@ -13,9 +13,7 @@ from Maze.Players.api_player import APIPlayer
 from Maze.Referee.observer import Observer
 from Maze.Referee.tk_observer import TkObserver
 from Maze.Referee.referee import Referee
-
-
-TARGET_OBSERVER_UPDATE_SPEED = 1 / 60
+from Maze.config import CONFIG
 
 
 def run_game(players: List[APIPlayer], state: State, observers: List[Observer]) -> List[str]:
@@ -38,7 +36,7 @@ def run_game(players: List[APIPlayer], state: State, observers: List[Observer]) 
                 if not observer.update_gui():
                     # Observer exited
                     live_observers.remove(observer)
-            time.sleep(max(0.0, timer_start + TARGET_OBSERVER_UPDATE_SPEED - time.time()))
+            time.sleep(max(0.0, timer_start + CONFIG.observer_update_interval - time.time()))
         winners, _ = game_outcome_future.result()
     winners_names = [player.name() for player in winners]
     winners_names.sort()

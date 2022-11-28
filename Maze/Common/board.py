@@ -1,12 +1,15 @@
-from typing import List, Set, Any, Optional, Callable, Tuple
-from Maze.Common.tile import Tile
-from Maze.Common.gem import Gem
-from Maze.Common.shapes import Shape, Line, Corner, TShaped, Cross
-from Maze.Common.utils import generate_gem_list
+import itertools
 import random
+from collections import deque
+from typing import List, Set, Any, Optional, Callable, Tuple, Iterable, Deque
+
 from Maze.Common.direction import Direction, RIGHT_OFFSET, LEFT_OFFSET, DOWN_OFFSET, UP_OFFSET
+from Maze.Common.gem import Gem
 from Maze.Common.position import Position
 from Maze.Common.position_transition_map import PositionTransitionMap
+from Maze.Common.shapes import Shape
+from Maze.Common.tile import Tile
+from Maze.Common.utils import generate_gem_list, ALL_SHAPES
 
 
 class Board:
@@ -68,94 +71,66 @@ class Board:
         return cls(tile_grid, next_tile)
 
     @classmethod
-    def from_list_of_tiles(cls, tile_grid: List[List[Tile]], **kwargs) -> "Board":
-        """
-        A constructor for a Board, taking in a 2-D List of Tiles used to create a tile_grid and generates the next_tile.
-        :param tile_grid: a 2-D list of tiles that represents the grid of tiles on a Board
-        :return: an instance of a Board
-        """
-        gem_name_list = generate_gem_list()
-        if 'seed' in kwargs:
-            random.seed(kwargs['seed'])
-        next_tile = cls.__generate_unique_tile(gem_name_list, tile_grid)
-        return cls(tile_grid, next_tile)
-
-    @classmethod
-    def from_random_board(cls, height: int = 7, width: int = 7, **kwargs) -> "Board":
+    def from_random_board(cls, height: int = 7, width: int = 7, rand: random.Random = random) -> "Board":
         """
         A constructor for a Board, taking in a dimension for the number of columns and rows that defaults to 7.
         It creates a tile_grid and generates the next_tile.
-        :param width:
-        :param height: an integer representing the length and width of the board
+        :param height: an integer representing the height of the board
+        :param width: an integer representing the width of the board
+        :param rand: a random.Random instance to use for random gem and tile shape selection
         :return: an instance of a Board
         """
-        if 'seed' in kwargs:
-            random.seed(kwargs['seed'])
         gem_name_list = generate_gem_list()
-        board = cls.__initialize_board(gem_name_list, height, width)
-        next_tile = cls.__generate_unique_tile(gem_name_list, board)
+        treasures: List[Tuple[str, str]] = list(cls.__unordered_gem_name_pairs(gem_name_list))
+        rand.shuffle(treasures)
+        treasure_deque = deque(treasures)
+        num_tiles = height * width + 1
+        if len(treasures) < num_tiles:
+            raise ValueError(f"The requested board would have {num_tiles} tiles, but there are only enough gems to"
+                             f" create a board with {len(treasures)}")
+
+        board = cls.__initialize_board(height, width, treasure_deque, rand)
+        next_gem_name1, next_gem_name2 = treasure_deque.popleft()
+        next_tile = Tile(rand.choice(ALL_SHAPES), Gem(next_gem_name1), Gem(next_gem_name2))
         return cls(board, next_tile)
 
     @classmethod
-    def __initialize_board(cls, gem_name_list: List[str], height: int, width: int) -> List[List[Tile]]:
+    def __initialize_board(cls, height: int, width: int, treasure_deque: Deque[Tuple[str, str]],
+                           rand: random.Random) -> List[List[Tile]]:
         """
         Creates a grid of N by N unique Tiles based on the dimensions given in the Board constructor. Tiles are
         designated to be unique if they don't share the same two gems as any other tile in the grid.
-        :param gem_name_list: List of strings representing all possible gem names
         :param height: integer representing the height of the board
         :param width: integer representing the width of the board
-        :return: None
-        side effect: fills in the __tile_grid field with unique Tiles
+        :param treasure_deque: Deque of unused gem name pairs
+        :return: a grid of Tiles
+        :raises: ValueError if the size of the board is too large to maintain the unique gem constraint
         """
         board: List[List[Tile]] = []
         for _ in range(height):
             tile_row: List[Tile] = []
             for _ in range(width):
-                unique_tile = cls.__generate_unique_tile(gem_name_list, board)
-                tile_row.append(unique_tile)
+                gem_name1, gem_name2 = treasure_deque.popleft()
+                tile = Tile(rand.choice(ALL_SHAPES), Gem(gem_name1), Gem(gem_name2))
+                tile_row.append(tile)
             board.append(tile_row)
         return board
 
-    @classmethod
-    def __generate_unique_tile(cls, gem_name_list: List[str], current_board: List[List[Tile]]) -> Tile:
-        """
-        Creates a unique Tile. A Tile is designated to be unique if it does not share the same two gems as any other
-        tiles in the grid.
-        :param gem_name_list: List of strings representing all possible gem names
-        :return: Tile representing a unique Tile
-        """
-        potential_tile = Tile(cls.__get_random_shape(),
-                              cls.__get_random_gem(gem_name_list),
-                              cls.__get_random_gem(gem_name_list))
-        for row in current_board:
-            for tile in row:
-                if tile.same_gems_on_tiles(potential_tile.get_gems()[0], potential_tile.get_gems()[1]):
-                    return cls.__generate_unique_tile(gem_name_list, current_board)
-        return potential_tile
-
     @staticmethod
-    def __get_random_shape() -> Shape:
+    def __unordered_gem_name_pairs(gem_name_list: List[str],
+                                   prohibited: Optional[Set[Tuple[str, str]]] = None) -> Iterable[Tuple[str, str]]:
         """
-        Generates a random Shape.
-        :return: a Shape, which is one of: Line, Corner, TShaped, Cross
+        Generates the pairs of gem names which are distinct when compared without regard to order.
+        :param gem_name_list: the list of all gem names
+        :param prohibited: if provided, the set of unordered pairs which this generator should not produce
+        :return: an iterable of (gem1, gem2)
         """
-        all_shape_dict = {
-            0: Line(0),
-            1: Corner(0),
-            2: TShaped(0),
-            3: Cross()
-        }
-        random_shape = all_shape_dict[random.randint(0, len(all_shape_dict) - 1)]
-        return random_shape
-
-    @staticmethod
-    def __get_random_gem(gem_name_list: List[str]) -> Gem:
-        """
-        Generates a random Gem based on the list of given gem names.
-        :param gem_name_list: list of all possible gem names
-        :return: a Gem, which is one of the Gems provided in the given list of gem names
-        """
-        return Gem(gem_name_list[random.randint(0, len(gem_name_list) - 1)])
+        excluded: Set[Tuple[str, str]] = prohibited.copy() if prohibited is not None else set()
+        excluded.update((name2, name1) for name1, name2 in excluded)
+        for idx1, name1 in enumerate(gem_name_list):
+            for name2 in gem_name_list[idx1:]:
+                if (name1, name2) not in excluded:
+                    yield name1, name2
 
     def get_width(self) -> int:
         """
@@ -193,13 +168,21 @@ class Board:
         self.__perform_slide_and_insert(position_transitions)
         return position_transitions
 
+    @classmethod
+    def _can_slide_horizontally_if_valid_index(cls, index: int) -> bool:
+        return index % 2 == 0
+
+    @classmethod
+    def _can_slide_vertically_if_valid_index(cls, index: int) -> bool:
+        return index % 2 == 0
+
     def can_slide_horizontally(self, index: int) -> bool:
         """
         Checks if the given row index is on this Board and is slideable.
         :param index: an int representing a row on this Board
         :return: True if the row index can slide, otherwise False
         """
-        return not (index < 0 or index >= self.__height or index % 2 != 0)
+        return 0 <= index < self.__height and self._can_slide_horizontally_if_valid_index(index)
 
     def can_slide_vertically(self, index: int) -> bool:
         """
@@ -207,7 +190,7 @@ class Board:
         :param index: an int representing a column on this Board
         :return: True if the column index can slide, otherwise False
         """
-        return not (index < 0 or index >= self.__width or index % 2 != 0)
+        return 0 <= index < self.__width and self._can_slide_vertically_if_valid_index(index)
 
     def check_stationary_position(self, row: int, col: int) -> bool:
         """
@@ -231,6 +214,18 @@ class Board:
                     result.append(Position(row, col))
 
         return result
+
+    @classmethod
+    def number_of_stationary_positions(cls, height: int, width: int):
+        """
+        Returns the number of stationary positions that would be on a Board with the given dimensions
+        :param height: An integer representing the height of the hypothetical Board
+        :param width: An integer representing the width of the hypothetical Board
+        :return: An integer
+        """
+        num_stationary_rows = sum(0 if cls._can_slide_horizontally_if_valid_index(idx) else 1 for idx in range(height))
+        num_stationary_cols = sum(0 if cls._can_slide_vertically_if_valid_index(idx) else 1 for idx in range(width))
+        return num_stationary_rows * num_stationary_cols
 
     def __get_slide_row_transitions(self, index: int, direction: Direction) -> PositionTransitionMap:
         """

@@ -71,6 +71,7 @@ class TkObserver(Observer):
     HOME_SIZE = 30
     AVATAR_SIZE = 30
     GEM_PADDING = 10
+    GOAL_BORDER_INSET = 1
 
     __window: Tk
     __is_gui_destroyed: bool
@@ -213,9 +214,10 @@ class TkObserver(Observer):
         for row, tiles in enumerate(current_tile_grid):
             for col, tile in enumerate(tiles):
                 drawn_tile = self.__draw_tile(tile)
-                homes_added = self.__add_home_at(current_state, row, col, drawn_tile)
-                homes_and_avatars_added = self.__add_avatars_at(current_state, row, col, homes_added)
-                homes_and_avatars_added.grid(row=row, column=col)
+                self.__add_home_at(current_state, row, col, drawn_tile)
+                self.__add_avatars_at(current_state, row, col, drawn_tile)
+                self.__add_goals_at(current_state, row, col, drawn_tile)
+                drawn_tile.grid(row=row, column=col)
         self.__draw_spare_tile(current_board.get_next_tile(), current_board.get_height())
 
     def __draw_spare_tile(self, spare_tile: Tile, board_height: int) -> None:
@@ -307,6 +309,37 @@ class TkObserver(Observer):
         player_color = player.get_color()
         drawn_tile.create_rectangle(0, self.TILE_CANVAS_DIM, self.HOME_SIZE, self.TILE_CANVAS_DIM - self.HOME_SIZE,
                                     fill=player_color, outline=player_color)
+        return drawn_tile
+
+    def __add_goals_at(self, current_state: State, row: int, col: int, drawn_tile: Canvas) -> Canvas:
+        """
+        Draws player goals on the given drawn_tile Canvas for each player with a goal at the given row, col position on
+        the current state's board
+        :param current_state: the current State of the game
+        :param row: an int representing the row on the state's board being checked for a players home
+        :param col: an int representing the column on the state's board being checked for a players home
+        :param drawn_tile: a Canvas representing a drawn tile on the state's board
+        :return: the given drawn Tile with a player's goal on it if there is one, otherwise just the given drawn tile
+        """
+        players = current_state.get_players()
+        for player in players:
+            if player.get_goal_position() == Position(row, col):
+                self.__add_goal_to_canvas(drawn_tile, player)
+        return drawn_tile
+
+    def __add_goal_to_canvas(self, drawn_tile: Canvas, player: PlayerDetails) -> Canvas:
+        """
+        Draws the given player's goal on the given canvas
+        :param drawn_tile: a canvas representing a drawing of a tile on the current state's board
+        :param player: the player who's home is being drawn on the given canvas
+        :return: a canvas with the given player's goal drawn on it
+        """
+        player_color = player.get_color()
+        drawn_tile.create_rectangle(self.GOAL_BORDER_INSET,
+                                    self.GOAL_BORDER_INSET,
+                                    self.TILE_CANVAS_DIM - self.GOAL_BORDER_INSET,
+                                    self.TILE_CANVAS_DIM - self.GOAL_BORDER_INSET,
+                                    outline=player_color)
         return drawn_tile
 
     def __add_avatars_at(self, current_state: State, row: int, col: int, drawn_tile: Canvas) -> Canvas:

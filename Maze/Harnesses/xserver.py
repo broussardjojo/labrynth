@@ -6,14 +6,13 @@ from typing import cast, List, Tuple
 
 from Maze.Common.state import State
 from Maze.Common.utils import get_json_obj_list
-from Maze.Harnesses.xgames import TARGET_OBSERVER_UPDATE_SPEED
 from Maze.JSON.definitions import JSONRefereeState
 from Maze.JSON.deserializers import get_state_from_json
-from Maze.Players.api_player import APIPlayer
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
 from Maze.Referee.tk_observer import TkObserver
 from Maze.Server.server import Server
+from Maze.config import CONFIG
 
 
 def run_game(state: State, referee: Referee, players: List[SafeAPIPlayer]) -> GameOutcome:
@@ -47,7 +46,7 @@ def run_with_observer(state: State, referee: Referee, players: List[SafeAPIPlaye
             if not observer.update_gui():
                 # Observer exited
                 live_observers.remove(observer)
-        time.sleep(max(0.0, timer_start + TARGET_OBSERVER_UPDATE_SPEED - time.time()))
+        time.sleep(max(0.0, timer_start + CONFIG.observer_update_interval - time.time()))
     return game_task.result()
 
 
