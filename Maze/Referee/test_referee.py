@@ -209,6 +209,17 @@ def state_fully_connected_two(board_fully_connected):
     )
 
 
+@pytest.fixture
+def state_fully_connected_three(board_fully_connected):
+    return State.from_board_and_players(
+        board_fully_connected,
+        [
+            RefereePlayerDetails.from_home_goal_color(Position(1, 1), Position(1, 5), "red"),
+            RefereePlayerDetails.from_home_goal_color(Position(5, 5), Position(5, 3), "blue")
+        ]
+    )
+
+
 # def with_config_overrides(**config_overrides):
 #     def decorator(fn):
 #         @wraps(fn)
@@ -537,6 +548,7 @@ def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_
 
     random_instance = getattr(seeded_referee_no_observer, "_Referee__random")
     shuffle = random_instance.shuffle
+
     def shuffle_mock_impl(lst):
         shuffle(lst)
         if set(lst) == additional_goals:
@@ -587,3 +599,74 @@ def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_
     assert winning_players == [api_players[0], api_players[1]]
     assert mocks[0].call_count == 6
     assert mocks[1].call_count == 5
+
+
+@pytest.mark.parametrize("player1_num_goals_before_pass, player2_num_goals_before_pass", [(3, 3), (0, 1)])
+def test_run_game_with_additional_goals_two_player_early_end(monkeypatch, board_fully_connected,
+                                                             state_fully_connected_three, seeded_referee_no_observer,
+                                                             player1_num_goals_before_pass,
+                                                             player2_num_goals_before_pass):
+    monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
+    board_mock = MagicMock(return_value=board_fully_connected)
+    monkeypatch.setattr(Board, "from_random_board", board_mock)
+
+    additional_goals = set(board_fully_connected.get_all_stationary_positions()) - {Position(1, 5), Position(5, 3)}
+
+    random_instance = getattr(seeded_referee_no_observer, "_Referee__random")
+    shuffle = random_instance.shuffle
+
+    def shuffle_mock_impl(lst):
+        if set(lst) == additional_goals:
+            # additional_goals = [(1,1), (1,3), (3,1),
+            #                     (3,3), (3,5), (5,1), (5,5)]
+            lst.sort(key=Position.get_position_tuple)
+        else:
+            shuffle(lst)
+
+    shuffle_mock = MagicMock(wraps=shuffle_mock_impl)
+    monkeypatch.setattr(random_instance, "shuffle", shuffle_mock)
+
+    def rollover_strategy(first_strategy, second_strategy, num_moves_on_first):
+        result = MagicMock()
+        result.generate_move = MagicMock(
+            wraps=lambda *args: (first_strategy.generate_move(*args)
+                                 if result.generate_move.call_count <= num_moves_on_first
+                                 else second_strategy.generate_move(*args))
+        )
+        return result
+
+    api_players, mocks = [], []
+    for i, call_count_threshold in enumerate([player1_num_goals_before_pass, player2_num_goals_before_pass]):
+        api_player, mock = api_player_with_mock(f"player{i}",
+                                                rollover_strategy(Euclid(), AlwaysPassStrategy(), call_count_threshold),
+                                                "setup")
+        api_players.append(api_player)
+        mocks.append(mock)
+
+    winning_players, cheating_players = seeded_referee_no_observer.run_game_from_state(api_players,
+                                                                                       state_fully_connected_three)
+    initial_state: RedactedState = mocks[0].call_args_list[0].args[0]
+    assert board_to_unicode(initial_state.get_board()) == (
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼\n"
+        "┼┼┼┼┼┼┼"
+    )
+
+    # thresholds = (3, 3)
+    #     Players trade off reaching goals
+    #     player1 -> (1, 5) (1, 1) (3, 1)
+    #     player2 -> (5, 3) (1, 3) (3, 3)
+    #     both players pass in round 4
+    #     Score: (3 goals, current=(3,1) next=(3,5)) vs. (3 goals, current=(3,3) next=(5,1))
+    # thresholds = (0, 1)
+    #     player1 PASS
+    #     player2 -> (5, 3)
+    #     both players pass in round 2
+    #     Score: (0 goals, current=(1,1) next=(1,5)) vs. (1 goal, current=(5,3) next=(1,1))
+    assert winning_players == [api_players[1]]
+    assert mocks[0].call_count == player1_num_goals_before_pass + 1
+    assert mocks[1].call_count == player2_num_goals_before_pass + 1
