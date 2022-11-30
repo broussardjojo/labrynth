@@ -1,7 +1,5 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
-import random
 import time
-from functools import wraps
 from pathlib import Path
 from typing import Tuple, Optional, Callable, Any
 from unittest.mock import MagicMock
@@ -485,7 +483,7 @@ def test_run_game_referee_constructs_state_overly_large_board(referee_no_observe
 def test_run_game_referee_constructs_state(monkeypatch, board_fully_connected, seeded_referee_no_observer):
     monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
     board_mock = MagicMock(return_value=board_fully_connected)
-    monkeypatch.setattr(Board, "from_random_board", board_mock)
+    monkeypatch.setattr(seeded_referee_no_observer, "get_proposed_board", board_mock)
 
     api_players, mocks = [], []
     for i in range(2):
@@ -541,23 +539,15 @@ def test_run_game_from_state_fewer_api_players_than_state_players(state_fully_co
 def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_connected,
                                                        state_fully_connected_two, seeded_referee_no_observer):
     monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
-    board_mock = MagicMock(return_value=board_fully_connected)
-    monkeypatch.setattr(Board, "from_random_board", board_mock)
-
-    additional_goals = set(board_fully_connected.get_all_stationary_positions()) - {Position(1, 5), Position(5, 1)}
-
-    random_instance = getattr(seeded_referee_no_observer, "_Referee__random")
-    shuffle = random_instance.shuffle
-
-    def shuffle_mock_impl(lst):
-        shuffle(lst)
-        if set(lst) == additional_goals:
-            # If the last overall goal is (1,1) player 1 should be ON their home when player 2 ends the game
-            lst.remove(Position(1, 1))
-            lst.append(Position(1, 1))
-
-    shuffle_mock = MagicMock(wraps=shuffle_mock_impl)
-    monkeypatch.setattr(random_instance, "shuffle", shuffle_mock)
+    additional_goals_for_tie = [
+        *(set(board_fully_connected.get_all_stationary_positions())
+          - {player.get_goal_position() for player in state_fully_connected_two.get_players()}
+          - {Position(1, 1)}),
+        # If the last overall goal is (1,1) player 1 should be ON their home when player 2 ends the game
+        Position(1, 1)
+    ]
+    monkeypatch.setattr(seeded_referee_no_observer, "_Referee__generate_additional_goals_from_state",
+                        lambda *args, **kwargs: additional_goals_for_tie)
 
     api_players, mocks = [], []
     for i in range(2):
@@ -607,24 +597,14 @@ def test_run_game_with_additional_goals_two_player_early_end(monkeypatch, board_
                                                              player1_num_goals_before_pass,
                                                              player2_num_goals_before_pass):
     monkeypatch.setattr(CONFIG, "referee_use_additional_goals", True)
-    board_mock = MagicMock(return_value=board_fully_connected)
-    monkeypatch.setattr(Board, "from_random_board", board_mock)
-
-    additional_goals = set(board_fully_connected.get_all_stationary_positions()) - {Position(1, 5), Position(5, 3)}
-
-    random_instance = getattr(seeded_referee_no_observer, "_Referee__random")
-    shuffle = random_instance.shuffle
-
-    def shuffle_mock_impl(lst):
-        if set(lst) == additional_goals:
-            # additional_goals = [(1,1), (1,3), (3,1),
-            #                     (3,3), (3,5), (5,1), (5,5)]
-            lst.sort(key=Position.get_position_tuple)
-        else:
-            shuffle(lst)
-
-    shuffle_mock = MagicMock(wraps=shuffle_mock_impl)
-    monkeypatch.setattr(random_instance, "shuffle", shuffle_mock)
+    additional_goals_for_early_end = sorted(
+        (set(board_fully_connected.get_all_stationary_positions())
+         - {player.get_goal_position() for player in state_fully_connected_three.get_players()}),
+        key=Position.get_position_tuple
+    )
+    # = [(1,1), (1,3), (3,1), (3,3), (3,5), (5,1), (5,5)]
+    monkeypatch.setattr(seeded_referee_no_observer, "_Referee__generate_additional_goals_from_state",
+                        lambda *args, **kwargs: additional_goals_for_early_end)
 
     def rollover_strategy(first_strategy, second_strategy, num_moves_on_first):
         result = MagicMock()
