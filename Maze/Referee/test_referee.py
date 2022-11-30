@@ -1,7 +1,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,redefined-outer-name
 import time
 from pathlib import Path
-from typing import Tuple, Optional, Callable, Any
+from typing import Tuple, Optional, Callable, Any, Union, List
 from unittest.mock import MagicMock
 
 import pytest
@@ -202,7 +202,8 @@ def state_fully_connected_two(board_fully_connected):
         board_fully_connected,
         [
             RefereePlayerDetails.from_home_goal_color(Position(1, 1), Position(1, 5), "red"),
-            RefereePlayerDetails.from_home_goal_color(Position(5, 5), Position(5, 1), "blue")
+            RefereePlayerDetails.from_home_goal_color(Position(5, 5), Position(5, 1), "blue"),
+            RefereePlayerDetails.from_home_goal_color(Position(3, 3), Position(3, 5), "green")
         ]
     )
 
@@ -274,6 +275,25 @@ class AlwaysRaiseStrategy(Strategy):
         return Pass()
 
 
+class HardcodedStrategy(Strategy):
+
+    def __init__(self, decisions: List[Union[Move, Pass]]):
+        self.decisions = decisions
+
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+        return self.decisions.pop(0)
+
+class ConcatStrategy(Strategy):
+    def __init__(self, strategies_and_turn_counts: List[Tuple[Strategy, int]]):
+        self.strategies_and_turn_counts = strategies_and_turn_counts
+
+    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+        strategy, turns_remaining = self.strategies_and_turn_counts[0]
+        if turns_remaining <= 1:
+            self.strategies_and_turn_counts.pop(0)
+        else:
+            self.strategies_and_turn_counts[0] = (strategy, turns_remaining - 1)
+        return strategy.generate_move(current_state, target_position)
 # ----- Test referee without observer ------
 
 # ----- Test run_game_from_state -------
@@ -506,9 +526,9 @@ def test_run_game_referee_constructs_state(monkeypatch, board_fully_connected, s
     # Players trade off reaching goals
     # player2 is told to return home after round 4, turn 2 (turn 8 overall)
     # player1 is told to return home after round 5, turn 1
-    # player2 ends the game by returning home on round 5, turn 2
-    # Score: (5 goals, positive distance to next) vs. (5 goals, zero distance to next)
-    assert winning_players == [api_players[1]]
+    # player2 ends the game by returning home on round 5, turn 2 - this does not award a point
+    # Score: (5 goals, positive distance to next) vs. (4 goals, zero distance to next)
+    assert winning_players == [api_players[0]]
     assert mocks[0].call_count == 6
     assert mocks[1].call_count == 5
 
@@ -549,9 +569,16 @@ def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_
     monkeypatch.setattr(seeded_referee_no_observer, "_Referee__generate_additional_goals_from_state",
                         lambda *args, **kwargs: additional_goals_for_tie)
 
+    # Player1 has a ConcatStrategy that makes it skip once
+    # Player2 can use a euler strategy
+    # Player3 should get two goals and then dawdle
     api_players, mocks = [], []
-    for i in range(2):
-        api_player, mock = api_player_with_mock(f"player{i}", Euclid(), "setup")
+    strategies = [ConcatStrategy([(AlwaysPassStrategy(), 1), (Euclid(), 100)]),
+                  Euclid(),
+                  ConcatStrategy([(Euclid(), 2), (AlwaysPassStrategy(), 100)])
+    ]
+    for idx, strategy in enumerate(strategies):
+        api_player, mock = api_player_with_mock(f"player{idx}", strategy, "setup")
         api_players.append(api_player)
         mocks.append(mock)
 
@@ -581,14 +608,18 @@ def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_
         "┼┼┼┼┼┼┼"
     )
 
-    # Players trade off reaching goals
-    # player2 is told to return home after round 4, turn 2 (turn 8 overall)
-    # player1 is told to return home after round 5, turn 1
-    # player2 ends the game by returning home on round 5, turn 2
-    # Score: (5 goals, zero distance to next) vs. (5 goals, zero distance to next)
+    # Round 1: Player[0] skips, Players[1:] get one goal and are assigned additional_goals[0], additional_goals[1]
+    # Round 2: All players get a goal, and are assigned additional_goals[2], additional_goals[3], additional_goals[4]
+    # Round 3: Player[0] gets a goal and is assigned additional_goals[5], which is (1,1)
+    #          Player[1] gets a goal and is assigned to return home
+    #          Player[2] skips
+    # Round 4: Player[0] gets a goal and is assigned to return home, which is (1,1) - they are already there
+    #          Player[1] returns home and ends the game with a final score of 3-3-2,
+    #          with Player[0] and Player[1] 0 distance from their home.
     assert winning_players == [api_players[0], api_players[1]]
-    assert mocks[0].call_count == 6
-    assert mocks[1].call_count == 5
+    assert mocks[0].call_count == 4
+    assert mocks[1].call_count == 4
+    assert mocks[2].call_count == 3
 
 
 @pytest.mark.parametrize("player1_num_goals_before_pass, player2_num_goals_before_pass", [(3, 3), (0, 1)])

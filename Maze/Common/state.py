@@ -74,17 +74,19 @@ class State(AbstractState[RefereePlayerDetails]):
             return active_player.get_current_position() == next_goal_position
         raise ValueError("No players to check")
 
-    def update_active_player_goals_reached(self) -> bool:
+    def update_active_player_goals_reached(self, should_count_ultimate: bool) -> bool:
         """
         adds 1 to the player's __player_to_goals_reached value if they are at their goal
+        :param should_count_ultimate: Whether reaching the ultimate/final goal should award a point; this should be
+            False for games with multiple goals assigned, and True for games with single goals.
         :return: True if the active player is at their goal Position, otherwise False
         """
-        if self.is_active_player_at_goal():
+        if self.is_active_player_at_goal() and (should_count_ultimate or not self.is_active_player_at_ultimate_goal()):
             self.__player_to_goals_reached[self.get_active_player()] += 1
             return True
         return False
 
-    def did_active_player_end_game(self) -> bool:
+    def is_active_player_at_ultimate_goal(self) -> bool:
         """
         Checks if the active player for this State is has won (i.e. has reached two goals, their treasure
         Position followed by their home Position).

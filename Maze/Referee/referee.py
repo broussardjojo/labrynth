@@ -223,8 +223,10 @@ class Referee:
             move_outcome = self.__run_active_player_turn(game_state)
             any_player_moved |= move_outcome is MoveReturnType.MOVED
             if move_outcome is MoveReturnType.MOVED:
-                goal_reached = game_state.update_active_player_goals_reached()
-                if game_state.did_active_player_end_game():
+                goal_reached = game_state.update_active_player_goals_reached(
+                    should_count_ultimate=not CONFIG.referee_use_additional_goals
+                )
+                if game_state.is_active_player_at_ultimate_goal():
                     self.send_state_updates_to_observers(game_state)
                     return True
                 if goal_reached:
@@ -267,6 +269,7 @@ class Referee:
         self.__current_players.remove(active_player)
         game_state.kick_out_active_player()
         self.__cheater_players.append(active_player)
+        log.info(f"Kicked player {active_player.name()}")
         active_player.on_kicked()
 
     def __handle_broadcast_acknowledgements(self, responses: List[Maybe[Any]], game_state: State) -> None:
