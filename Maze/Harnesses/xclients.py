@@ -26,7 +26,7 @@ def play_game(players: List[APIPlayer], host: str, port: int) -> None:
     with ThreadPoolExecutor(max_workers=32) as executor:
         future_list: List[Future[None]] = []
 
-        for join_index, player in enumerate(reversed(players)):
+        for join_index, player in enumerate(players):
             delay = (join_index + 1) * CONFIG.client_start_interval
             future_list.append(executor.submit(play_game_thread, player, host, port, delay))
 

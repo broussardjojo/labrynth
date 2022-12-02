@@ -12,7 +12,7 @@ _log_levels = {
     'DEBUG': logging.DEBUG,
 }
 
-logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL"), logging.WARNING))
+logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL", ""), logging.WARNING))
 
 
 @dataclass
