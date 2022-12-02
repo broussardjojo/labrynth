@@ -32,6 +32,13 @@ class Config:
     """ The amount of time, in seconds, the Server should wait between a client connecting and a client sending their 
     name before dropping the connection."""
 
+    server_waiting_period_seconds: float
+    """ The amount of time, in seconds, the Server should spend accepting connections and sign-ups before checking
+    whether a game can start with the current list of players. """
+
+    server_number_of_waiting_periods: int
+    """ The number of waiting periods the server should allow before it must either run or cancel a game. """
+
     server_minimum_players_to_start: int
     """ The amount of players that must be connected at the end of a server's connection period to launch a game."""
 
@@ -49,6 +56,8 @@ class Config:
 CONFIG = Config(referee_use_additional_goals=False,
                 referee_method_call_timeout=4,
                 server_handshake_timeout=2,
+                server_waiting_period_seconds=20,
+                server_number_of_waiting_periods=2,
                 server_minimum_players_to_start=2,
                 server_maximum_players_to_start=6,
                 client_start_interval=3,

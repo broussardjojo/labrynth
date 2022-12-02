@@ -6,10 +6,11 @@ import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from dataclasses import dataclass
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
-from typing import Dict, List, Tuple, Iterator, Callable
+from typing import Dict, List, Tuple, Iterator, Callable, Union, IO
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
+from typing_extensions import assert_never
 
 from Maze.Common.utils import Maybe, Nothing, Just, is_valid_player_name
 from Maze.Players.safe_api_player import SafeAPIPlayer
@@ -17,6 +18,8 @@ from Maze.Referee.referee import Referee, GameOutcome
 from Maze.Remote.player import RemotePlayer
 from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
+from Maze.Server.signup_state import TimingEvent, CompletedHandshakeEvent, SignupState, RunGamePhase, \
+    WaitingPeriodPhase, CancelledPhase
 from Maze.config import CONFIG
 
 log = logging.getLogger(__name__)
@@ -28,16 +31,6 @@ class InvalidNameError(ValueError):
     """
 
 
-@dataclass
-class PlayerConnection:
-    """
-    Represents a Player across the network and its connection
-    """
-    safe_api_player: SafeAPIPlayer
-    connection: socket.socket
-
-
-
 # A run game function takes in a Referee and list of safe players, and
 # returns a GameOutcome (winners: List[APIPlayer], cheaters: List[APIPlayer]
 RunGameFn = Callable[[Referee, List[SafeAPIPlayer]], GameOutcome]
@@ -47,13 +40,11 @@ class Server:
     """
     A class representing the server to run a game of Labyrinth
     """
-    __player_connections: Dict[socket.socket, PlayerConnection]
-    __pending_handshakes: "Dict[Future[str], Tuple[float, socket.socket]]"
-    __port_num: int
-    __selector: BaseSelector
-    __waiting_period: int
-    __run_game_function: Callable[[Referee, List[SafeAPIPlayer]], GameOutcome]
-    WAITING_PERIOD_SECONDS = 20
+    _state: SignupState
+    _pending_handshakes: "List[Tuple[Future[str], float, socket.socket]]"
+    _port_num: int
+    _selector: BaseSelector
+    _run_game_function: RunGameFn
 
     def __init__(self, port_num: int,
                  run_game_function: RunGameFn = Referee.run_game_with_safe_players):
@@ -64,22 +55,21 @@ class Server:
             configurations.
         :raises ValueError: if a port number less than 1 or greater than 65535
         """
-        self.__player_connections = {}
-        self.__pending_handshakes = {}
-        self.__selector = DefaultSelector()
-        self.__waiting_period = 0
+        self._state = SignupState(phase=WaitingPeriodPhase(0), players=[])
+        self._pending_handshakes = []
+        self._selector = DefaultSelector()
         if 0 < port_num < 65536:
-            self.__port_num = port_num
+            self._port_num = port_num
         else:
             raise ValueError("Invalid port number supplied")
-        self.__run_game_function = run_game_function
+        self._run_game_function = run_game_function
 
     @contextlib.contextmanager
     def __bind(self) -> Iterator[socket.socket]:
         """
         Binds a server socket to the configured port number, yields control to the main server logic block,
         then shuts down any connections that are still open
-        :return: None
+        :return: an Iterator[socket.socket] intended to be used in a `with` block
         side effect: registers the EVENT_READ of the server socket with self.__selector
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as socket_server:
@@ -87,21 +77,19 @@ class Server:
                 # Allow the server to reuse an address within the OS's TIME_WAIT after the previous connection on it
                 # is closed, aids with testing
                 socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                socket_server.bind(("0.0.0.0", self.__port_num))
+                socket_server.bind(("0.0.0.0", self._port_num))
                 # listen takes a `backlog` argument for the number of unaccepted connections the server can have,
                 # anything beyond that is refused.
                 socket_server.listen(8)
-                self.__selector.register(socket_server, EVENT_READ)
+                self._selector.register(socket_server, EVENT_READ)
                 yield socket_server
             finally:
-                keys = list(self.__player_connections.keys())
-                for key in keys:
-                    player_conn = self.__player_connections.pop(key)
-                    self.__shutdown_if_needed(player_conn.connection)
-                future_list = list(self.__pending_handshakes.keys())
-                for future in future_list:
-                    _, conn = self.__pending_handshakes.pop(future)
-                    self.__shutdown_if_needed(conn)
+                for player in self._state.players:
+                    player.on_kicked()
+                for _, _, conn in self._pending_handshakes:
+                    self._shutdown_if_needed(conn)
+                self._state = SignupState(phase=WaitingPeriodPhase(0), players=[])
+                self._pending_handshakes = []
 
     def conduct_game(self) -> Tuple[List[str], List[str]]:
         """
@@ -111,64 +99,70 @@ class Server:
         """
         with ThreadPoolExecutor(max_workers=32) as executor:
             with self.__bind() as socket_server:
-                maybe_players = self.accept_players(socket_server, executor)
-                if maybe_players.is_present:
+                self.accept_players(socket_server, executor)
+                if isinstance(self._state.phase, RunGamePhase):
                     # These players come in Oldest -> Youngest order, which is the opposite order from what the Referee
-                    # expects. As a result, we reverse the list given from the server in maybe_players.
-                    winners, cheaters = self.__run_game(maybe_players.get()[::-1], executor)
+                    # expects. As a result, we reverse the list that SignupState accumulated.
+                    ordered_players = self._state.players[::-1]
+                    winners, cheaters = self._run_game(ordered_players, executor)
                     winners_names = [player.name() for player in winners]
                     cheaters_names = [player.name() for player in cheaters]
                     return winners_names, cheaters_names
-                else:
+                elif isinstance(self._state.phase, CancelledPhase):
                     return [], []
+                elif isinstance(self._state.phase, WaitingPeriodPhase):
+                    raise ValueError("Invalid returned state from accept_players")
+                else:
+                    assert_never(self._state.phase)
 
-    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> Maybe[List[SafeAPIPlayer]]:
+    def accept_players(self, socket_server: socket.socket, executor: ThreadPoolExecutor) -> None:
         """
         Accepts players by listening on socket and runs handshakes until the game is ready to start or has waited for
          two waiting periods
         :param socket_server: a socket representing the server which is listening for connections
         :param executor: a ThreadPoolExecutor to spawn handshake threads from
-        :return: a Just[List[APIPlayers]] ordered from oldest to youngest if the game can begin, otherwise a Nothing
+        :return: None
+        Side effect: Updates __state. The state must not be in WaitingPeriodPhase when this method returns
         """
         start_time = time.time()
-        while not self.__waiting_period >= 2:
-            new_clients = self.__accept_connections(socket_server)
+        while isinstance(self._state.phase, WaitingPeriodPhase):
+            new_clients = self._accept_connections(socket_server)
             for tcp_connection in new_clients:
-                future = executor.submit(self.__handshake, tcp_connection)
-                self.__pending_handshakes[future] = time.time(), tcp_connection
-            self.__handle_handshake_timeouts(executor)
+                # The handshake method works with a readable stream of bytes rather than a socket, for
+                # easier testing. However, it is not reused, because there could be thread safety issues.
+                handshake_channel = tcp_connection.makefile("rb", buffering=0)
+                future = executor.submit(self.handshake, handshake_channel)
+                self._pending_handshakes.append((future, time.time(), tcp_connection))
+            for remote_player in self._handle_handshake_timeouts(executor):
+                self._state = self.update_signup_state(self._state, CompletedHandshakeEvent(remote_player))
             elapsed_time = time.time() - start_time
-            maybe_players = self.__get_players_if_enough_players(elapsed_time)
-            if maybe_players.is_present:
-                return maybe_players
-        return Nothing()
+            self._state = self.update_signup_state(self._state, TimingEvent(elapsed_time))
 
     @staticmethod
-    def __handshake(connection: socket.socket) -> str:
+    def handshake(binary_read_channel: Union[socket.SocketIO, IO[bytes]]) -> str:
         """
-        Perform a handshake with the client on the given connection to receive their name
-        :param connection: A socket.socket representing the client to handshake with
+        Perform a handshake with the client on the given read channel to receive their name
+        :param binary_read_channel: A file-like object from which bytes can be read
         :return: A string representing the name supplied by the player
         :raises: InvalidNameError if the name provided doesn't conform to constraints listed on the spec:
         A Name is a string of at least one and at most 20 alpha-numeric characters,
          i.e., it also matches the regular expression "^[a-zA-Z0-9]+$"
         """
         # temporarily open a file interface to the socket. closing it doesn't close the actual connection
-        with connection.makefile("rb", buffering=0) as binary_read_channel:
-            read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
-            json_name = next(read_channel)
+        read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
+        json_name = next(read_channel)
         name = parse_obj_as(StrictStr, json_name)
         if not is_valid_player_name(name):
             raise InvalidNameError("Invalid name")
         return name
 
-    def __accept_connections(self, socket_server: socket.socket) -> List[socket.socket]:
+    def _accept_connections(self, socket_server: socket.socket) -> List[socket.socket]:
         """
         Listens and accepts any incoming connections for 0.1 seconds
         :param socket_server: a socket representing the socket clients can connect to
         :return: a List of sockets representing new client connections
         """
-        ready = self.__selector.select(timeout=0.1)
+        ready = self._selector.select(timeout=0.1)
         connection_list: List[socket.socket] = []
         for key, _events in ready:
             if key.fileobj is socket_server:
@@ -177,65 +171,142 @@ class Server:
                 log.info("Accepted %s", socket_client.getpeername())
         return connection_list
 
-    def __handle_handshake_timeouts(self, executor: ThreadPoolExecutor) -> None:
+    def _handle_handshake_timeouts(self, executor: ThreadPoolExecutor) -> Iterator[SafeAPIPlayer]:
         """
-        A method to update the current set of pending handshakes. Messengers with successful handshakes are added to
-        __messengers and messengers with timeouts or failed handshakes are closed and deleted from __pending_handshakes
-        :return: None
+        A method to update the current set of pending handshakes. Clients with successful handshakes are returned, and
+        clients with timeouts or failed handshakes are closed and deleted from __pending_handshakes
+        :returns: an Iterator which will supply the SafeAPIPlayer for each successful handshake
+        Side effect: modifies __pending_handshakes
         """
         current_time = time.time()
-        # use list to allow us to modify the dict while looping over it
-        # mypy is fine with this but PyCharm has a bug where it thinks type(list(dict.items())) == List[Key] :(
-        # noinspection PyTypeChecker
-        items: "List[Tuple[Future[str], Tuple[float, socket.socket]]]" = list(self.__pending_handshakes.items())
-        for future, (start_time, connection) in items:
-            if future.done():
-                self.__pending_handshakes.pop(future)
-                try:
-                    name = future.result()
-                    raw_binary_read_channel = connection.makefile("rb", buffering=0)
-                    binary_read_channel = ReadableStreamWrapper(raw_binary_read_channel)
-                    read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
-                    write_channel = connection.makefile("wb", buffering=0)
-                    remote_player = RemotePlayer(name, read_channel, write_channel)
-                    safe_remote_player = SafeRemotePlayer(remote_player, executor, binary_read_channel)
-                    self.__player_connections[connection] = PlayerConnection(safe_remote_player, connection)
-                    log.info("handshake complete, name=%s", name)
-                except (ijson.IncompleteJSONError, ValidationError, InvalidNameError) as exc:
-                    # catch the errors that future.result() can raise; handshake could have gotten malformed JSON,
-                    # the wrong type of JSON, or a JSON string which isn't a valid name
-                    self.__shutdown_if_needed(connection)
-                    log.info("handshake failed", exc_info=exc)
-            elif current_time - start_time >= CONFIG.server_handshake_timeout:
-                self.__pending_handshakes.pop(future)
-                self.__shutdown_if_needed(connection)
-                log.info("handshake timed out")
 
-    def __get_players_if_enough_players(self, elapsed_time: float) -> Maybe[List[SafeAPIPlayer]]:
+        # Filter the list into the 2 cases we can deal with now, and the 1 case that we can't
+        timed_out_handshakes: "List[Tuple[Future[str], float, socket.socket]]" = []
+        settled_handshakes: "List[Tuple[Future[str], float, socket.socket]]" = []
+        pending_handshakes: "List[Tuple[Future[str], float, socket.socket]]" = []
+        for future, start_time, connection in self._pending_handshakes:
+            if future.done():
+                settled_handshakes.append((future, start_time, connection))
+            elif current_time - start_time >= CONFIG.server_handshake_timeout:
+                timed_out_handshakes.append((future, start_time, connection))
+            else:
+                pending_handshakes.append((future, start_time, connection))
+        self._pending_handshakes = pending_handshakes
+
+        # Clean up resources for clients who did not attempt to handshake in time
+        for _, _, connection in timed_out_handshakes:
+            self._handle_timed_out_handshake(connection)
+
+        # For clients who have attempted a handshake, determine if they were successful
+        # If they were, yield the remote player; otherwise, clean up resources
+        for future, _, connection in settled_handshakes:
+            try:
+                name = future.result()
+                yield self._create_safe_remote_player(name, connection, executor)
+                log.info("handshake complete, name=%s", name)
+            except (ijson.IncompleteJSONError, ValidationError, InvalidNameError) as exc:
+                # catch the errors that future.result() can raise; handshake could have gotten malformed JSON,
+                # the wrong type of JSON, or a JSON string which isn't a valid name
+                self._handle_invalid_handshake(connection, exc)
+
+    def _handle_timed_out_handshake(self, connection: socket.socket) -> None:
         """
-        Method to get the list of APIPlayers if there are enough registered at the given time
-        :param elapsed_time: a float representing the amount of time that has passed since the waiting periods began
-        :return: a List of APIPlayers if there are enough players to start a game, a Nothing if there aren't
-        side effect: Mutates __waiting_period
+        Handles a timed out handshake. At minimum, this method should shut down the connection.
+        :param connection: A socket.socket
+        :return: None
         """
-        max_to_start = CONFIG.server_maximum_players_to_start
-        min_to_start = max_to_start
-        new_waiting_period = int(elapsed_time // self.WAITING_PERIOD_SECONDS)
-        if new_waiting_period > self.__waiting_period:
-            # Reached the end of one waiting period - we can run a game with 2+ players
-            self.__waiting_period = new_waiting_period
-            min_to_start = CONFIG.server_minimum_players_to_start
-        if len(self.__player_connections) >= min_to_start:
-            # noinspection PyTypeChecker
-            keys = list(self.__player_connections.keys())
-            for key in keys[max_to_start:]:
-                player_conn = self.__player_connections.pop(key)
-                self.__shutdown_if_needed(player_conn.connection)
-            return Just([player_conn.safe_api_player for player_conn in self.__player_connections.values()])
-        return Nothing()
+        self._shutdown_if_needed(connection)
+        log.info("handshake timed out")
+
+    def _handle_invalid_handshake(self, connection: socket.socket, exception: Exception) -> None:
+        """
+        Handles a handshake in which the client misbehaved. At minimum, this method should shut down the connection.
+        :param connection: A socket.socket
+        :return: None
+        """
+        self._shutdown_if_needed(connection)
+        log.info("handshake failed", exc_info=exception)
 
     @staticmethod
-    def __shutdown_if_needed(connection: socket.socket) -> None:
+    def _create_safe_remote_player(name: str, connection: socket.socket,
+                                   executor: ThreadPoolExecutor) -> SafeAPIPlayer:
+        """
+        Creates a SafeRemotePlayer which will use the given socket for communication, and close it when the referee
+        kicks it out, or the game is over.
+        :param name: the name of the player
+        :param connection: the connection
+        :param executor: the ThreadPoolExecutor where RemotePlayer method calls will run
+        :return: the SafeRemotePlayer
+        """
+        raw_binary_read_channel = connection.makefile("rb", buffering=0)
+        binary_read_channel = ReadableStreamWrapper(raw_binary_read_channel)
+        read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
+        write_channel = connection.makefile("wb", buffering=0)
+        remote_player = RemotePlayer(name, read_channel, write_channel)
+        safe_remote_player = SafeRemotePlayer(remote_player, executor, connection, binary_read_channel)
+        return safe_remote_player
+
+    @staticmethod
+    def update_signup_state(current_state: SignupState,
+                            action: Union[TimingEvent, CompletedHandshakeEvent]) -> SignupState:
+        if isinstance(action, TimingEvent):
+            return Server._update_for_timing(current_state, action)
+        elif isinstance(action, CompletedHandshakeEvent):
+            return Server._update_for_completed_handshake(current_state, action)
+        else:
+            assert_never(action)
+
+    @staticmethod
+    def _update_for_timing(current_state: SignupState, action: TimingEvent) -> SignupState:
+        if isinstance(current_state.phase, (CancelledPhase, RunGamePhase)):
+            # Nothing needs to change in the signup state once the game is cancelled or running
+            return current_state
+        elif isinstance(current_state.phase, WaitingPeriodPhase):
+            next_waiting_period = int(action.elapsed // CONFIG.server_waiting_period_seconds)
+            if next_waiting_period > current_state.phase.period_num:
+                if len(current_state.players) >= CONFIG.server_minimum_players_to_start:
+                    # Start game if we have >= min_players
+                    return SignupState(phase=RunGamePhase(), players=current_state.players)
+                elif next_waiting_period >= CONFIG.server_number_of_waiting_periods:
+                    # Cancel game if we have < min_players, and the server has already run its last waiting period
+                    return SignupState(phase=CancelledPhase(), players=current_state.players)
+                else:
+                    return SignupState(phase=WaitingPeriodPhase(next_waiting_period), players=current_state.players)
+
+            elif next_waiting_period == current_state.phase.period_num:
+                # No change in waiting period
+                return current_state
+
+            else:
+                # Time traveler
+                raise ValueError("The timing events sent to a Server must be monotonically increasing")
+        else:
+            assert_never(current_state.phase)
+
+    @staticmethod
+    def _update_for_completed_handshake(current_state: SignupState, action: CompletedHandshakeEvent) -> SignupState:
+        if isinstance(current_state.phase, (CancelledPhase, RunGamePhase)):
+            # Nothing needs to change in the signup state once the game is cancelled or running
+            return current_state
+        elif isinstance(current_state.phase, WaitingPeriodPhase):
+            next_players = [*current_state.players, action.player]
+            if len(next_players) < CONFIG.server_maximum_players_to_start:
+                # Continue waiting if we have < max_players
+                return SignupState(phase=current_state.phase, players=next_players)
+
+            elif len(next_players) == CONFIG.server_maximum_players_to_start:
+                # Start game immediately if we have exactly max_players
+                return SignupState(phase=RunGamePhase(), players=next_players)
+
+            else:
+                # Should never happen
+                raise ValueError("Invalid state. Phase is WaitingPeriod, but already had at least "
+                                 f"{CONFIG.server_maximum_players_to_start} players.")
+        else:
+            assert_never(current_state.phase)
+
+    @staticmethod
+    def _shutdown_if_needed(connection: socket.socket) -> None:
         """
         A method to shut down the given socket if it is not already closed
         :param connection: a socket representing the desired socket to close
@@ -249,7 +320,7 @@ class Server:
         except OSError:
             log.error("Closing failed", exc_info=True)
 
-    def __run_game(self, players: List[SafeAPIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
+    def _run_game(self, players: List[SafeAPIPlayer], executor: ThreadPoolExecutor) -> GameOutcome:
         """
         Run a game of Labyrinth with the given list of players and executor
         :param players: a List of APIPlayers representing the players to play in the game
@@ -257,4 +328,4 @@ class Server:
         :return: The winners names followed by the cheaters names
         """
         referee = Referee(executor=executor)
-        return self.__run_game_function(referee, players)
+        return self._run_game_function(referee, players)
