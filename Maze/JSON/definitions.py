@@ -191,3 +191,19 @@ JSONEventuallyBadPlayerSpec = List[Union[JSONPlayerSpecElement,
 JSONPlayerMethodName = Union[Literal["name", "proposeBoard0"], JSONBadMethodName]
 PlayerMethodName = Literal["setup", "take-turn", "win"]
 
+
+# =========
+# https://course.ccs.neu.edu/cs4500f22/10.html
+
+class JSONRefereeStateWithGoals(JSONRefereeState):
+    """
+    Interpretation: Represents the knowledge of the referee at the beginning of a round and before any player has
+    reached any assigned goal. Remember that a state's "plmt" field specifies the order in which players take turns.
+    The field `goals` specifies a sequence of treasure goals, each handed out when a
+    player has reached a goal and needs another one.
+    NOTE: inheriting from a TypedDict carries along its fields (in this case "current", "home", and "color")
+    """
+    goals: List[JSONCoordinate]
+
+
+JSONRefereeState2 = Union[JSONRefereeState, JSONRefereeStateWithGoals]

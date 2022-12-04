@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from json import JSONDecoder
 from pathlib import Path
-from typing import Generic, List, Tuple, Union, Any, Callable, TypeVar
+from typing import Generic, List, Tuple, Union, Any, Callable, TypeVar, Dict
 from typing_extensions import Literal, NoReturn
 
 from Maze.Common.position import Position
@@ -148,7 +148,7 @@ def generate_gem_list() -> List[str]:
 
 
 # Dictionary to convert a shape character to a Shape
-shape_dict = {
+shape_dict: Dict[JSONConnector, Shape] = {
     '└': Corner(0),
     '┌': Corner(1),
     '┐': Corner(2),
@@ -172,7 +172,7 @@ ALL_SHAPES = list(inverse_shape_dict.keys())
 ALL_NAMED_COLORS = ["purple", "orange", "pink", "red", "blue", "green", "yellow", "white", "black"]
 
 
-def get_json_obj_list(input_data) -> List[Union[dict, str, int]]:
+def get_json_obj_list(input_data) -> List[Any]:
     """
     Read standard input one JSON object at a time and convert it into a list of dictionaries
     :return: A list of dictionaries representing the two inputs (a board and a starting coordinate)
@@ -185,25 +185,6 @@ def get_json_obj_list(input_data) -> List[Union[dict, str, int]]:
         input_data = input_data[index:]
         input_data = input_data.lstrip()
     return json_obj_list
-
-
-def coord_custom_compare(coord_one: dict, coord_two: dict) -> int:
-    """
-    Custom comparator to compare two coordinates of this format: {"column#: col, "row#", row}
-    :param coord_one: dictionary of this format: {"column#: col, "row#", row}
-    :param coord_two: dictionary of this format: {"column#: col, "row#", row}
-    :return: -1 if coord_one comes first in the grid, 1 if coord_two comes first in the grid, 0 if they are the same
-    location (hopefully never for our use case)
-    """
-    if coord_one['row#'] < coord_two['row#']:
-        return -1
-    elif coord_one['row#'] > coord_two['row#']:
-        return 1
-    elif coord_one['column#'] < coord_two['column#']:
-        return -1
-    elif coord_one['column#'] > coord_two['column#']:
-        return 1
-    return 0
 
 
 def get_euclidean_distance_between(position_one: Position, position_two: Position) -> int:

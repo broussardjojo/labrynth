@@ -216,7 +216,7 @@ class Board:
         return result
 
     @classmethod
-    def number_of_stationary_positions(cls, height: int, width: int):
+    def number_of_stationary_positions(cls, height: int, width: int) -> int:
         """
         Returns the number of stationary positions that would be on a Board with the given dimensions
         :param height: An integer representing the height of the hypothetical Board
@@ -352,7 +352,7 @@ class Board:
             return self.__tile_grid[row][col]
         raise ValueError("Position not on board")
 
-    def __valid_tile_location(self, row, col) -> bool:
+    def __valid_tile_location(self, row: int, col: int) -> bool:
         """
         Checks if the given indices are within the bounds of the board
         :param row: An int representing the row of the potential Tile

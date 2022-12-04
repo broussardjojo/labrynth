@@ -1,14 +1,11 @@
 from abc import abstractmethod
-from copy import deepcopy
-from typing import List, Union, Tuple, Iterator, Set, Dict
+from typing import Union, Tuple, Iterator, Set, Dict
 
+from Maze.Common.direction import Direction
+from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
 from Maze.Players.move import Move, Pass
 from Maze.Players.strategy import Strategy
-from Maze.Common.board import Board
-from Maze.Common.direction import Direction
-from Maze.Common.abstract_state import AbstractState
-from Maze.Common.position import Position
-from Maze.Common.position_transition_map import PositionTransitionMap
 
 FULL_ROTATION = 4
 RotateAndSlide = Tuple[int, int, Direction]
@@ -28,7 +25,7 @@ class BaseStrategy(Strategy):
         """
         self.__checked_positions = []
 
-    def get_legal_slides(self, state: AbstractState) -> Iterator[Tuple[int, Direction]]:
+    def get_legal_slides(self, state: RedactedState) -> Iterator[Tuple[int, Direction]]:
         """
         Creates an iterator of the legal slides, ordered by the follow criteria:
             - Direction - Horizontal < Vertical
@@ -48,7 +45,7 @@ class BaseStrategy(Strategy):
                     yield (col, direction)
 
     @abstractmethod
-    def get_goals(self, state: AbstractState, primary_goal: Position) -> Iterator[Position]:
+    def get_goals(self, state: RedactedState, primary_goal: Position) -> Iterator[Position]:
         """
         Creates an iterator of the immediate and alternative goals for the active player, in order of their preference.
         :param state:
@@ -57,7 +54,7 @@ class BaseStrategy(Strategy):
         """
 
     def get_legal_destinations_after_rotate_and_slide(self,
-                                                      current_state: AbstractState,
+                                                      current_state: RedactedState,
                                                       rotation: int,
                                                       slide: Tuple[int, Direction],
                                                       cache: Dict[RotateAndSlide, Set[Position]]) -> Set[Position]:
@@ -93,7 +90,7 @@ class BaseStrategy(Strategy):
         """
         yield from [0, 3, 2, 1]
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Union[Move, Pass]:
         """
         Returns the first move found that the active player can legally make that satisfies their most preferable
         reachable goal.

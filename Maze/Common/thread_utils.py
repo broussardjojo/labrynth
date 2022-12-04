@@ -42,7 +42,7 @@ def gather_protected(future_list: "List[Future[T]]", timeout_seconds: float = DE
     return results
 
 
-def await_protected(future: "Future[T]", timeout_seconds=DEFAULT_TIMEOUT) -> Maybe[T]:
+def await_protected(future: "Future[T]", timeout_seconds: float = DEFAULT_TIMEOUT) -> Maybe[T]:
     """
     Attempts to return the result of the given future. If the task contained by the future raises an exception,
     or takes longer than the given timeout length in seconds, a Nothing() is returned.

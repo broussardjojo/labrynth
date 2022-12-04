@@ -148,7 +148,7 @@ class Referee:
         selected_board = self.get_proposed_board(players)
         player_details, additional_goals = self.__generate_players(selected_board, len(players))
         game_state = State.from_board_and_players(selected_board, player_details)
-        return self.__run_game_helper(players, game_state, additional_goals)
+        return self.run_game_with_safe_players_and_goals(players, game_state, additional_goals)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
         """
@@ -173,23 +173,26 @@ class Referee:
         a List of cheating Players representing all Players who were kicked out for cheating
         :raises: ValueError if the number of SafeAPIPlayers does not match the amount of players in the game state.
         """
+        additional_goals = self.__generate_additional_goals_from_state(game_state)
+        return self.run_game_with_safe_players_and_goals(players, game_state, additional_goals)
+
+    def run_game_with_safe_players_and_goals(self, players: List[SafeAPIPlayer], game_state: State,
+                                             additional_goals: List[Position]) -> GameOutcome:
+        """
+        Entry method that runs a game of Labyrinth when given a SafeAPIPlayer list, game state, and list of additional
+        goals. It sets up players and runs the game.
+        :param players: the list of players for a game of Labyrinth
+        :param game_state: the state for a game of Labyrinth
+        :param additional_goals: the ordered sequence of treasure goals, handed out when a
+        player has reached a goal and needs another one
+        :return: A List of winning Players representing either the winner or all players who tied for the win and
+        a List of cheating Players representing all Players who were kicked out for cheating
+        :raises: ValueError if the number of SafeAPIPlayers does not match the amount of players in the game state.
+        """
         if len(players) != len(game_state.get_players()):
             raise ValueError(f"Number of APIPlayers ({len(players)}) does not match number of players "
                              f"in game state ({len(game_state.get_players())})")
 
-        additional_goals = self.__generate_additional_goals_from_state(game_state)
-        return self.__run_game_helper(players, game_state, additional_goals)
-
-    def __run_game_helper(self, players: List[SafeAPIPlayer], game_state: State,
-                          additional_goals: List[Position]) -> GameOutcome:
-        """
-        Entry method that runs a game of Labyrinth when given a game state and SafeAPIPlayer list. It sets up
-        players and runs the game.
-        :param players: the list of players for a game of Labyrinth
-        :param game_state: the state for a game of Labyrinth
-        :return: A List of winning Players representing either the winner or all players who tied for the win and
-        a List of cheating Players representing all Players who were kicked out for cheating
-        """
         self.__reset_referee()
         self.__additional_goals = deque(additional_goals)
         self.__current_players = players.copy()

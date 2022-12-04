@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Any
 
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
@@ -47,7 +47,7 @@ class Tile:
         return (gem1 == self.__gem1 and gem2 == self.__gem2) or \
                (gem1 == self.__gem2 and gem2 == self.__gem1)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """
         Override of the equals method to allow us to create custom equality between two Tiles, a Tile is equal
          to another Tile when its shape is the same and both gems are the same

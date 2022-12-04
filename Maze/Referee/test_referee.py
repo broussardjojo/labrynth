@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from Maze.Common.abstract_state import AbstractState
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
@@ -249,7 +248,7 @@ def state_fully_connected_four(board_fully_connected):
 class ForeverStrategy(Strategy):
     __alive = True
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Move:
         while self.__alive:
             time.sleep(1)
         return Move(0, Direction.UP, 0, Position(2, 0))
@@ -259,29 +258,29 @@ class ForeverStrategy(Strategy):
 
 
 class BadSlideIndexStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Move:
         return Move(1, Direction.UP, 90, Position(2, 0))
 
 
 class BadMoveToStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Move:
         return Move(0, Direction.UP, 90, Position(2, 0))
 
 
 class BadRotationStrategy(Strategy):
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Move:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Move:
         return Move(0, Direction.UP, 14, Position(2, 0))
 
 
 class AlwaysPassStrategy(Strategy):
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Pass:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Pass:
         return Pass()
 
 
 class AlwaysRaiseStrategy(Strategy):
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Pass:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Pass:
         a = 1 // 0
         return Pass()
 
@@ -291,14 +290,14 @@ class HardcodedStrategy(Strategy):
     def __init__(self, decisions: List[Union[Move, Pass]]):
         self.decisions = decisions
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Union[Move, Pass]:
         return self.decisions.pop(0)
 
 class ConcatStrategy(Strategy):
     def __init__(self, strategies_and_turn_counts: List[Tuple[Strategy, int]]):
         self.strategies_and_turn_counts = [(s, c) for s, c in strategies_and_turn_counts if c > 0]
 
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Union[Move, Pass]:
         strategy, turns_remaining = self.strategies_and_turn_counts[0]
         if turns_remaining <= 1:
             self.strategies_and_turn_counts.pop(0)

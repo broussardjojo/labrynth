@@ -190,10 +190,10 @@ class EventuallyBadLocalPlayer(LocalPlayer):
         self.__num_valid_calls = num_valid_calls
 
     @staticmethod
-    def __sleep_forever():
+    def __sleep_forever() -> None:
         is_alive = True
 
-        def die():
+        def die() -> None:
             nonlocal is_alive
             is_alive = False
 

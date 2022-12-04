@@ -14,7 +14,7 @@ from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
     JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethodName, \
     JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
-    JSONEventuallyBadPlayerSpecElement, JSONEventuallyBadPlayerSpec
+    JSONEventuallyBadPlayerSpecElement, JSONEventuallyBadPlayerSpec, JSONRefereeState2
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer, EventuallyBadLocalPlayer
 from Maze.Players.euclid import Euclid
 from Maze.Common.player_details import PlayerDetails
@@ -264,3 +264,17 @@ def get_eventually_bad_api_player_from_json(json_bad_player_spec_el: JSONEventua
         return EventuallyBadLocalPlayer(name, strategy, "win", num_valid_turns)
     else:
         assert_never(json_bad_method)
+
+
+def get_state_and_goals_from_json(json_state: JSONRefereeState2) -> Tuple[State, List[Position]]:
+    """
+    Creates the State represented by the JSON (with player secrets) and the Position list represented by the goals field
+    if it's present; uses [] as the Position list.
+    :param json_state: a dictionary containing values for "board", "spare", "plmt", "last", and optionally "goals"
+    :return: a tuple in the form (State, list of Position)
+    """
+    if "goals" in json_state:
+        goals = [get_position_from_json(json_coordinate) for json_coordinate in json_state["goals"]]
+    else:
+        goals = []
+    return get_state_from_json(json_state), goals
