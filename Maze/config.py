@@ -21,6 +21,9 @@ class Config:
     A configuration class to represent a number of game attributes that may change between testing and delivery
     environments.
     """
+    referee_max_rounds: int
+    """ The maximum number of rounds the Referee should run in a Labyrinth game. """
+
     referee_use_additional_goals: bool
     """ A flag to determine if the referee should assign additional goals after a player reaches their first goal."""
 
@@ -53,7 +56,8 @@ class Config:
     """ The desired amount of time in between observer updates (recommended value: 1/60th of a second). """
 
 
-CONFIG = Config(referee_use_additional_goals=False,
+CONFIG = Config(referee_max_rounds=1000,
+                referee_use_additional_goals=False,
                 referee_method_call_timeout=4,
                 server_handshake_timeout=2,
                 server_waiting_period_seconds=20,

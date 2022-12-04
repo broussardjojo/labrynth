@@ -65,7 +65,6 @@ class Referee:
     __cheating_players: List[SafeAPIPlayer]
     __winning_players: List[SafeAPIPlayer]
     __current_players: List[SafeAPIPlayer]
-    __num_rounds: int
     __additional_goals: Deque[Position]
 
     __random: random.Random
@@ -73,7 +72,6 @@ class Referee:
     __created_own_executor: bool
     executor: Executor
     __timeout_seconds: float
-    MAX_ROUNDS: ClassVar[int] = 1000
 
     def __init__(self, executor: Optional[ThreadPoolExecutor] = None, random_seed: Optional[int] = None):
         """
@@ -213,7 +211,7 @@ class Referee:
         self.send_state_updates_to_observers(game_state)
         current_round = 0
         round_status = RoundReturnType.DEFAULT
-        while current_round < Referee.MAX_ROUNDS and round_status is RoundReturnType.DEFAULT:
+        while current_round < CONFIG.referee_max_rounds and round_status is RoundReturnType.DEFAULT:
             round_status = self.__run_round(game_state)
             current_round += 1
         winning_players = game_state.get_closest_players_to_victory(
