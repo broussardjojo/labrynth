@@ -74,14 +74,12 @@ class State(AbstractState[RefereePlayerDetails]):
             return active_player.get_current_position() == next_goal_position
         raise ValueError("No players to check")
 
-    def update_active_player_goals_reached(self, should_count_ultimate: bool) -> bool:
+    def update_active_player_goals_reached(self) -> bool:
         """
         adds 1 to the player's __player_to_goals_reached value if they are at their goal
-        :param should_count_ultimate: Whether reaching the ultimate/final goal should award a point; this should be
-            False for games with multiple goals assigned, and True for games with single goals.
         :return: True if the active player is at their goal Position, otherwise False
         """
-        if self.is_active_player_at_goal() and (should_count_ultimate or not self.is_active_player_at_ultimate_goal()):
+        if self.is_active_player_at_goal() and not self.is_active_player_at_ultimate_goal():
             self.__player_to_goals_reached[self.get_active_player()] += 1
             return True
         return False
@@ -150,39 +148,64 @@ class State(AbstractState[RefereePlayerDetails]):
         """
         return self.__player_to_goals_reached[self.get_active_player()] > 0
 
-    def get_closest_players_to_victory(self) -> List[RefereePlayerDetails]:
+    def get_closest_players_to_victory(self, did_active_player_move: bool) -> List[RefereePlayerDetails]:
         """
         A method to get the player or players who are closest to victory (either the players that have reached their
         goal and are closest to home or, if no players have reached their goal, the players closest to reaching their
         goal)
+
+        Note: If the game ends because someone reached their home, this function must be called with the same active
+            player that ended the game.
+        :param did_active_player_move:
         :return: A list of Players representing the winning Players
         """
         if not self._players:
             return []
+        players_at_max_goals = self.__get_players_at_max_goals()
+        player_distance_pairs = self.__get_player_distances_to_next_goal(players_at_max_goals)
+        closest_players = self.__get_closest_players_to_next_goal(player_distance_pairs)
+        # Edge case for if multiple players have the same number of goals and the same minimum distance to next goal,
+        # the winner should be the player who ended the game.
+        should_prefer_active_player = did_active_player_move and self.is_active_player_at_ultimate_goal()
+        if should_prefer_active_player and self.get_active_player() in closest_players:
+            return [self.get_active_player()]
+        return closest_players
+
+    def __get_players_at_max_goals(self) -> List[RefereePlayerDetails]:
+        """
+        Return all players who have the highest amount of goals reached.
+        :return: A list of RefereePlayerDetails.
+        """
         max_goals_reached = max(self.__player_to_goals_reached.values())
         players_at_max_goals = [player for player, num_goals in self.__player_to_goals_reached.items()
                                 if num_goals == max_goals_reached]
-        return self.__get_closest_players_to_goal_or_home(players_at_max_goals)
+        return players_at_max_goals
 
-    def __get_closest_players_to_goal_or_home(self, possible_winners: List[RefereePlayerDetails]) -> List[RefereePlayerDetails]:
+    def __get_closest_players_to_next_goal(
+        self,
+        possible_winners: List[Tuple[RefereePlayerDetails, int]]
+    ) -> List[RefereePlayerDetails]:
         """
         A method to get the closest players to either their goal or their home
-        :param possible_winners: A List of Players representing the players who are eligible to win the game
-        home
-        :return: A list of Players representing the winning Players
+        :param possible_winners: A list of Tuple[RefereePlayerDetails, int] representing players eligible to win and
+            their squared distance to their next goal.
+        :return: list of the players who share the same minimum squared distance to their goal
         """
-        closest_players = []
-        current_min_distance = get_euclidean_distance_between(Position(0, 0),
-                                                              Position(self._board.get_height(),
-                                                                       self._board.get_width()))
-        for player in possible_winners:
-            player_distance = get_euclidean_distance_between(player.get_current_position(), player.get_goal_position())
-            if player_distance < current_min_distance:
-                current_min_distance = player_distance
-                closest_players = [player]
-            elif player_distance == current_min_distance:
-                closest_players.append(player)
-        return closest_players
+        min_distance = min(distance for _, distance in possible_winners)
+        players_at_min_distance = [player for player, distance in possible_winners if distance == min_distance]
+        return players_at_min_distance
+
+    def __get_player_distances_to_next_goal(
+        self,
+        players: List[RefereePlayerDetails]
+    ) -> List[Tuple[RefereePlayerDetails, int]]:
+        """
+        Returns the SQUARED distance of each player in the given list to their next goal.
+        :return: A list of Tuple[RefereePlayerDetails, int] representing the player and their squared distance
+            to their next goal.
+        """
+        player_distances = [(player, player.get_euclidean_distance_from_current_to_goal()) for player in players]
+        return player_distances
 
     def copy_redacted(self, active_player_index: Optional[int] = None) -> RedactedState:
         """

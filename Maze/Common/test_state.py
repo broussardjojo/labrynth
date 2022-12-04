@@ -353,7 +353,7 @@ def test_move_active_player_to_does_not_move_inactive(sample_seeded_game_state):
 def test_active_player_has_reached_goal(sample_seeded_game_state):
     player = sample_seeded_game_state.get_players()[sample_seeded_game_state.get_active_player_index()]
     sample_seeded_game_state.move_active_player_to(player.get_goal_position())
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     assert sample_seeded_game_state.active_player_has_reached_goal()
 
 
@@ -361,7 +361,7 @@ def test_active_player_has_not_reached_goal_one(sample_seeded_game_state):
     player = sample_seeded_game_state.get_players()[sample_seeded_game_state.get_active_player_index()]
     assert not sample_seeded_game_state.active_player_has_reached_goal()
     sample_seeded_game_state.move_active_player_to(player.get_goal_position())
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     assert sample_seeded_game_state.active_player_has_reached_goal()
 
 
@@ -375,7 +375,7 @@ def test_active_player_has_not_reached_goal_two(sample_seeded_game_state):
 
 # ---- Test get_closest_player_to_victory ---------
 def test_get_closest_player_to_victory_no_goals_start(sample_seeded_game_state, player_one, player_three):
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_one, player_three]
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_one, player_three]
 
 
 def test_get_closest_player_to_victory_no_goals_moved(sample_seeded_game_state, player_one,
@@ -383,7 +383,7 @@ def test_get_closest_player_to_victory_no_goals_moved(sample_seeded_game_state, 
     player_one.set_current_position(Position(4, 6))
     player_two.set_current_position(Position(0, 0))
     player_three.set_current_position(Position(5, 3))
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_three]
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_three]
 
 
 def test_get_closest_player_to_victory_at_goal_moved(sample_seeded_game_state, player_one,
@@ -391,7 +391,7 @@ def test_get_closest_player_to_victory_at_goal_moved(sample_seeded_game_state, p
     player_one.set_current_position(Position(3, 1))
     player_two.set_current_position(Position(2, 0))
     player_three.set_current_position(Position(3, 3))
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_one]
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_one]
 
 
 def test_get_closest_player_to_victory_at_goal_moved_two(sample_seeded_game_state, player_one,
@@ -399,8 +399,8 @@ def test_get_closest_player_to_victory_at_goal_moved_two(sample_seeded_game_stat
     player_one.set_current_position(Position(3, 1))
     player_two.set_current_position(Position(2, 0))
     player_three.set_current_position(Position(1, 1))
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_one]
+    assert sample_seeded_game_state.update_active_player_goals_reached()
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_one]
 
 
 def test_get_closest_player_to_victory_at_goal_multiple_goals_reached(sample_seeded_game_state, player_one,
@@ -408,12 +408,12 @@ def test_get_closest_player_to_victory_at_goal_multiple_goals_reached(sample_see
     player_one.set_current_position(Position(3, 1))
     player_two.set_current_position(Position(5, 5))
     player_three.set_current_position(Position(3, 3))
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_one.set_goal_position(player_one.get_home_position())
     sample_seeded_game_state.change_active_player_turn()
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_two.set_goal_position(player_two.get_home_position())
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_one]
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_one]
 
 
 def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_two(sample_seeded_game_state,
@@ -422,13 +422,13 @@ def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_two(sample
     player_one.set_current_position(Position(3, 1))
     player_two.set_current_position(Position(5, 5))
     player_three.set_current_position(Position(2, 5))
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_one.set_goal_position(player_one.get_home_position())
     sample_seeded_game_state.change_active_player_turn()
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_two.set_goal_position(player_two.get_home_position())
     player_two.set_current_position(Position(3, 4))
-    assert sample_seeded_game_state.get_closest_players_to_victory() == [player_two]
+    assert sample_seeded_game_state.get_closest_players_to_victory(True) == [player_two]
 
 
 def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_three(sample_seeded_game_state,
@@ -437,18 +437,18 @@ def test_get_closest_player_to_victory_at_goal_multiple_goals_reached_three(samp
     player_one.set_current_position(Position(3, 1))
     player_two.set_current_position(Position(5, 5))
     player_three.set_current_position(Position(6, 0))
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_one.set_goal_position(player_one.get_home_position())
     sample_seeded_game_state.change_active_player_turn()
-    assert sample_seeded_game_state.update_active_player_goals_reached(should_count_ultimate=True)
+    assert sample_seeded_game_state.update_active_player_goals_reached()
     player_two.set_goal_position(player_two.get_home_position())
     player_two.set_current_position(Position(2, 3))
     player_one.set_current_position(Position(4, 1))
-    assert player_one in sample_seeded_game_state.get_closest_players_to_victory()
-    assert player_two in sample_seeded_game_state.get_closest_players_to_victory()
-    assert player_three not in sample_seeded_game_state.get_closest_players_to_victory()
+    assert player_one in sample_seeded_game_state.get_closest_players_to_victory(True)
+    assert player_two in sample_seeded_game_state.get_closest_players_to_victory(True)
+    assert player_three not in sample_seeded_game_state.get_closest_players_to_victory(True)
 
 
 def test_get_closest_player_to_victory_no_players(zero_player_game_state):
     assert len(zero_player_game_state.get_players()) == 0
-    assert zero_player_game_state.get_closest_players_to_victory() == []
+    assert zero_player_game_state.get_closest_players_to_victory(True) == []

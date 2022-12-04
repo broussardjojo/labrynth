@@ -4,7 +4,7 @@ import random
 from collections import deque
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
-from enum import Enum
+from enum import Enum, auto
 from typing import List, Tuple, Any, ClassVar, Optional, Deque
 
 from Maze.Common.board import Board
@@ -32,9 +32,18 @@ class MoveReturnType(Enum):
     Ejections are performed by the caller when the run turn method returns `KICK`, but moves and passes are performed
     within the run turn method.
     """
-    PASSED = "PASSED"
-    MOVED = "MOVED"
-    KICK = "KICK"
+    PASSED = auto()
+    MOVED = auto()
+    KICK = auto()
+
+class RoundReturnType(Enum):
+    """
+    An enumeration to represent the various outcomes of a round.
+    """
+    DEFAULT = auto()  # We continue running the game
+    NO_MOVES_MADE = auto()  # All players that are in the game opted to pass
+    PLAYER_REACHED_HOME = auto()  # A player terminated the game by reaching their ultimate goal
+
 
 
 class Referee:
@@ -53,7 +62,7 @@ class Referee:
     for game play)
     """
 
-    __cheater_players: List[SafeAPIPlayer]
+    __cheating_players: List[SafeAPIPlayer]
     __winning_players: List[SafeAPIPlayer]
     __current_players: List[SafeAPIPlayer]
     __num_rounds: int
@@ -108,7 +117,7 @@ class Referee:
         Resets this Referee's fields to their initial states
         :return: None
         """
-        self.__cheater_players = []
+        self.__cheating_players = []
         self.__winning_players = []
         self.__current_players = []
         self.__additional_goals = deque()
@@ -203,15 +212,18 @@ class Referee:
         """
         self.send_state_updates_to_observers(game_state)
         current_round = 0
-        is_game_over = False
-        while current_round < Referee.MAX_ROUNDS and not is_game_over:
-            is_game_over = self.__run_round(game_state)
+        round_status = RoundReturnType.DEFAULT
+        while current_round < Referee.MAX_ROUNDS and round_status is RoundReturnType.DEFAULT:
+            round_status = self.__run_round(game_state)
             current_round += 1
-        self.__inform_winning_players(game_state)
+        winning_players = game_state.get_closest_players_to_victory(
+            did_active_player_move=round_status is RoundReturnType.PLAYER_REACHED_HOME
+        )
+        self.__inform_winning_players(game_state, winning_players)
         self.send_game_over_to_observers()
-        return self.__winning_players, self.__cheater_players
+        return self.__winning_players, self.__cheating_players
 
-    def __run_round(self, game_state: State) -> bool:
+    def __run_round(self, game_state: State) -> RoundReturnType:
         """
         Runs a round of a game. A round is considered complete when all players have taken a turn.
         :param game_state: represents the current state of the game
@@ -223,12 +235,10 @@ class Referee:
             move_outcome = self.__run_active_player_turn(game_state)
             any_player_moved |= move_outcome is MoveReturnType.MOVED
             if move_outcome is MoveReturnType.MOVED:
-                goal_reached = game_state.update_active_player_goals_reached(
-                    should_count_ultimate=not CONFIG.referee_use_additional_goals
-                )
+                goal_reached = game_state.update_active_player_goals_reached()
                 if game_state.is_active_player_at_ultimate_goal():
                     self.send_state_updates_to_observers(game_state)
-                    return True
+                    return RoundReturnType.PLAYER_REACHED_HOME
                 if goal_reached:
                     setup_response = self.__inform_player_of_new_goal(game_state)
                     if not setup_response:
@@ -240,12 +250,11 @@ class Referee:
                 game_state.change_active_player_turn()
 
             self.send_state_updates_to_observers(game_state)
-            if len(self.__current_players) == 0:
-                # last player was kicked out
-                return True
 
-        # round completed normally, game is only over if no players moved
-        return not any_player_moved
+        # Round completed normally, the game is only over if no players moved during this round
+        if not any_player_moved:
+            return RoundReturnType.NO_MOVES_MADE
+        return RoundReturnType.DEFAULT
 
     def get_proposed_board(self, clients: List[SafeAPIPlayer]) -> Board:
         """
@@ -268,7 +277,7 @@ class Referee:
         """
         self.__current_players.remove(active_player)
         game_state.kick_out_active_player()
-        self.__cheater_players.append(active_player)
+        self.__cheating_players.append(active_player)
         log.info(f"Kicked player {active_player.name()}")
         active_player.on_kicked()
 
@@ -297,7 +306,10 @@ class Referee:
         """
         Method to give each player their goal Tile, players who fail to acknowledge in DEFAULT_TIMEOUT_SECONDS
          will be deemed to be cheating
+        :param: game_state: The game state to broadcast to players after redaction.
         :return: None
+        Side effect: Adds to self.__cheating_players and removes from self.__current_players
+            any player who fails to acknowledge the 'setup' call.
         """
         future_list: "List[Future[Any]]" = []
         for index, (client, player) in enumerate(zip(self.__current_players, game_state.get_players())):
@@ -413,12 +425,16 @@ class Referee:
         log.info("Send:%s setup end", active_api_player.name())
         return response.is_present
 
-    def __inform_winning_players(self, game_state: State) -> None:
+    def __inform_winning_players(self, game_state: State, winning_players: List[RefereePlayerDetails]) -> None:
         """
         Tells all winning players they have won the game
+        :param game_state: The game state
+        :param winning_players: The list of RefereePlayerDetails who have won the game.
         :return: None
+        Side effect: Adds to self.__cheating_players and removes from self.__current_players
+            any player who fails to acknowledge the 'win' call.
+        Side effect: Sets self.__winning_players.
         """
-        winning_players = game_state.get_closest_players_to_victory()
         future_list: "List[Future[Any]]" = []
         for client, player in zip(self.__current_players, game_state.get_players()):
             did_win = player in winning_players

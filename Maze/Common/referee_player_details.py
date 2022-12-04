@@ -1,5 +1,6 @@
 from Maze.Common.player_details import PlayerDetails
 from Maze.Common.position import Position
+from Maze.Common.utils import get_euclidean_distance_between
 
 
 class RefereePlayerDetails(PlayerDetails):
@@ -86,3 +87,10 @@ class RefereePlayerDetails(PlayerDetails):
         :return: a PlayerDetails
         """
         return PlayerDetails(self._home_position, self._current_position, self._color)
+
+    def get_euclidean_distance_from_current_to_goal(self) -> int:
+        """
+        Return the SQUARED euclidean distance of this player's current position to their next goal.
+        :return: An integer representing the squared euclidean distance of the player to their next goal.
+        """
+        return get_euclidean_distance_between(self._current_position, self._goal_position)

@@ -616,7 +616,9 @@ def test_run_game_with_additional_goals_two_player_tie(monkeypatch, board_fully_
     # Round 4: Player[0] gets a goal and is assigned to return home, which is (1,1) - they are already there
     #          Player[1] returns home and ends the game with a final score of 3-3-2,
     #          with Player[0] and Player[1] 0 distance from their home.
-    assert winning_players == [api_players[0], api_players[1]]
+    # The winner is Player[1], since they have 1) tied for the most goals, 2) tied for minimum distance to next goal,
+    #          3) Ended the game with their move.
+    assert winning_players == [api_players[1]]
     assert mocks[0].call_count == 4
     assert mocks[1].call_count == 4
     assert mocks[2].call_count == 3
