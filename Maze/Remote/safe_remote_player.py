@@ -19,7 +19,7 @@ class SafeRemotePlayer(SafeAPIPlayer):
     player: APIPlayer
     __executor: Executor
     __connection: socket.socket
-    __read_channel: IO[bytes]
+    __binary_read_channel: IO[bytes]
 
     def __init__(self, player: APIPlayer, executor: Executor, connection: socket.socket,
                  binary_read_channel: IO[bytes]):
@@ -33,7 +33,7 @@ class SafeRemotePlayer(SafeAPIPlayer):
         """
         super().__init__(player, executor)
         self.__connection = connection
-        self.__read_channel = binary_read_channel
+        self.__binary_read_channel = binary_read_channel
 
     def on_kicked(self) -> None:
         """
@@ -48,4 +48,4 @@ class SafeRemotePlayer(SafeAPIPlayer):
             log.info("Closing success")
         except OSError:
             log.error("Closing failed", exc_info=True)
-        self.__read_channel.close()
+        self.__binary_read_channel.close()
