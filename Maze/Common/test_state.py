@@ -1,4 +1,6 @@
 # pylint: disable=missing-function-docstring,redefined-outer-name
+import itertools
+
 import pytest
 from Maze.Common.board import Board
 from Maze.Common.referee_player_details import RefereePlayerDetails
@@ -25,6 +27,7 @@ def seeded_board():
     shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
     return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
 
+
 @pytest.fixture
 def seeded_board_3x9():
     connector_rows = [
@@ -34,6 +37,7 @@ def seeded_board_3x9():
     ]
     shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
     return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
+
 
 @pytest.fixture
 def seeded_board_9x3():
@@ -51,11 +55,26 @@ def seeded_board_9x3():
     shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
     return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
 
+
 @pytest.fixture
 def seeded_board_dict(seeded_board, seeded_board_3x9, seeded_board_9x3):
     return {"7x7": seeded_board,
             "3x9": seeded_board_3x9,
             "9x3": seeded_board_9x3}
+
+
+@pytest.fixture
+def concentric_board_6x6():
+    connector_rows = [
+        '┌────┐',
+        '│┌──┐│',
+        '││┌┐││',
+        '││└┘││',
+        '│└──┘│',
+        '└────┘',
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
 
 
 @pytest.fixture
@@ -86,6 +105,11 @@ def player_three():
 @pytest.fixture
 def sample_seeded_game_state(seeded_board, player_one, player_two, player_three):
     return State.from_board_and_players(seeded_board, [player_one, player_two, player_three])
+
+
+@pytest.fixture
+def concentric_6x6_game_state(concentric_board_6x6, player_one, player_two, player_three):
+    return State.from_board_and_players(concentric_board_6x6, [player_one, player_two, player_three])
 
 
 @pytest.fixture
@@ -186,68 +210,54 @@ def test_is_active_player_at_goal_removed_all_players(sample_seeded_game_state):
     assert str(error_message.value) == "No players to check"
 
 
-# ----- Test can_active_player_reach_tile Method -----
-# verifies can_active_player_reach_given_tile returns True if the player can reach the given tile and False otherwise
-def test_player_can_reach_tile_above(sample_seeded_game_state):
-    current_board = sample_seeded_game_state.get_board()
-    current_player = sample_seeded_game_state.get_players()[0]
-    # Tile at location 5, 5, is cross shaped
-    current_tile_pos = current_player.get_current_position()
-    # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert Position(4, 5) in current_board.reachable_tiles(current_tile_pos)
-    # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_position(Position(4, 5))
+# ----- Test get_legal_destinations Method -----
+
+outer_ring_6x6 = [
+    Position(row, col)
+    for row, col in itertools.chain(itertools.product([0], range(6)),  # top
+                                    itertools.product(range(6), [5]),  # right
+                                    itertools.product([5], range(6)),  # bottom
+                                    itertools.product(range(6), [0]))  # left
+]
+middle_ring_6x6 = [
+    Position(1, 1), Position(1, 2), Position(1, 3), Position(1, 4),  # top
+    Position(2, 4), Position(3, 4),  # right
+    Position(4, 4), Position(4, 3), Position(4, 2), Position(4, 1),  # bottom
+    Position(3, 1), Position(2, 1),  # left
+]
+inner_ring_6x6 = [
+    Position(2, 2), Position(2, 3), Position(3, 3), Position(3, 2)
+]
 
 
-def test_player_can_reach_tile_below(sample_seeded_game_state):
-    current_board = sample_seeded_game_state.get_board()
-    current_player = sample_seeded_game_state.get_players()[0]
-    # Tile at location 5, 5, is cross shaped
-    current_tile_pos = current_player.get_current_position()
-    # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert Position(6, 5) in current_board.reachable_tiles(current_tile_pos)
-    # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_position(Position(6, 5))
+def test_reachable_destinations_player_one(concentric_6x6_game_state):
+    assert concentric_6x6_game_state.get_legal_destinations() == set(outer_ring_6x6) - {Position(5, 1)}
+    concentric_6x6_game_state.slide_and_insert(4, Direction.RIGHT)
+    # '┌────┐',
+    # '│┌──┐│',
+    # '││┌┐││',
+    # '││└┘││',
+    # '││└──┘',
+    # '└────┘',
+    #   ^p1
+    made_reachable = {Position(4, 2), Position(4, 3), Position(4, 4)}
+    all_reachable = set(outer_ring_6x6) | made_reachable
+    assert concentric_6x6_game_state.get_legal_destinations() == all_reachable - {Position(5, 1)}
 
 
-def test_player_can_not_reach_tile_right(sample_seeded_game_state):
-    current_board = sample_seeded_game_state.get_board()
-    current_player = sample_seeded_game_state.get_players()[0]
-    # Tile at location 5, 5, is cross shaped
-    current_tile_pos = current_player.get_current_position()
-    unreachable_tile = current_board.get_tile_grid()[5][6]
-    assert not unreachable_tile.has_path(Direction.LEFT)
-    # validate that reachable tile is not reachable using previously tested reachable_tiles method
-    assert Position(5, 6) not in current_board.reachable_tiles(current_tile_pos)
-    # assertion for new method
-    assert not sample_seeded_game_state.can_active_player_reach_position(Position(5, 6))
-
-
-def test_player_can_reach_tile_left(sample_seeded_game_state):
-    current_board = sample_seeded_game_state.get_board()
-    current_player = sample_seeded_game_state.get_players()[0]
-    # Tile at location 5, 5, is cross shaped
-    current_tile_pos = current_player.get_current_position()
-    # validate that reachable tile is reachable using previously tested reachable_tiles method
-    assert Position(5, 4) in current_board.reachable_tiles(current_tile_pos)
-    # assertion for new method
-    assert sample_seeded_game_state.can_active_player_reach_position(Position(5, 4))
-
-
-# verifies can_active_player_reach_given_tile throws an exception when no players are in the game
-def test_player_can_reach_tile_no_players(zero_player_game_state):
-    with pytest.raises(ValueError) as error_message:
-        zero_player_game_state.can_active_player_reach_position(Position(2, 2))
-    assert str(error_message.value) == "No players to check"
-
-
-def test_player_can_reach_tile_removed_all_players(sample_seeded_game_state):
-    with pytest.raises(ValueError) as error_message:
-        sample_seeded_game_state.kick_out_active_player()
-        sample_seeded_game_state.kick_out_active_player()
-        sample_seeded_game_state.kick_out_active_player()
-        sample_seeded_game_state.can_active_player_reach_position(Position(0, 0))
-    assert str(error_message.value) == "No players to check"
+def test_reachable_destinations_player_two(concentric_6x6_game_state):
+    concentric_6x6_game_state.change_active_player_turn()
+    assert concentric_6x6_game_state.get_legal_destinations() == set(inner_ring_6x6) - {Position(3, 3)}
+    concentric_6x6_game_state.slide_and_insert(2, Direction.LEFT)
+    # '┌────┐',
+    # '│┌──┐│',
+    # '│┌┐│││',
+    # '││└┘││', <-p2@(3,3)
+    # '│└──┘│',
+    # '└────┘',
+    #     ^
+    all_reachable = set(inner_ring_6x6 + middle_ring_6x6)
+    assert concentric_6x6_game_state.get_legal_destinations() == all_reachable - {Position(3, 3)}
 
 
 # ----- Test slide Method -----
