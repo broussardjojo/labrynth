@@ -3,4 +3,4 @@ Functionality
 140/100 pts: Passed 7 tests (including two extra bonus tests) (see student-server-staff-clients.txt)
 Inspection
 88/100 pts: See inspection.md
-Total: 248/340 pts
+Total: 248/300 pts
