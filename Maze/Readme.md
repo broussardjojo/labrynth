@@ -14,24 +14,81 @@ in this directory contains the latest versions of `pytest` and its dependencies 
 
 # Components and Roadmap
 
-The server side of Maze.com will use a `Server` that authenticates TCP clients, creates
-associated `APIPlayer` instances via the `RemotePlayer` proxy, and assigns them to a game.
-Clients will connect using a `Client` component, which performs the handshake (sending a
-name), and then responds to all incoming JSON using a `DispatchingReceiver`.
+### The server side of Maze.com
 
-When enough players have joined, the manager gives the players to a `Referee`, which then
-runs the game, and reports the winners and cheaters to the `LoginManager`.
+```
++---------------------------+
+| Server                    |   [socket.socket] <~ 
+| + signs up players        |
+|                           |    
+| + manages waiting         |    
+|      periods              |    
+| + creates referee and     |
+|      calls the RunGameFn  |>>>>, 
++---------------------------+    V
+                                 V
++---------------------------+    V
+| Referee                   |    V
+| + accepts added observers |    V
+|                           |    V
+| + runs game               |<<<<' [SafeAPIPlayer] (implemented by SafeRemotePlayer, a thin wrapper
+|    + setup (broadcast)    |                       around RemotePlayer)
+|    + runs rounds (many    |    ↱  [State]: ---------+---------------------------+
+|       take-turn and setup |     ↲                   | State                     |
+|       calls; send)        |                         | + rotates spare, slides & |     
+|    + win (broadcast)      |>>>>,                    |      inserts & moves      | 
++---------------------------+    V                    |      active player        | 
+                                 V                    |      (via AbstractState)  |  
+                                 V                    |                           |  
+                                 V                    | + allows move             |  
+                      [GameOutcome]                   |       validity checks     |
+                                                      |       (via AbstractState) |  
+                                                      |                           |  
+                                                      | + allows end game check   |  
+                                                      | + can kick active player  |
+                                                      | + can end turns           |
+                                                      | + allows game scoring     |
+                                                      +---------------------------+
+```
 
-The `Referee` can also accept `Observers` which receive updates on every turn. The `Observer` is
-trusted not to give away secrets, but the referee still shields itself from `Observer` methods
-crashing or timing out.
+### The client side of Maze.com
 
-- `Player`, `Referee`: milestone 5
-- `Observer`: milestone 6
-- `Server`, `Client`: milestone 8
+```
++---------------------------+
+| Client                    | 
+| + signs up 1 player       |>>>>,   
++---------------------------+    V
+                                 V
+                                 V
++---------------------------+    V
+| DispatchingReceiver       |    V  APIPlayer and
+| + participates through    |<<<<'   (read_channel: Iterator[Any], write_channel: IO[bytes])
+|      the stored player    |
++---------------------------+    ↱  [APIPlayer]: -----+---------------------------+
+                                  ↲                   | LocalPlayer               |
+                                                      | + remembers goal posn     |     
+                                                      |                           |     
+                                                      | + takes turns by          |  
+                                                      |      delegating to        |
++----------------------------+ -----------------------|      Strategy             |  
+| BaseStrategy               |                        +---------------------------+
+| + iterates through goal    |
+|      preference order      |
+|      (abstract)            |
+|                            |
+| + within that, iterates    |
+|      through slide pref.   |
+|      order and rotation    |
+|      preference order      |
+|                            |
+| + uses given RedactedState |
+|      to check move         |
+|      validity, returns     |
+|      first found           |
++----------------------------+
+```
 
-
-# Server-Client Diagram
+### Remote Interaction
 
 ```ascii
     Server         RemotePlayer          ============RemotePlayerMethod===========      DispatchingReceiver   LocalPlayer
@@ -54,7 +111,28 @@ crashing or timing out.
     |              |                     |                                       |                        |             |
 ```
 
+     w0          w1              rg           cl
+P(0) *           •               •            •
 
+
+
+P(1) •           •               •            •
+
+
+
+P(2) •           •               •            •
+
+
+
+
+P(3) •           •               •            •
+P(4) •           •               •            •
+P(5) •           •               •            •
+
+
+
+
+P(6) •           •               •            •
 # Code Files
 
 ### Client/client.py
