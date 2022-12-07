@@ -1,10 +1,11 @@
 import io
-from socket import SocketIO
 from threading import RLock
 from types import TracebackType
-from typing import IO, Type, Iterator, Iterable, Optional, List, Union
+from typing import IO, Type, Iterator, Iterable, Optional, List
 
 import select
+
+from Maze.Remote.types import IOBytes
 
 
 class ReadableStreamWrapper(IO[bytes]):
@@ -13,9 +14,9 @@ class ReadableStreamWrapper(IO[bytes]):
     """
     __lock: RLock
     __closed: bool
-    __wrapped: Union[IO[bytes], SocketIO]
+    __wrapped: IOBytes
 
-    def __init__(self, real_file: Union[IO[bytes], SocketIO]):
+    def __init__(self, real_file: IOBytes):
         self.__lock = RLock()
         self.__closed = False
         self.__wrapped = real_file

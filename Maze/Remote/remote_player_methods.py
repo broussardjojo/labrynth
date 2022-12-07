@@ -13,6 +13,7 @@ from Maze.JSON.deserializers import (get_redacted_state_from_json,
 from Maze.JSON.serializers import move_to_json, pass_to_json, redacted_state_to_json, position_to_json
 from Maze.Players.api_player import APIPlayer
 from Maze.Players.move import Move, Pass
+from Maze.Remote.types import IOBytes
 
 TJsonArgs = TypeVar("TJsonArgs")
 TArgs = TypeVar("TArgs")
@@ -57,7 +58,7 @@ class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
         self.__deserialize_result = deserialize_result
         self.__validate_result = validate_result
 
-    def call(self, args: TArgs, read_channel: Iterator[Any], write_channel: IO[bytes]) -> TResult:
+    def call(self, args: TArgs, read_channel: Iterator[Any], write_channel: IOBytes) -> TResult:
         """
         Runs the pipelines:
             1. args | serialize_args | write
@@ -75,7 +76,7 @@ class RemotePlayerMethod(Generic[TArgs, TJsonArgs, TResult, TJsonResult]):
         result = self.__deserialize_result(json_result)
         return result
 
-    def respond(self, player: APIPlayer, json_args: TJsonArgs, write_channel: IO[bytes]) -> None:
+    def respond(self, player: APIPlayer, json_args: TJsonArgs, write_channel: IOBytes) -> None:
         """
         Runs the pipelines:
             1. json_args | validate_args | deserialize_args
@@ -125,7 +126,7 @@ class _RemoteSetup(
         )
 
     def call(self, args: Tuple[Optional[RedactedState], Position], read_channel: Iterator[Any],
-             write_channel: IO[bytes]) -> Literal["void"]:
+             write_channel: IOBytes) -> Literal["void"]:
         return super().call(args, read_channel, write_channel)
 
 
@@ -156,7 +157,7 @@ class _RemoteTakeTurn(
         )
 
     def call(self, args: Tuple[RedactedState], read_channel: Iterator[Any],
-             write_channel: IO[bytes]) -> Union[Move, Pass]:
+             write_channel: IOBytes) -> Union[Move, Pass]:
         return super().call(args, read_channel, write_channel)
 
 
@@ -180,7 +181,7 @@ class _RemoteWin(
             validate_result=lambda _: (),
         )
 
-    def call(self, args: Tuple[bool], read_channel: Iterator[Any], write_channel: IO[bytes]) -> Any:
+    def call(self, args: Tuple[bool], read_channel: Iterator[Any], write_channel: IOBytes) -> Any:
         return super().call(args, read_channel, write_channel)
 
 
@@ -195,7 +196,7 @@ class RemotePlayerMethods:
 
     @classmethod
     def respond(cls, player: APIPlayer, method_name: PlayerMethodName, json_args: Any,
-                write_channel: IO[bytes]) -> None:
+                write_channel: IOBytes) -> None:
         """
         Uses a given player to respond to a method call received from a remote server
         :param player: An APIPlayer representing the logical responder
