@@ -13,6 +13,7 @@ from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
 from Maze.Common.thread_utils import gather_protected, await_protected
 from Maze.Common.utils import ALL_NAMED_COLORS, Maybe
+from Maze.JSON.serializers import state_and_goals_to_json
 from Maze.Players.api_player import APIPlayer
 from Maze.Players.move import Move, Pass
 from Maze.Players.safe_api_player import SafeAPIPlayer
@@ -148,6 +149,7 @@ class Referee:
         selected_board = self.get_proposed_board(players)
         player_details, additional_goals = self.__generate_players(selected_board, len(players))
         game_state = State.from_board_and_players(selected_board, player_details)
+        log.debug("generated state: %s", state_and_goals_to_json(game_state, additional_goals))
         return self.run_game_with_safe_players_and_goals(players, game_state, additional_goals)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
@@ -234,7 +236,6 @@ class Referee:
         num_players = len(self.__current_players)
         for _ in range(num_players):
             move_outcome = self.__run_active_player_turn(game_state)
-            any_player_moved |= move_outcome is MoveReturnType.MOVED
             if move_outcome is MoveReturnType.MOVED:
                 goal_reached = game_state.update_active_player_goals_reached()
                 if game_state.is_active_player_at_ultimate_goal():
@@ -244,6 +245,7 @@ class Referee:
                     setup_response = self.__inform_player_of_new_goal(game_state)
                     if not setup_response:
                         move_outcome = MoveReturnType.KICK
+            any_player_moved |= move_outcome is MoveReturnType.MOVED
 
             if move_outcome is MoveReturnType.KICK:
                 self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)

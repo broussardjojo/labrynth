@@ -53,7 +53,7 @@ def run_with_observer(state: State, additional_goals: List[Position], referee: R
     return game_task.result()
 
 
-def main(port: str) -> Tuple[List[str], List[str]]:
+def main(port: str, *options: str) -> Tuple[List[str], List[str]]:
     """
     Main method which composes many helper methods to read input, compute moves, get the reachable tiles, sort them,
      and encode output
@@ -63,8 +63,10 @@ def main(port: str) -> Tuple[List[str], List[str]]:
     assert len(json_obj_list) == 1
     json_referee_state = cast(JSONRefereeState2, json_obj_list[0])
     state, additional_goals = get_state_and_goals_from_json(json_referee_state)
-    # server = Server(int(port), partial(run_with_observers, state, additional_goals))
-    server = Server(int(port), partial(run_game, state, additional_goals))
+    if "--with-observer" in options:
+        server = Server(int(port), partial(run_with_observer, state, additional_goals))
+    else:
+        server = Server(int(port), partial(run_game, state, additional_goals))
     winner_names, cheater_names = server.conduct_game()
     winner_names.sort()
     cheater_names.sort()
