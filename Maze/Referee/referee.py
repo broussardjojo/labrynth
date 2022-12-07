@@ -5,7 +5,8 @@ from collections import deque
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
 from enum import Enum, auto
-from typing import List, Tuple, Any, ClassVar, Optional, Deque
+from types import TracebackType
+from typing import List, Tuple, Any, ClassVar, Optional, Deque, Type
 
 from Maze.Common.board import Board
 from Maze.Common.position import Position
@@ -94,10 +95,15 @@ class Referee:
         """
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type: Optional[Type[BaseException]],
+                 exc_val: Optional[BaseException],
+                 exc_tb: Optional[TracebackType]) -> None:
         """
         Overrides the __exit__ method of Referees so that in the case where this Referee made its own
         ThreadPoolExecutor, a `with Referee() as ref: ...` block always ends by closing the executor
+        :param exc_type: Unused
+        :param exc_val: Unused
+        :param exc_tb: Unused
         :return: None
         """
         if self.__created_own_executor:

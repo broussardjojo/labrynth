@@ -126,7 +126,7 @@ class _RemoteSetup(
         )
 
     def call(self, args: Tuple[Optional[RedactedState], Position], read_channel: Iterator[Any],
-             write_channel: IOBytes) -> Literal["void"]:
+             write_channel: IOBytes) -> Any:
         return super().call(args, read_channel, write_channel)
 
 

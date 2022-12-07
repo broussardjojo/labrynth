@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from Maze.Common.abstract_state import AbstractState
 from Maze.Common.position import Position
+from Maze.Common.redacted_state import RedactedState
 from Maze.Players.move import Move, Pass
 
 
@@ -12,7 +12,7 @@ class Strategy(ABC):
     implemented in any number of ways depending on the Player's AI of choice
     """
     @abstractmethod
-    def generate_move(self, current_state: AbstractState, target_position: Position) -> Union[Move, Pass]:
+    def generate_move(self, current_state: RedactedState, target_position: Position) -> Union[Move, Pass]:
         """
         A method to generate a move selected by the implemented strategy
         :param current_state: An ObservableState representing the current state of the game

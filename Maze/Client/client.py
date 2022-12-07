@@ -1,16 +1,13 @@
 import json
 import socket
 import time
-from concurrent.futures import ThreadPoolExecutor
-from typing import Iterator
-from contextlib import contextmanager
+from types import TracebackType
+from typing import Optional, Type
 
 import ijson
 
-from Maze.Common.thread_utils import gather_protected
-from Maze.Players.euclid import Euclid
+from Maze.Players.api_player import APIPlayer
 from Maze.Remote.referee import DispatchingReceiver
-from Maze.Players.api_player import APIPlayer, LocalPlayer
 
 # The number of seconds that the client should wait before shutting down if it starts before the Server has.
 WAIT_FOR_SERVER_DURATION = 15
@@ -72,7 +69,9 @@ class Client:
     def __enter__(self) -> "Client":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type: Optional[Type[BaseException]],
+                 exc_val: Optional[BaseException],
+                 exc_tb: Optional[TracebackType]) -> None:
         try:
             self.__connection.close()
         except OSError:

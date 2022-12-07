@@ -179,8 +179,7 @@ def get_api_player_from_json(json_player_spec_el: JSONPlayerSpecElement) -> APIP
     :param json_player_spec_el: a list with two elements: [name, strategy_designation]
     :return: an APIPlayer
     """
-    name = cast(str, json_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_player_spec_el[1])
+    name, strategy_designation = json_player_spec_el
     return LocalPlayer(name, get_strategy_from_json(strategy_designation))
 
 
@@ -190,9 +189,7 @@ def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecEleme
     :param json_bad_player_spec_el: a list with three elements: [name, strategy_designation, bad_method_name]
     :return: an APIPlayer
     """
-    name = cast(str, json_bad_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
-    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
+    name, strategy_designation, json_bad_method = json_bad_player_spec_el
     strategy = get_strategy_from_json(strategy_designation)
     if json_bad_method == "setUp":
         return BadLocalPlayer(name, strategy, "setup")
@@ -251,10 +248,7 @@ def get_eventually_bad_api_player_from_json(json_bad_player_spec_el: JSONEventua
      num_valid_turns]
     :return: an APIPlayer
     """
-    name = cast(str, json_bad_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
-    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
-    num_valid_turns = json_bad_player_spec_el[3]
+    name, strategy_designation, json_bad_method, num_valid_turns = json_bad_player_spec_el
     strategy = get_strategy_from_json(strategy_designation)
     if json_bad_method == "setUp":
         return EventuallyBadLocalPlayer(name, strategy, "setup", num_valid_turns)

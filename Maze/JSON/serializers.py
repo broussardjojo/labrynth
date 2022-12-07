@@ -1,11 +1,11 @@
-from typing import List, Tuple
+from typing import List, Tuple, cast
 
 from typing_extensions import assert_never
 
 from Maze.JSON.definitions import (
     JSONDirection, JSONChoiceMove, JSONCoordinate, JSONRefereePlayer, JSONRefereeState,
     JSONBoard, JSONConnector, JSONTreasure, JSONTile, OptionalJSONAction, JSONState, JSONPlayer, JSONChoicePass,
-    JSONRefereeState2
+    JSONRefereeState2, JSONRefereeStateWithGoals
 )
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
@@ -185,11 +185,13 @@ def state_and_goals_to_json(state: State, additional_goals: List[Position]) -> J
     """
     Gets the JSON representation of the given State + additional goals, which must include player secrets
     :param state: A State
+    :param additional_goals: A list of additional goals to assign to players.
     :return: A dict in the format {"board":{"connectors":[...],"treasures":[...]},"spare":
     {"tilekey":JSONConnector,"1-image":str,"2-image":str},"goals":[...],"plmt":[...],"last":[int, JSONDirection]|null}
     """
-    return {**state_to_json(state),
-            "goals": [position_to_json(position) for position in additional_goals]}
+    state_json = cast(JSONRefereeStateWithGoals, state_to_json(state))
+    state_json['goals'] = [position_to_json(position) for position in additional_goals]
+    return state_json
 
 
 def redacted_state_to_json(state: RedactedState) -> JSONState:
