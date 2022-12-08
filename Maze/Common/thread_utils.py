@@ -3,7 +3,7 @@ import sys
 import time
 from concurrent import futures
 from concurrent.futures import Future
-from typing import List, TypeVar
+from typing import List, TypeVar, Union
 from Maze.Common.utils import Nothing, Maybe, Just
 
 DEFAULT_TIMEOUT = 10
@@ -53,17 +53,35 @@ def await_protected(future: "Future[T]", timeout_seconds: float = DEFAULT_TIMEOU
     return gather_protected([future], timeout_seconds=timeout_seconds)[0]
 
 
-def sleep_interruptibly(delay_seconds: float, loop_interval: float = 0.1) -> None:
+def get_now_protected(future: "Future[T]") -> Union[BaseException, Maybe[T]]:
+    """
+    Attempts to retrieve the result of the given future without waiting.
+    :param future: an instance of concurrent.futures.Future, which is running on a ThreadPoolExecutor
+    :return: a Union[BaseException, Maybe[T]]. BaseException indicates that the future completed with that exception;
+        Just(T) indicates that the future completed normally, and Nothing() indicates that the future is still running.
+    """
+    try:
+        return Just(future.result(timeout=0))
+    except futures.TimeoutError:
+        return Nothing()
+    except BaseException as exc:
+        return exc
+
+
+def sleep_interruptibly(delay_seconds: float, loop_interval: float = 0.1, breaker: Just[bool] = Just(False)) -> None:
     """
     Sleeps for the given duration in seconds, using a loop so that the GIL does not block on a single `time.sleep`
     call.
     :param delay_seconds: The intended duration for sleep
     :param loop_interval: The maximum time to spend in one `time.sleep` call
+    :param breaker: A Just[bool]. If it's provided and its value becomes True during the loop, we break out of it
     :return: None
     :raises: ValueError if loop_interval is negative
     """
     delay_end = time.time() + delay_seconds
     delay_remaining = delay_seconds
     while delay_remaining > 0:
+        if breaker.get():
+            break
         time.sleep(min(delay_remaining, loop_interval))
         delay_remaining = delay_end - time.time()

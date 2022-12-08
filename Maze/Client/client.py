@@ -1,4 +1,5 @@
 import json
+import json
 import logging
 import socket
 from types import TracebackType
@@ -6,6 +7,7 @@ from typing import Optional, Type
 
 import ijson
 
+from Maze.Common.signal_listener import sigint_received_context
 from Maze.Common.thread_utils import sleep_interruptibly
 from Maze.Players.api_player import APIPlayer
 from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
@@ -28,20 +30,22 @@ def create_connection(host: str, port: int) -> socket.socket:
     :raises: socket.timeout if the final attempt in the allotted time period fails.
     :return: An iterator for a with block
     """
-    while True:
-        log.info("Attempting to connect to %s:%s", host, port)
-        try:
-            connection = socket.create_connection((host, port), timeout=1)
-        except socket.timeout:
-            sleep_interruptibly(CONFIG.client_start_interval)
-            log.info("Retrying connection")
-        else:
-            # Set infinite timeout; the client does not know how long the referee will take between
-            # method calls, and shouldn't care
-            connection.settimeout(None)
-            # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
-            # block
-            return connection
+    with sigint_received_context() as cancel_status:
+        while not cancel_status.get():
+            log.info("Attempting to connect to %s:%s", host, port)
+            try:
+                connection = socket.create_connection((host, port), timeout=1)
+            except socket.timeout:
+                sleep_interruptibly(CONFIG.client_start_interval, breaker=cancel_status)
+                log.info("Retrying connection")
+            else:
+                # Set infinite timeout; the client does not know how long the referee will take between
+                # method calls, and shouldn't care
+                connection.settimeout(None)
+                # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
+                # block
+                return connection
+    raise KeyboardInterrupt()
 
 
 class Client:

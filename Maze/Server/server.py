@@ -1,24 +1,20 @@
 import contextlib
 import logging
 import socket
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from dataclasses import dataclass
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
-from typing import Dict, List, Tuple, Iterator, Callable, Union, IO
+from typing import List, Tuple, Iterator, Callable, Union
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 from typing_extensions import assert_never
 
-from Maze.Common.utils import Maybe, Nothing, Just, is_valid_player_name
+from Maze.Common.utils import is_valid_player_name
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
-from Maze.Remote.types import IOBytes
-from Maze.Remote.player import RemotePlayer
-from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
+from Maze.Remote.types import IOBytes
 from Maze.Server.signup_state import TimingEvent, CompletedHandshakeEvent, SignupState, RunGamePhase, \
     WaitingPeriodPhase, CancelledPhase
 from Maze.config import CONFIG
