@@ -73,7 +73,7 @@ class State(AbstractState[RefereePlayerDetails]):
 
     def update_active_player_goals_reached(self) -> bool:
         """
-        adds 1 to the player's __player_to_goals_reached value if they are at their goal
+        Adds 1 to the active player's __player_to_goals_reached value if they are at their goal
         :return: True if the active player is at their goal Position, otherwise False
         """
         if self.is_active_player_at_goal() and not self.is_active_player_at_ultimate_goal():
@@ -83,8 +83,8 @@ class State(AbstractState[RefereePlayerDetails]):
 
     def is_active_player_at_ultimate_goal(self) -> bool:
         """
-        Checks if the active player for this State is has won (i.e. has reached two goals, their treasure
-        Position followed by their home Position).
+        Checks if the active player for this State is has won (i.e. has reached all their treasure-goals, and is on
+        their ultimate goal position).
         :return: True if the active player has won, otherwise False
         :raises: ValueError if there are no players in this State
         """
@@ -129,7 +129,7 @@ class State(AbstractState[RefereePlayerDetails]):
 
         Note: If the game ends because someone reached their home, this function must be called with the same active
             player that ended the game.
-        :param did_active_player_move:
+        :param did_active_player_move: Whether the active player chose to move on their turn.
         :return: A list of Players representing the winning Players
         """
         if not self._players:

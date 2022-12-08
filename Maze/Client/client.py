@@ -36,7 +36,7 @@ def create_connection(host: str, port: int) -> socket.socket:
             try:
                 connection = socket.create_connection((host, port), timeout=1)
             except socket.timeout:
-                sleep_interruptibly(CONFIG.client_start_interval, breaker=cancel_status)
+                sleep_interruptibly(CONFIG.client_retry_sleep_duration, breaker=cancel_status)
                 log.info("Retrying connection")
             else:
                 # Set infinite timeout; the client does not know how long the referee will take between
