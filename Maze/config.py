@@ -13,7 +13,7 @@ _log_levels = {
 }
 
 logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL", ""), logging.WARNING),
-                    format="%(asctime)s %(levelname)-8s %(threadName)-32s %(message)s")
+                    format="%(asctime)s %(levelname)-8s %(threadName)-24s %(message)s")
 
 
 @dataclass

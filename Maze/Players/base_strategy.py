@@ -18,12 +18,6 @@ class BaseStrategy(Strategy):
     more targets to try.
     """
 
-    def __init__(self):
-        """
-        Constructor for a BaseStrategy which initializes the __checked_positions list to an empty list because no
-        positions have been checked yet.
-        """
-        self.__checked_positions = []
 
     def get_legal_slides(self, state: RedactedState) -> Iterator[Tuple[int, Direction]]:
         """
