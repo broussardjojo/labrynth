@@ -1,16 +1,18 @@
 import json
+import logging
 import socket
-import time
 from types import TracebackType
 from typing import Optional, Type
 
 import ijson
 
+from Maze.Common.thread_utils import sleep_interruptibly
 from Maze.Players.api_player import APIPlayer
+from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.referee import DispatchingReceiver
+from Maze.config import CONFIG
 
-# The number of seconds that the client should wait before shutting down if it starts before the Server has.
-WAIT_FOR_SERVER_DURATION = 15
+log = logging.getLogger(__name__)
 
 
 class InvalidNameError(ValueError):
@@ -19,22 +21,20 @@ class InvalidNameError(ValueError):
     """
 
 
-def create_connection(host: str, port: int, retry_seconds: float = 0) -> socket.socket:
+def create_connection(host: str, port: int) -> socket.socket:
     """
     Yields a connection to the server. This method is responsible for retrying connection for up to
     a given number seconds before raising an error.
     :raises: socket.timeout if the final attempt in the allotted time period fails.
     :return: An iterator for a with block
     """
-    delay_end = time.time() + retry_seconds
-    delay_remaining: float = retry_seconds
-    while delay_remaining >= 0:
+    while True:
+        log.info("Attempting to connect to %s:%s", host, port)
         try:
-            connection = socket.create_connection((host, port), timeout=min(delay_remaining, 1))
-        except socket.timeout as error:
-            delay_remaining = delay_end - time.time()
-            if delay_remaining <= 0:
-                raise error
+            connection = socket.create_connection((host, port), timeout=1)
+        except socket.timeout:
+            sleep_interruptibly(CONFIG.client_start_interval)
+            log.info("Retrying connection")
         else:
             # Set infinite timeout; the client does not know how long the referee will take between
             # method calls, and shouldn't care
@@ -42,7 +42,6 @@ def create_connection(host: str, port: int, retry_seconds: float = 0) -> socket.
             # `yield` inside `with` adds the connection cleanup to the cleanup of our own `with self.connect`
             # block
             return connection
-    raise RuntimeError("Timeout error failed to raise with no time remaining")
 
 
 class Client:
@@ -64,7 +63,8 @@ class Client:
         """
         if not 0 < port_num < 65536:
             raise ValueError("Invalid port number supplied")
-        self.__connection = create_connection(host_name, port_num, retry_seconds=WAIT_FOR_SERVER_DURATION)
+        self.__connection = create_connection(host_name, port_num)
+        log.info("Client connected")
 
     def __enter__(self) -> "Client":
         return self
@@ -83,10 +83,10 @@ class Client:
         DispatchingReceiver for it.
         :return: A DispatchingReceiver connected to the game
         """
-        binary_read_channel = self.__connection.makefile("rb", buffering=0)
+        raw_binary_read_channel = self.__connection.makefile("rb", buffering=0)
+        binary_read_channel = ReadableStreamWrapper(raw_binary_read_channel)
         read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
         write_channel = self.__connection.makefile("wb", buffering=0)
         write_channel.write(json.dumps(player.name()).encode("utf-8"))
         dispatcher = DispatchingReceiver(player, read_channel, write_channel)
         return dispatcher
-
