@@ -1,5 +1,5 @@
 import json
-from typing import Optional, Tuple, Union, IO, Iterator, Any, Callable, TypeVar, Generic
+from typing import Optional, Tuple, Union, Iterator, Any, Callable, TypeVar, Generic
 
 from pydantic import parse_obj_as
 from typing_extensions import Literal, assert_never

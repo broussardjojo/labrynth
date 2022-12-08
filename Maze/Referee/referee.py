@@ -6,7 +6,7 @@ from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
 from enum import Enum, auto
 from types import TracebackType
-from typing import List, Tuple, Any, ClassVar, Optional, Deque, Type
+from typing import List, Tuple, Any, Optional, Deque, Type
 
 from Maze.Common.board import Board
 from Maze.Common.position import Position

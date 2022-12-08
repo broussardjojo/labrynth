@@ -1,9 +1,9 @@
 import logging
-import sys
 import time
 from concurrent import futures
 from concurrent.futures import Future
 from typing import List, TypeVar, Union
+
 from Maze.Common.utils import Nothing, Maybe, Just
 
 DEFAULT_TIMEOUT = 10

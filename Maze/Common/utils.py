@@ -3,7 +3,8 @@ import re
 from abc import ABC, abstractmethod
 from json import JSONDecoder
 from pathlib import Path
-from typing import Generic, List, Tuple, Union, Any, Callable, TypeVar, Dict
+from typing import Generic, List, Tuple, Any, Callable, TypeVar, Dict
+
 from typing_extensions import Literal, NoReturn
 
 from Maze.Common.position import Position

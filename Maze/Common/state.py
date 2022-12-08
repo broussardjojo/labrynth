@@ -1,13 +1,10 @@
 from typing import List, Tuple, Dict, Optional
 
+from Maze.Common.abstract_state import AbstractState
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
-from Maze.Common.utils import get_euclidean_distance_between
-
-from Maze.Common.position import Position
-from Maze.Common.abstract_state import AbstractState
 
 
 class State(AbstractState[RefereePlayerDetails]):

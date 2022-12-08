@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any
 
 from Maze.Common.direction import Direction
 from Maze.Common.position import Position

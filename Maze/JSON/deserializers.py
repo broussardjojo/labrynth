@@ -5,6 +5,7 @@ from typing_extensions import assert_never
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
+from Maze.Common.player_details import PlayerDetails
 from Maze.Common.position import Position
 from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
@@ -12,12 +13,11 @@ from Maze.Common.state import State
 from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
-    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethodName, \
-    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
+    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONPlayerSpec, \
+    JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
     JSONEventuallyBadPlayerSpecElement, JSONEventuallyBadPlayerSpec, JSONRefereeState2
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer, EventuallyBadLocalPlayer
 from Maze.Players.euclid import Euclid
-from Maze.Common.player_details import PlayerDetails
 from Maze.Players.move import Move, Pass
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy

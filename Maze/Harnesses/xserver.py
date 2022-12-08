@@ -7,8 +7,8 @@ from typing import cast, List, Tuple
 from Maze.Common.position import Position
 from Maze.Common.state import State
 from Maze.Common.utils import get_json_obj_list
-from Maze.JSON.definitions import JSONRefereeState, JSONRefereeState2
-from Maze.JSON.deserializers import get_state_from_json, get_state_and_goals_from_json
+from Maze.JSON.definitions import JSONRefereeState2
+from Maze.JSON.deserializers import get_state_and_goals_from_json
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
 from Maze.Referee.tk_observer import TkObserver
