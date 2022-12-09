@@ -9,6 +9,7 @@ from typing import Deque, Dict, Union
 from PIL import Image, ImageTk
 from typing_extensions import Literal, assert_never
 
+from Maze.Common.utils import ALL_NAMED_COLORS
 from Maze.Referee.observer import Observer
 from Maze.Common.player_details import PlayerDetails
 from Maze.Common.direction import Direction
@@ -172,6 +173,17 @@ class TkObserver(Observer):
         self.__window.update()
         return True
 
+    def __get_color(self, player: PlayerDetails) -> str:
+        """
+        Converts the player's color to one Tk can use.
+        :param player: The player
+        :return: A string of the form "#rrggbb" or one of the named colors
+        """
+        color = player.get_color()
+        if color in ALL_NAMED_COLORS:
+            return color
+        return f"#{color}"
+
     def __draw_game_over_screen(self) -> None:
         """
         Draws a "game over" screen that lets the observer see that no more States will become available
@@ -306,7 +318,7 @@ class TkObserver(Observer):
         :param player: the player who's home is being drawn on the given canvas
         :return: a canvas with the given player's home drawn on it
         """
-        player_color = player.get_color()
+        player_color = self.__get_color(player)
         drawn_tile.create_rectangle(0, self.TILE_CANVAS_DIM, self.HOME_SIZE, self.TILE_CANVAS_DIM - self.HOME_SIZE,
                                     fill=player_color, outline=player_color)
         return drawn_tile
@@ -334,7 +346,7 @@ class TkObserver(Observer):
         :param player: the player who's home is being drawn on the given canvas
         :return: a canvas with the given player's goal drawn on it
         """
-        player_color = player.get_color()
+        player_color = self.__get_color(player)
         drawn_tile.create_rectangle(self.GOAL_BORDER_INSET,
                                     self.GOAL_BORDER_INSET,
                                     self.TILE_CANVAS_DIM - self.GOAL_BORDER_INSET,
@@ -369,7 +381,7 @@ class TkObserver(Observer):
         :param player: the player who's avatar is being drawn on the given canvas
         :return: a canvas with the given player's avatar drawn on it
         """
-        player_color = player.get_color()
+        player_color = self.__get_color(player)
         drawn_tile.create_oval(self.TILE_CANVAS_DIM - self.AVATAR_SIZE, self.AVATAR_SIZE + offset,
                                self.TILE_CANVAS_DIM, 0 + offset,
                                fill=player_color, outline=player_color)

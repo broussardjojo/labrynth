@@ -5,6 +5,7 @@ from typing_extensions import assert_never
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.gem import Gem
+from Maze.Common.player_details import PlayerDetails
 from Maze.Common.position import Position
 from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
@@ -12,12 +13,11 @@ from Maze.Common.state import State
 from Maze.Common.tile import Tile
 from Maze.Common.utils import shape_dict
 from Maze.JSON.definitions import JSONBoard, JSONTreasure, JSONState, JSONConnector, JSONDirection, JSONPlayer, \
-    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONBadMethodName, \
-    JSONBadPlayerSpec, JSONPlayerSpec, JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
+    JSONAction, JSONPlayerSpecElement, JSONStrategyDesignation, JSONBadPlayerSpecElement, JSONPlayerSpec, \
+    JSONRefereeState, JSONCoordinate, JSONRefereePlayer, JSONChoice, \
     JSONEventuallyBadPlayerSpecElement, JSONEventuallyBadPlayerSpec, JSONRefereeState2
 from Maze.Players.api_player import LocalPlayer, APIPlayer, BadLocalPlayer, EventuallyBadLocalPlayer
 from Maze.Players.euclid import Euclid
-from Maze.Common.player_details import PlayerDetails
 from Maze.Players.move import Move, Pass
 from Maze.Players.riemann import Riemann
 from Maze.Players.strategy import Strategy
@@ -179,8 +179,7 @@ def get_api_player_from_json(json_player_spec_el: JSONPlayerSpecElement) -> APIP
     :param json_player_spec_el: a list with two elements: [name, strategy_designation]
     :return: an APIPlayer
     """
-    name = cast(str, json_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_player_spec_el[1])
+    name, strategy_designation = json_player_spec_el
     return LocalPlayer(name, get_strategy_from_json(strategy_designation))
 
 
@@ -190,9 +189,7 @@ def get_bad_api_player_from_json(json_bad_player_spec_el: JSONBadPlayerSpecEleme
     :param json_bad_player_spec_el: a list with three elements: [name, strategy_designation, bad_method_name]
     :return: an APIPlayer
     """
-    name = cast(str, json_bad_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
-    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
+    name, strategy_designation, json_bad_method = json_bad_player_spec_el
     strategy = get_strategy_from_json(strategy_designation)
     if json_bad_method == "setUp":
         return BadLocalPlayer(name, strategy, "setup")
@@ -251,10 +248,7 @@ def get_eventually_bad_api_player_from_json(json_bad_player_spec_el: JSONEventua
      num_valid_turns]
     :return: an APIPlayer
     """
-    name = cast(str, json_bad_player_spec_el[0])
-    strategy_designation = cast(JSONStrategyDesignation, json_bad_player_spec_el[1])
-    json_bad_method = cast(JSONBadMethodName, json_bad_player_spec_el[2])
-    num_valid_turns = json_bad_player_spec_el[3]
+    name, strategy_designation, json_bad_method, num_valid_turns = json_bad_player_spec_el
     strategy = get_strategy_from_json(strategy_designation)
     if json_bad_method == "setUp":
         return EventuallyBadLocalPlayer(name, strategy, "setup", num_valid_turns)

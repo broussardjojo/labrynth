@@ -5,7 +5,8 @@ from collections import deque
 from concurrent.futures import Executor, ThreadPoolExecutor, Future
 from copy import deepcopy
 from enum import Enum, auto
-from typing import List, Tuple, Any, ClassVar, Optional, Deque
+from types import TracebackType
+from typing import List, Tuple, Any, Optional, Deque, Type
 
 from Maze.Common.board import Board
 from Maze.Common.position import Position
@@ -13,6 +14,7 @@ from Maze.Common.referee_player_details import RefereePlayerDetails
 from Maze.Common.state import State
 from Maze.Common.thread_utils import gather_protected, await_protected
 from Maze.Common.utils import ALL_NAMED_COLORS, Maybe
+from Maze.JSON.serializers import state_and_goals_to_json
 from Maze.Players.api_player import APIPlayer
 from Maze.Players.move import Move, Pass
 from Maze.Players.safe_api_player import SafeAPIPlayer
@@ -93,10 +95,15 @@ class Referee:
         """
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type: Optional[Type[BaseException]],
+                 exc_val: Optional[BaseException],
+                 exc_tb: Optional[TracebackType]) -> None:
         """
         Overrides the __exit__ method of Referees so that in the case where this Referee made its own
         ThreadPoolExecutor, a `with Referee() as ref: ...` block always ends by closing the executor
+        :param exc_type: Unused
+        :param exc_val: Unused
+        :param exc_tb: Unused
         :return: None
         """
         if self.__created_own_executor:
@@ -148,6 +155,7 @@ class Referee:
         selected_board = self.get_proposed_board(players)
         player_details, additional_goals = self.__generate_players(selected_board, len(players))
         game_state = State.from_board_and_players(selected_board, player_details)
+        log.debug("generated state: %s", state_and_goals_to_json(game_state, additional_goals))
         return self.run_game_with_safe_players_and_goals(players, game_state, additional_goals)
 
     def run_game_from_state(self, players: List[APIPlayer], game_state: State) -> GameOutcome:
@@ -234,7 +242,6 @@ class Referee:
         num_players = len(self.__current_players)
         for _ in range(num_players):
             move_outcome = self.__run_active_player_turn(game_state)
-            any_player_moved |= move_outcome is MoveReturnType.MOVED
             if move_outcome is MoveReturnType.MOVED:
                 goal_reached = game_state.update_active_player_goals_reached()
                 if game_state.is_active_player_at_ultimate_goal():
@@ -244,6 +251,7 @@ class Referee:
                     setup_response = self.__inform_player_of_new_goal(game_state)
                     if not setup_response:
                         move_outcome = MoveReturnType.KICK
+            any_player_moved |= move_outcome is MoveReturnType.MOVED
 
             if move_outcome is MoveReturnType.KICK:
                 self.__handle_cheater(self.__current_players[game_state.get_active_player_index()], game_state)

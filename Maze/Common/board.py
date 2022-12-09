@@ -1,4 +1,3 @@
-import itertools
 import random
 from collections import deque
 from typing import List, Set, Any, Optional, Callable, Tuple, Iterable, Deque

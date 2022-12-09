@@ -12,7 +12,8 @@ _log_levels = {
     'DEBUG': logging.DEBUG,
 }
 
-logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL", ""), logging.WARNING))
+logging.basicConfig(level=_log_levels.get(os.getenv("LOG_LEVEL", ""), logging.WARNING),
+                    format="%(asctime)s %(levelname)-8s %(threadName)-24s %(message)s")
 
 
 @dataclass
@@ -52,6 +53,9 @@ class Config:
     client_start_interval: float
     """ The amount of time in seconds xclients should wait between connecting successive clients. """
 
+    client_retry_sleep_duration: float
+    """ The amount of time in seconds a Client should wait after a failed connection attempt before retrying. """
+
     observer_update_interval: float
     """ The desired amount of time in between observer updates (recommended value: 1/60th of a second). """
 
@@ -65,5 +69,6 @@ CONFIG = Config(referee_max_rounds=1000,
                 server_minimum_players_to_start=2,
                 server_maximum_players_to_start=6,
                 client_start_interval=3,
+                client_retry_sleep_duration=1,
                 observer_update_interval=1.0 / 60,
                 )

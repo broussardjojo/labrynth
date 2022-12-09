@@ -1,13 +1,10 @@
 from typing import List, Tuple, Dict, Optional
 
+from Maze.Common.abstract_state import AbstractState
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
 from Maze.Common.redacted_state import RedactedState
 from Maze.Common.referee_player_details import RefereePlayerDetails
-from Maze.Common.utils import get_euclidean_distance_between
-
-from Maze.Common.position import Position
-from Maze.Common.abstract_state import AbstractState
 
 
 class State(AbstractState[RefereePlayerDetails]):
@@ -95,30 +92,6 @@ class State(AbstractState[RefereePlayerDetails]):
             active_player = self.get_active_player()
             return active_player.is_goal_ultimate() and self.is_active_player_at_goal()
         raise ValueError("No players to check")
-
-    def can_active_player_reach_position(self, target_position: Position) -> bool:
-        """
-        Determines if the active player can reach a given Tile
-        :param target_position: A Tile representing the potential destination to check against
-        :return: True if the active player can reach the target, False otherwise
-        :raises: ValueError if there are no players in this State
-        """
-        if self._players:
-            active_player = self.get_active_player()
-            current_tile_position = active_player.get_current_position()
-            return self.__can_reach_position_from_position(current_tile_position, target_position)
-        raise ValueError("No players to check")
-
-    def __can_reach_position_from_position(self, start_position, end_position) -> bool:
-        """
-        Method to check if a given position can be reached from another given position on this State's Board
-        :param start_position: Position to begin from
-        :param end_position: Position to end at
-        :return: True if there is a path from the start Position to the end Position in the current condition of the
-        Board
-        """
-        all_reachable = self._board.reachable_tiles(end_position)
-        return start_position in all_reachable
 
     def is_active_player_at_home(self) -> bool:
         """

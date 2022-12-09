@@ -83,7 +83,9 @@ def socketpair():
         pair[0].close()
         pair[1].close()
 
+
 SocketPairType = Tuple[socket.socket, socket.socket]
+
 
 @contextlib.contextmanager
 def ensure_shutdown(connection: socket.socket):
@@ -93,8 +95,20 @@ def ensure_shutdown(connection: socket.socket):
         connection.shutdown(socket.SHUT_RDWR)
 
 
+def appending(fn, list_ref):
+    """Returns a function that calls `fn`, appends the result to `list_ref`, then returns the result"""
+
+    def wrapped(*args, **kwargs):
+        result = fn(*args, **kwargs)
+        list_ref.append(result)
+        return result
+
+    return wrapped
+
+
 def dispatching_receiver_with_mock_player(connection: socket.socket,
-                                          **implementations: Callable[..., Any]) -> Tuple[DispatchingReceiver, MagicMock]:
+                                          **implementations: Callable[..., Any]) -> Tuple[
+    DispatchingReceiver, MagicMock]:
     mock_player = MagicMock()
     for key, fn in implementations.items():
         mock_player.attach_mock(MagicMock(wraps=fn), key)
@@ -170,22 +184,39 @@ def test_remote_call_take_turn_type_error(socketpair: SocketPairType, seeded_gam
     assert take_turn_mock.call_count == 1
 
 
-@pytest.mark.parametrize("output", [
-    Move(0, Direction.UP, 90, Position(1, 2)),
-    Move(0, Direction.DOWN, 0, Position(5, 2)),
-    Move(1000, Direction.RIGHT, 180, Position(5555, 2)),
-    Move(1, Direction.LEFT, 270, Position(0, 0)),
-    Pass()
+@pytest.mark.parametrize("expected_json, expected_result", [
+    ([0, "DOWN", 0, {"row#": 5, "column#": 2}],
+     Move(0, Direction.DOWN, 0, Position(5, 2))
+     ),
+    ([0, "UP", 270, {"row#": 1, "column#": 2}],
+     Move(0, Direction.UP, 90, Position(1, 2))
+     ),
+    ([1000, "RIGHT", 180, {"row#": 5555, "column#": 2222}],
+     Move(1000, Direction.RIGHT, 180, Position(5555, 2222))
+     ),
+    ([1, "LEFT", 90, {"row#": 0, "column#": 0}],
+     Move(1, Direction.LEFT, 270, Position(0, 0))
+     ),
+    ("PASS", Pass()),
 ])
-def test_remote_call_win(socketpair: SocketPairType, seeded_game_state, output):
+def test_remote_call_take_turn(socketpair: SocketPairType, seeded_game_state, expected_json, expected_result):
     server_conn, client_conn = socketpair
 
-    receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda w: output)
+    receiver, mock = dispatching_receiver_with_mock_player(client_conn, take_turn=lambda w: expected_result)
     remote_player = RemotePlayer.from_socket("player1", server_conn)
+
+    # Mock read_channel to log each JSON value that ijson gives us
+    read_channel = getattr(remote_player, "_RemotePlayer__read_channel")
+    items_read = []
+    mock_read_channel = MagicMock()
+    mock_read_channel.__next__ = MagicMock(wraps=appending(read_channel.__next__, items_read))
+    setattr(remote_player, "_RemotePlayer__read_channel", mock_read_channel)
+
     with ThreadPoolExecutor() as executor:
         with ensure_shutdown(server_conn):
             client_task = executor.submit(receiver.listen_forever)
-            assert remote_player.take_turn(seeded_game_state.copy_redacted()) == output
+            assert remote_player.take_turn(seeded_game_state.copy_redacted()) == expected_result
+            assert items_read == [expected_json]
         await_protected(client_task, timeout_seconds=1)
     take_turn_mock: MagicMock = mock.take_turn
     assert take_turn_mock.call_count == 1
@@ -198,7 +229,7 @@ def test_remote_call_win(socketpair: SocketPairType, seeded_game_state, output):
     b']',
     b'////',
     b'))o)',
-    b"[0, 'UP', -90, {'row#': 0, 'column#': 0}]",
+    b"[0, 'UP', 90, {'row#': 0, 'column#': 0}]",
     b",",
     b"&~`"
 ])

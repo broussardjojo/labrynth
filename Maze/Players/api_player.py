@@ -5,6 +5,7 @@ from typing import Optional, Any, Union, cast
 
 from typing_extensions import Literal
 
+from Maze.Common.signal_listener import SignalListener
 from Maze.Players.move import Pass, Move
 from Maze.Players.strategy import Strategy
 from Maze.Common.board import Board
@@ -198,6 +199,7 @@ class EventuallyBadLocalPlayer(LocalPlayer):
             is_alive = False
 
         atexit.register(die)
+        SignalListener.instance.add_handler(die)
         while is_alive:
             time.sleep(0.01)
 

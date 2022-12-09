@@ -5,6 +5,7 @@ import ijson
 
 from Maze.Remote.remote_player_methods import RemotePlayerMethods
 from Maze.Players.api_player import APIPlayer
+from Maze.Remote.types import IOBytes
 
 
 class DispatchingReceiver:
@@ -15,9 +16,9 @@ class DispatchingReceiver:
 
     __player: APIPlayer
     __read_channel: Iterator[Any]
-    __write_channel: IO[bytes]
+    __write_channel: IOBytes
 
-    def __init__(self, player: APIPlayer, read_channel: Iterator[Any], write_channel: IO[bytes]):
+    def __init__(self, player: APIPlayer, read_channel: Iterator[Any], write_channel: IOBytes):
         """
         Method to construct a DispatchingReceiver with a player, read channel, and write channel
         :param player: the APIPlayer that this receiver will ask to make logical game decisions

@@ -1,15 +1,16 @@
 import logging
 import socket
-from typing import Union, Optional, Iterator, Any, IO
+from typing import Union, Optional, Iterator, Any
 
 import ijson
 
-from Maze.Remote.remote_player_methods import RemotePlayerMethods
 from Maze.Common.board import Board
 from Maze.Common.position import Position
 from Maze.Common.redacted_state import RedactedState
 from Maze.Players.api_player import APIPlayer, Acknowledgement
 from Maze.Players.move import Move, Pass
+from Maze.Remote.remote_player_methods import RemotePlayerMethods
+from Maze.Remote.types import IOBytes
 
 log = logging.getLogger(__name__)
 
@@ -22,9 +23,9 @@ class RemotePlayer(APIPlayer):
     """
 
     __read_channel: Iterator[Any]
-    __write_channel: IO[bytes]
+    __write_channel: IOBytes
 
-    def __init__(self, name: str, read_channel: Iterator[Any], write_channel: IO[bytes]):
+    def __init__(self, name: str, read_channel: Iterator[Any], write_channel: IOBytes):
         """
         Method to construct a RemotePlayer with a read channel and write channel
         :param name: the player's name

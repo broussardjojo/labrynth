@@ -1,12 +1,12 @@
 from abc import ABC
-from typing import List, Tuple, TypeVar, Generic, Set, Optional, Iterator
 from contextlib import contextmanager
+from typing import List, Tuple, TypeVar, Generic, Set, Iterator
 
 from Maze.Common.board import Board
 from Maze.Common.direction import Direction
+from Maze.Common.player_details import PlayerDetails
 from Maze.Common.position import Position
 from Maze.Common.position_transition_map import PositionTransitionMap
-from Maze.Common.player_details import PlayerDetails
 
 TPlayer = TypeVar("TPlayer", bound=PlayerDetails)
 
@@ -170,6 +170,17 @@ class AbstractState(ABC, Generic[TPlayer]):
 
     @contextmanager
     def exploration_context(self, degrees: int, slide: Tuple[int, Direction]) -> Iterator[None]:
+        """
+        Creates a context that referees / strategies can use to evaluate the legality of moves on a modified board.
+
+        Exiting the context restores the original state of the board.
+
+        :param degrees: The amount of clockwise degrees to rotate the spare tile.
+        :param slide: The index, Direction of the row/column to slide.
+        :return: None
+        :raises: ValueError if given degrees is not a multiple of 90
+        :raises: ValueError if the given index is not eligible to slide
+        """
         prevmoves = self._previous_moves.copy()
         # Perform the move and yield control to the with block
         self.rotate_spare_tile(degrees)

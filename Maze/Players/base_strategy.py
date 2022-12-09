@@ -18,6 +18,7 @@ class BaseStrategy(Strategy):
     more targets to try.
     """
 
+
     def get_legal_slides(self, state: RedactedState) -> Iterator[Tuple[int, Direction]]:
         """
         Creates an iterator of the legal slides, ordered by the follow criteria:
@@ -90,9 +91,9 @@ class BaseStrategy(Strategy):
 
         Moves are tested according to their destination's order in self.get_goals(), and for each destination,
         self.get_legal_slides() determines the preference order for slides.
-        :param current_state: The
-        :param target_position:
-        :return:
+        :param current_state: The starting state to generate a move from.
+        :param target_position: The primary goal that the active player wants to reach
+        :return: Union[Move, Pass]
         """
         cache: Dict[RotateAndSlide, Set[Position]] = {}
         for goal in self.get_goals(current_state, target_position):

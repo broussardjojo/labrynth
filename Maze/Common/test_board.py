@@ -1,5 +1,7 @@
+import itertools
 import random
 from copy import deepcopy
+from typing import Iterable, List, TypeVar
 
 import pytest
 from Maze.Common.board import Board
@@ -9,6 +11,8 @@ from Maze.Common.position import Position
 from Maze.Common.tile import Tile
 from Maze.Common.shapes import Corner, Cross
 from Maze.Common.utils import get_connector_from_shape, shape_dict
+
+T = TypeVar("T")
 
 
 def board_to_unicode(board):
@@ -21,6 +25,10 @@ def board_to_unicode(board):
         #     result += " "
         #     result += get_connector_from_shape(board.get_next_tile().get_shape())
     return result
+
+
+def flatten(nested: Iterable[Iterable[T]]) -> List[T]:
+    return list(itertools.chain.from_iterable(nested))
 
 
 # ------ Example Boards ------
@@ -53,6 +61,34 @@ def seeded_wide_board():
 @pytest.fixture
 def seeded_narrow_board():
     return Board.from_random_board(10, 3, rand=random.Random(10))
+
+
+@pytest.fixture
+def snake_board_6x7():
+    connector_rows = [
+        '┌─────┘',
+        '└─────┐',
+        '┌─────┘',
+        '└─────┐',
+        '┌─────┘',
+        '└─────┐',
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
+
+
+@pytest.fixture
+def concentric_board_6x6():
+    connector_rows = [
+        '┌────┐',
+        '│┌──┐│',
+        '││┌┐││',
+        '││└┘││',
+        '│└──┘│',
+        '└────┘',
+    ]
+    shape_grid = [[shape_dict[connector] for connector in cr] for cr in connector_rows]
+    return Board.from_list_of_shapes(shape_grid, next_tile_shape=shape_dict["│"])
 
 
 @pytest.fixture
@@ -211,6 +247,41 @@ def test_reachable_tiles_small_board(small_board):
 def test_reachable_tiles_not_reachable_small_board(small_board):
     reachable_tiles = small_board.reachable_tiles(Position(1, 1))
     assert Position(1, 2) not in reachable_tiles
+
+
+all_positions_6x7 = [Position(row, col) for row, col in itertools.product(range(6), range(7))]
+
+
+@pytest.mark.parametrize("start_pos", all_positions_6x7)
+def test_reachable_tiles_snake_board(snake_board_6x7, start_pos):
+    assert snake_board_6x7.reachable_tiles(start_pos) == set(all_positions_6x7)
+
+
+outer_ring_6x6 = [
+    Position(row, col)
+    for row, col in itertools.chain(itertools.product([0], range(6)),  # top
+                                    itertools.product(range(6), [5]),  # right
+                                    itertools.product([5], range(6)),  # bottom
+                                    itertools.product(range(6), [0]))  # left
+]
+middle_ring_6x6 = [
+    Position(1, 1), Position(1, 2), Position(1, 3), Position(1, 4),  # top
+    Position(2, 4), Position(3, 4),                                  # right
+    Position(4, 4), Position(4, 3), Position(4, 2), Position(4, 1),  # bottom
+    Position(3, 1), Position(2, 1),                                  # left
+]
+inner_ring_6x6 = [
+    Position(2, 2), Position(2, 3), Position(3, 3), Position(3, 2)
+]
+
+
+@pytest.mark.parametrize("start_pos, expected", flatten(
+    [(start_pos, set(ring)) for start_pos in ring]
+    for ring in [outer_ring_6x6, middle_ring_6x6, inner_ring_6x6]
+))
+def test_reachable_tiles_concentric_board(concentric_board_6x6, start_pos, expected):
+    # outer ring, middle ring, inner ring are the 3 connected components
+    assert concentric_board_6x6.reachable_tiles(start_pos) == expected
 
 
 # ----- Test check_stationary_position method ------

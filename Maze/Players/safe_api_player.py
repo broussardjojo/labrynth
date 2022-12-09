@@ -1,4 +1,4 @@
-from concurrent.futures import Future, ThreadPoolExecutor, Executor
+from concurrent.futures import Future, Executor
 from typing import Any, Optional, Union
 
 from Maze.Common.board import Board

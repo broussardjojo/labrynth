@@ -1,23 +1,20 @@
 import contextlib
 import logging
 import socket
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from dataclasses import dataclass
 from selectors import BaseSelector, DefaultSelector, EVENT_READ
-from typing import Dict, List, Tuple, Iterator, Callable, Union, IO
+from typing import List, Tuple, Iterator, Callable, Union
 
 import ijson
 from pydantic import ValidationError, StrictStr, parse_obj_as
 from typing_extensions import assert_never
 
-from Maze.Common.utils import Maybe, Nothing, Just, is_valid_player_name
+from Maze.Common.utils import is_valid_player_name
 from Maze.Players.safe_api_player import SafeAPIPlayer
 from Maze.Referee.referee import Referee, GameOutcome
-from Maze.Remote.player import RemotePlayer
-from Maze.Remote.readable_stream_wrapper import ReadableStreamWrapper
 from Maze.Remote.safe_remote_player import SafeRemotePlayer
+from Maze.Remote.types import IOBytes
 from Maze.Server.signup_state import TimingEvent, CompletedHandshakeEvent, SignupState, RunGamePhase, \
     WaitingPeriodPhase, CancelledPhase
 from Maze.config import CONFIG
@@ -134,12 +131,17 @@ class Server:
                 future = executor.submit(self.handshake, handshake_channel)
                 self._pending_handshakes.append((future, time.time(), tcp_connection))
             for remote_player in self._handle_handshake_timeouts(executor):
+                # Try to add the players who've successfully handshaken to the game
+                # It might just ignore the player, in which we need to tell it to close its connection explicitly
+                # Otherwise, it will be closed by a Referee call to on_kicked OR the Server.__bind above
                 self._state = self.update_signup_state(self._state, CompletedHandshakeEvent(remote_player))
+                if remote_player not in self._state.players:
+                    remote_player.on_kicked()
             elapsed_time = time.time() - start_time
             self._state = self.update_signup_state(self._state, TimingEvent(elapsed_time))
 
     @staticmethod
-    def handshake(binary_read_channel: Union[socket.SocketIO, IO[bytes]]) -> str:
+    def handshake(binary_read_channel: IOBytes) -> str:
         """
         Perform a handshake with the client on the given read channel to receive their name
         :param binary_read_channel: A file-like object from which bytes can be read
@@ -202,7 +204,7 @@ class Server:
         for future, _, connection in settled_handshakes:
             try:
                 name = future.result()
-                yield self._create_safe_remote_player(name, connection, executor)
+                yield SafeRemotePlayer.from_socket(name, executor, connection)
                 log.info("handshake complete, name=%s", name)
             except (ijson.IncompleteJSONError, ValidationError, InvalidNameError) as exc:
                 # catch the errors that future.result() can raise; handshake could have gotten malformed JSON,
@@ -226,25 +228,6 @@ class Server:
         """
         self._shutdown_if_needed(connection)
         log.info("handshake failed", exc_info=exception)
-
-    @staticmethod
-    def _create_safe_remote_player(name: str, connection: socket.socket,
-                                   executor: ThreadPoolExecutor) -> SafeAPIPlayer:
-        """
-        Creates a SafeRemotePlayer which will use the given socket for communication, and close it when the referee
-        kicks it out, or the game is over.
-        :param name: the name of the player
-        :param connection: the connection
-        :param executor: the ThreadPoolExecutor where RemotePlayer method calls will run
-        :return: the SafeRemotePlayer
-        """
-        raw_binary_read_channel = connection.makefile("rb", buffering=0)
-        binary_read_channel = ReadableStreamWrapper(raw_binary_read_channel)
-        read_channel = ijson.items(binary_read_channel, "", multiple_values=True)
-        write_channel = connection.makefile("wb", buffering=0)
-        remote_player = RemotePlayer(name, read_channel, write_channel)
-        safe_remote_player = SafeRemotePlayer(remote_player, executor, connection, binary_read_channel)
-        return safe_remote_player
 
     @staticmethod
     def update_signup_state(current_state: SignupState,
