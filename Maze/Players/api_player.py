@@ -208,6 +208,7 @@ class EventuallyBadLocalPlayer(LocalPlayer):
             self.__method_calls += 1
             if self.__method_calls >= self.__num_valid_calls:
                 self.__sleep_forever()
+                raise RuntimeError("Should be unreachable; EventuallyBadLocalPlayer broke out of sleep_forever")
         return super().setup(state, goal_position)
 
     def take_turn(self, current_state: RedactedState) -> Union[Move, Pass]:
@@ -215,6 +216,7 @@ class EventuallyBadLocalPlayer(LocalPlayer):
             self.__method_calls += 1
             if self.__method_calls >= self.__num_valid_calls:
                 self.__sleep_forever()
+                raise RuntimeError("Should be unreachable; EventuallyBadLocalPlayer broke out of sleep_forever")
         return super().take_turn(current_state)
 
     def win(self, did_win: bool) -> Acknowledgement:
@@ -222,4 +224,5 @@ class EventuallyBadLocalPlayer(LocalPlayer):
             self.__method_calls += 1
             if self.__method_calls >= self.__num_valid_calls:
                 self.__sleep_forever()
+                raise RuntimeError("Should be unreachable; EventuallyBadLocalPlayer broke out of sleep_forever")
         return super().win(did_win)

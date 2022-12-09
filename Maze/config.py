@@ -69,6 +69,6 @@ CONFIG = Config(referee_max_rounds=1000,
                 server_minimum_players_to_start=2,
                 server_maximum_players_to_start=6,
                 client_start_interval=3,
-                client_retry_sleep_duration=1,
+                client_retry_sleep_duration=0.5,
                 observer_update_interval=1.0 / 60,
                 )
