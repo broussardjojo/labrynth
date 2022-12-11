@@ -68,30 +68,3 @@ class SignalListener:
 
 # Construct the singleton of SignalListener
 SignalListener()
-
-
-@contextmanager
-def sigint_received_context() -> Iterator[Just[bool]]:
-    """
-    Creates a context value of Just(False), and registers a SIGINT handler to update the boxed bool to True.
-    Exiting the context unregisters that handler.
-    Intended usage:
-        with sigint_received_context() as cancel_status:
-            while not cancel_status.get():
-                <blocking things>
-    :return: Iterator[Just[bool]]
-    """
-    # beginning of context, no cancellation yet
-    cancel_status = Just(False)
-
-    def signal_responder() -> None:
-        # user wants the program to stop
-        cancel_status.value = True
-
-    SignalListener.instance.add_handler(signal_responder)
-    try:
-        yield cancel_status
-    finally:
-        SignalListener.instance.remove_handler(signal_responder)
-        if cancel_status.get():
-            raise KeyboardInterrupt()

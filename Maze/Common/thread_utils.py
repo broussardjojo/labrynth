@@ -68,20 +68,17 @@ def get_now_protected(future: "Future[T]") -> Union[BaseException, Maybe[T]]:
         return exc
 
 
-def sleep_interruptibly(delay_seconds: float, loop_interval: float = 0.1, breaker: Just[bool] = Just(False)) -> None:
+def sleep_interruptibly(delay_seconds: float, loop_interval: float = 0.1) -> None:
     """
     Sleeps for the given duration in seconds, using a loop so that the GIL does not block on a single `time.sleep`
     call.
     :param delay_seconds: The intended duration for sleep
     :param loop_interval: The maximum time to spend in one `time.sleep` call
-    :param breaker: A Just[bool]. If it's provided and its value becomes True during the loop, we break out of it
     :return: None
     :raises: ValueError if loop_interval is negative
     """
     delay_end = time.time() + delay_seconds
     delay_remaining = delay_seconds
     while delay_remaining > 0:
-        if breaker.get():
-            break
         time.sleep(min(delay_remaining, loop_interval))
         delay_remaining = delay_end - time.time()
