@@ -98,7 +98,7 @@ in this directory contains the latest versions of `pytest` and its dependencies 
 |                           |                                          |  a DispatchingReceiver        |
 |  in FG, accum.³ them and  |                                          |  backed by a given APIPlayer  |
 |  start⁴ at the correct    |                                          | ============================= |
-|  time, or cancel after 2  |                                          | + ¹__init__()                 |
+|  time, or cancel after 2  |                                          | + ¹create_connection()        |
 |  waiting periods.         |     [Control given to xclients  <--------| + ²register_for_game()        |
 | ========================= |      which then calls                    +-------------------------------+
 | + given run_game_fn       |      listen_forever() on the
