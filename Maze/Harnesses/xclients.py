@@ -4,8 +4,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from typing import cast, List, Set
 
-from Maze.Client.client import Client
-from Maze.Common.signal_listener import sigint_received_context
+from Maze.Client.client import Client, create_connection
 from Maze.Common.thread_utils import sleep_interruptibly, get_now_protected
 from Maze.Common.utils import get_json_obj_list
 from Maze.JSON.definitions import JSONEventuallyBadPlayerSpec
@@ -16,21 +15,16 @@ from Maze.config import CONFIG
 log = logging.getLogger(__name__)
 
 
-def play_game_thread(player: APIPlayer, host: str, port: int, delay: float) -> None:
-    with sigint_received_context() as cancel_status:
-        sleep_interruptibly(delay, breaker=cancel_status)
-    with Client(host, port) as client:
-        dispatching_receiver = client.register_for_game(player)
-        dispatching_receiver.listen_forever()
-
-
 def play_game(players: List[APIPlayer], host: str, port: int) -> None:
     with ThreadPoolExecutor(max_workers=32) as executor:
         future_set: Set[Future[None]] = set()
 
-        for join_index, player in enumerate(players):
-            delay = join_index * CONFIG.client_start_interval
-            future_set.add(executor.submit(play_game_thread, player, host, port, delay))
+        for player in players:
+            connection = create_connection(host, port)
+            client = Client(connection)
+            dispatching_receiver = client.register_for_game(player)
+            future_set.add(executor.submit(dispatching_receiver.listen_forever))
+            sleep_interruptibly(CONFIG.client_start_interval)
 
         while len(future_set):
             # Interruptible version of gather_protected
@@ -46,7 +40,6 @@ def play_game(players: List[APIPlayer], host: str, port: int) -> None:
             # If there are still incomplete futures, give them some time to run
             if len(future_set):
                 time.sleep(0.01)
-
 
 
 def main(port: str, host: str = "127.0.0.1") -> None:
