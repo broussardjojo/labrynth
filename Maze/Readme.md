@@ -162,3 +162,14 @@ the `Maybe[TResult]` `is_present` to differentiate success from failure (timeout
 ### Client-side and remote proxies
 
 ![Client-side and remote proxies](../client-and-remote-diagram.jpg)
+
+# Feature demonstrations
+
+- Allowing concurrent handshakes.
+
+   ```shell
+   # in other terminal: LOG_LEVEL=INFO ./xserver 9876
+   { sleep 0.5; echo '"player1"'; } | nc localhost 9876 & \
+     { sleep 1; echo '"player2"'; } | nc localhost 9876 & \
+     { sleep 2.5; echo '"player3"'; } | nc localhost 9876
+   ```
